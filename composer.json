@@ -1,0 +1,27 @@
+{
+    "name": "fintecture/payment",
+    "description": "Fintecture Payment",
+    "keywords": ["payment","bank"],
+    "homepage": "https://github.com/Fintecture/magento",
+    "support": {
+        "email": "contact@fintecture.com"
+    },
+    "require": {
+        "php": ">=7.1",
+        "ext-json": "*",
+        "ext-openssl": "*"
+    },
+    "type": "magento2-module",
+    "version": "1.0.4",
+    "license": [
+        "GPL-3.0"
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Fintecture\\Payment\\": "."
+        }
+    }
+}

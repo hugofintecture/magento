@@ -1,0 +1,66 @@
+<?php
+declare(strict_types=1);
+
+use Fintecture\Payment\Block\CustomLogo;
+use Fintecture\Payment\Model\LogoPosition;
+use Fintecture\Payment\Model\ShowLogo;
+
+/** @var CustomLogo $block */
+$configLogoImage = $block->getImageUrl();
+$getLogoType     = $block->getLogoType();
+
+$cssClasses = '';
+
+if ($getLogoType === ShowLogo::SHORT) {
+    $backgroundSize = '30% 100%';
+
+} else {
+    $backgroundSize = '100% 100%';
+
+}
+// initialize variables
+$position = null;
+$margin   = null;
+
+$getLogoPosition = $block->getLogoPosition();
+
+if ($getLogoPosition === LogoPosition::LEFT && $getLogoType === ShowLogo::SHORT) {
+    $position        = 'before';
+    $margin          = "0px -44px 0px -56px";
+    $background_size = 'auto';
+
+} elseif ($getLogoPosition === LogoPosition::LEFT && $getLogoType === ShowLogo::LONG) {
+    $position        = 'before';
+    $margin          = "0px 0px 0px 0px";
+    $background_size = 'auto';
+
+} elseif ($getLogoPosition === LogoPosition::RIGHT && $getLogoType === ShowLogo::LONG) {
+    $position        = 'after';
+    $margin          = "0px 0px 0px 0px";
+    $background_size = 'auto';
+
+
+} elseif ($getLogoPosition === LogoPosition::RIGHT && $getLogoType === ShowLogo::SHORT) {
+    $position        = 'after';
+    $margin          = "0px 0px 0px -43px;";
+    $background_size = 'auto';
+
+}
+?>
+
+
+<style>
+    .checkout-index-index .payment-method .payment-method-title label.label.img_label:<?= $position; ?> {
+        background-image: url(<?= $configLogoImage; ?>);
+        background-repeat: no-repeat;
+        background-size: <?= $backgroundSize; ?>;
+        background-position: center;
+        content: "fintecture";
+        color: transparent;
+        font-size: 29px;
+        margin: <?= $margin; ?>;
+        position: relative;
+        top: 6px;
+
+    }
+</style>

@@ -1,0 +1,179 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="fintecture" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+
+                <!--  <label><![CDATA[<div class="fintecture-payment"><h1><i>Fin</i>tecture</h1></div>
+                         <div class="fintecture-payment-title">Fintecture Payment, Building the Open Banking ecosystem together.</div>]]>
+                 </label> -->
+
+                <attribute type="fintecture_separator">0</attribute>
+                <fieldset_css>checkout-settings checkout-payment-section</fieldset_css>
+                <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+                <!--   <frontend_model>Fintecture\Payment\Block\System\Config\Form\Field\Disable</frontend_model> -->
+
+                <group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+
+                    <label>Fintecture Settings</label>
+
+                    <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/fintecture/active</config_path>
+                    </field>
+                    <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+                           showInStore="1">
+                        <label>Title</label>
+                        <config_path>payment/fintecture/title</config_path>
+                    </field>
+
+                    <!-- <field id="tagline" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Tagline</label>
+
+                        <config_path>payment/fintecture/tagline</config_path>
+                    </field> -->
+
+
+                    <field id="environment" translate="label" type="select" sortOrder="20" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Environment</label>
+
+                        <source_model>Fintecture\Payment\Model\Environment</source_model>
+                        <config_path>payment/fintecture/environment</config_path>
+                    </field>
+
+                    <field id="bank_type" translate="label" type="select" sortOrder="20" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Bank Type</label>
+
+                        <source_model>Fintecture\Payment\Model\Banktype</source_model>
+                        <!-- <config_path>payment/fintecture/environment</config_path> -->
+                        <comment>Filter the bank type</comment>
+                    </field>
+                    <field id="show_logo" translate="label" type="select" sortOrder="20" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Show Logo</label>
+
+                        <source_model>Fintecture\Payment\Model\ShowLogo</source_model>
+                        <!-- <config_path>payment/fintecture/environment</config_path> -->
+                        <comment>Show logo at checkout</comment>
+                    </field>
+                    <field id="logo_position" translate="label" type="select" sortOrder="20" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Logo Position</label>
+
+                        <source_model>Fintecture\Payment\Model\LogoPosition</source_model>
+                        <!-- <config_path>payment/fintecture/environment</config_path> -->
+
+                    </field>
+                    <!-- ############# SANDBOX  START################## -->
+                    <field id="fintecture_app_id_sandbox" translate="label" type="text" sortOrder="53" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Fintecture APP ID</label>
+                        <depends>
+                            <field id="environment">sandbox</field>
+                        </depends>
+                        <validate>required-entry</validate>
+                        <comment>Sandbox</comment>
+                        <config_path>payment/fintecture/fintecture_app_id_sandbox</config_path>
+                    </field>
+
+                    <field id="fintecture_app_secret_sandbox" translate="label" type="obscure" sortOrder="54"
+                           showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Fintecture APP Secret</label>
+                        <depends>
+                            <field id="environment">sandbox</field>
+                        </depends>
+                        <comment>Sandbox</comment>
+                        <validate>required-entry</validate>
+                        <config_path>payment/fintecture/fintecture_app_secret_sandbox</config_path>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    </field>
+
+                    <field id="custom_file_upload_sandbox" translate="label"
+                           type="Magento\Config\Block\System\Config\Form\Field\File" sortOrder="60" showInDefault="1"
+                           showInWebsite="1">
+                        <label>Fintecture Private Key</label>
+                        <depends>
+                            <field id="environment">sandbox</field>
+                        </depends>
+                        <config_path>payment/fintecture/custom_file_upload_sandbox</config_path>
+
+                        <backend_model>Fintecture\Payment\Config\Model\Config\Backend\PrivateKeyFile</backend_model>
+                        <upload_dir config="system" scope_info="0">lib/app_private_key_sandbox</upload_dir>
+                        <!--                        <comment>Note Key file name must be `app_privateKey.pem` (sandbox)</comment> -->
+                    </field>
+                    <!-- ############# SANDBOX END ################## -->
+
+
+                    <!-- ############# PRODUCTION START################## -->
+                    <field id="fintecture_app_id_production" translate="label" type="text" sortOrder="53"
+                           showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Fintecture APP ID</label>
+                        <depends>
+                            <field id="environment">production</field>
+                        </depends>
+                        <validate>required-entry</validate>
+                        <config_path>payment/fintecture/fintecture_app_id_production</config_path>
+                    </field>
+
+                    <field id="fintecture_app_secret_production" translate="label" type="obscure" sortOrder="53"
+                           showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Fintecture APP Secret</label>
+                        <depends>
+                            <field id="environment">production</field>
+                        </depends>
+                        <validate>required-entry</validate>
+                        <config_path>payment/fintecture/fintecture_app_secret_production</config_path>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    </field>
+
+                    <field id="custom_file_upload_production" translate="label"
+                           type="Magento\Config\Block\System\Config\Form\Field\File" sortOrder="60" showInDefault="1"
+                           showInWebsite="1">
+                        <label>Fintecture Private Key</label>
+                        <depends>
+                            <field id="environment">production</field>
+                        </depends>
+                        <config_path>payment/fintecture/custom_file_upload_production</config_path>
+                        <backend_model>Fintecture\Payment\Config\Model\Config\Backend\PrivateKeyFile</backend_model>
+
+                        <upload_dir config="system" scope_info="0">lib/app_private_key_production</upload_dir>
+                        <!--      <comment>Note Key file name must be `app_privateKey.pem`</comment> -->
+                    </field>
+
+
+                    <field id="button_id" translate="label" type="button" sortOrder="70" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <frontend_model>Fintecture\Payment\Block\System\Config\Button</frontend_model>
+                    </field>
+
+                    <!-- ############# PRODUCTION END ################## -->
+                </group>
+                <!-- ############# Start Payment Options ################## -->
+                <group id="payment_options" translate="label" type="text" sortOrder="4" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Payment Options</label>
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1"
+                           showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Payment from Applicable Countries</label>
+                        <config_path>payment/fintecture/allowspecific</config_path>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                    </field>
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="10" showInDefault="1"
+                           showInWebsite="1" showInStore="1">
+                        <label>Payment from Specific Countries</label>
+                        <config_path>payment/fintecture/specificcountry</config_path>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <can_be_empty>1</can_be_empty>
+                    </field>
+                </group>
+                <!-- ############# End Payment Options ################## -->
+            </group>
+        </section>
+    </system>
+</config>
