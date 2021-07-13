@@ -64,7 +64,7 @@ class PrivateKeyFile extends File
         return ['pem'];
     }
 
-    public function getUploadDirPath($uploadDir): string
+    public function getUploadDirPath($uploadDir)
     {
         $configReader = (ObjectManager::getInstance())->create('Magento\Framework\Module\Dir\Reader');
         return $configReader->getModuleDir('etc', 'Fintecture_Payment') . DIRECTORY_SEPARATOR . $uploadDir;

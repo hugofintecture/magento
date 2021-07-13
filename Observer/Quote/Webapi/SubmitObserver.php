@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Fintecture\Payment\Observer\Quote;
+namespace Fintecture\Payment\Observer\Quote\Webapi;
 
 use Exception;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\Event\Observer;
 use Magento\Quote\Model\Quote;
-use Magento\Quote\Observer\SubmitObserver as MagentoSubmitObserver;
+use Magento\Quote\Observer\Webapi\SubmitObserver as MagentoSubmitObserver;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -16,24 +16,19 @@ use Psr\Log\LoggerInterface;
 class SubmitObserver extends MagentoSubmitObserver
 {
     /** @var LoggerInterface */
-    private $logger;
+    protected $logger;
 
     /** @var OrderSender */
-    private $orderSender;
-
-    /** @var InvoiceSender */
-    private $invoiceSender;
+    protected $orderSender;
 
     public function __construct(
         LoggerInterface $logger,
-        OrderSender $orderSender,
-        InvoiceSender $invoiceSender
+        OrderSender $orderSender
     )
     {
         $this->logger        = $logger;
         $this->orderSender   = $orderSender;
-        $this->invoiceSender = $invoiceSender;
-        parent::__construct($logger, $orderSender, $invoiceSender);
+        parent::__construct($logger, $orderSender);
     }
 
     public function execute(Observer $observer)
@@ -53,12 +48,6 @@ class SubmitObserver extends MagentoSubmitObserver
         ) {
             try {
                 $this->orderSender->send($order);
-
-                /** @var Order\Invoice $invoice */
-                $invoice = current($order->getInvoiceCollection()->getItems());
-                if ($invoice) {
-                    $this->invoiceSender->send($invoice);
-                }
             }
             catch (Exception $e) {
                 $this->logger->critical($e);

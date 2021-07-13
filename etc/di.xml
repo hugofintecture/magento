@@ -21,6 +21,6 @@
     <type name="Magento\Framework\App\Request\CsrfValidator">
         <plugin name="csrf_validator_skip" type="Fintecture\Payment\Plugin\CsrfValidatorSkip"/>
     </type>
-    <preference for="Magento\Quote\Observer\SubmitObserver" type="Fintecture\Payment\Observer\Quote\SubmitObserver"/>
+    <preference for="Magento\Quote\Observer\Webapi\SubmitObserver" type="Fintecture\Payment\Observer\Quote\Webapi\SubmitObserver"/>
     <preference for="Magento\Quote\Model\QuoteManagement" type="Fintecture\Payment\Model\QuoteManagement"/>
 </config>
