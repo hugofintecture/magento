@@ -7,7 +7,6 @@ use Exception;
 use Fintecture\Payment\Logger\Logger;
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
@@ -25,7 +24,7 @@ use Magento\Quote\Model\Quote\Item\ToOrderItem as ToOrderItemConverter;
 use Magento\Quote\Model\Quote\Payment\ToOrderPayment as ToOrderPaymentConverter;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Quote\Model\SubmitQuoteValidator;
+use Magento\Quote\Model\QuoteValidator;
 use Magento\Sales\Api\Data\OrderInterfaceFactory as OrderFactory;
 use Magento\Sales\Api\OrderManagementInterface as OrderManagement;
 use Magento\Store\Model\StoreManagerInterface;
@@ -92,30 +91,21 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
     /** @var QuoteFactory */
     protected $quoteFactory;
 
-    /** @var SubmitQuoteValidator */
+    /** @var QuoteValidator */
     private $submitQuoteValidator;
 
     /** @var QuoteIdMaskFactory */
     private $quoteIdMaskFactory;
 
-    /** @var AddressRepositoryInterface */
-    private $addressRepository;
-
     /** @var array */
     private $addressesToSync = [];
-
-    /** @var RequestInterface */
-    private $request;
-
-    /** @var RemoteAddress */
-    private $remoteAddress;
 
     /** @var Fintecture\Payment\Model\Order */
     private $fintectureOrder;
 
     public function __construct(
         EventManager $eventManager,
-        SubmitQuoteValidator $submitQuoteValidator,
+        QuoteValidator $submitQuoteValidator,
         OrderFactory $orderFactory,
         OrderManagement $orderManagement,
         CustomerManagement $customerManagement,
@@ -135,10 +125,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
         AccountManagementInterface $accountManagement,
         QuoteFactory $quoteFactory,
         Order $fintectureOrder,
-        QuoteIdMaskFactory $quoteIdMaskFactory = null,
-        AddressRepositoryInterface $addressRepository = null,
-        RequestInterface $request = null,
-        RemoteAddress $remoteAddress = null
+        QuoteIdMaskFactory $quoteIdMaskFactory = null
     )
     {
         parent::__construct(
@@ -162,10 +149,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             $customerSession,
             $accountManagement,
             $quoteFactory,
-            $quoteIdMaskFactory,
-            $addressRepository,
-            $request,
-            $remoteAddress
+            $quoteIdMaskFactory
         );
         $this->submitQuoteValidator = $submitQuoteValidator;
         $this->fintectureOrder      = $fintectureOrder;
@@ -188,7 +172,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
         return parent::submitQuote($quote, $orderData);
     }
 
-    public function useExistingOrder(?string $fintectureState): bool
+    public function useExistingOrder(string $fintectureState = null): bool
     {
         return $fintectureState !== null;
     }

@@ -65,7 +65,7 @@ abstract class WebhookAbstract extends Action
      * &provider=provider
      * &state=thisisastate
      */
-    public function validateWebhook(): bool
+    public function validateWebhook()
     {
         $body = file_get_contents('php://input');
         parse_str($body, $data);

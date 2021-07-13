@@ -371,7 +371,7 @@ class Fintecture extends AbstractMethod
         }
     }
 
-    public function validateConfigValue(): void
+    public function validateConfigValue()
     {
         if (!$this->getFintectureApiUrl()
             || !$this->getAppPrivateKey()
