@@ -1,11 +1,11 @@
-# Fintecture Payment module for magento 2-3, 2.4
+# Fintecture Payment module for magento 2-2
 Fintecture is a Fintech that has a payment solution via bank transfer available at [https://www.fintecture.com/]. 
 
 Email to developer@fintecture.com to get the full API documentation
 **Requirements**
 
 - PHP 7.1 or greater with extensions 'json', 'openssl' activated
-- Magento 2.3 or 2.4
+- Magento 2.2
 
 **Installation**
 

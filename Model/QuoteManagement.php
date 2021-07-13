@@ -104,12 +104,6 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
     /** @var array */
     private $addressesToSync = [];
 
-    /** @var RequestInterface */
-    private $request;
-
-    /** @var RemoteAddress */
-    private $remoteAddress;
-
     /** @var Fintecture\Payment\Model\Order */
     private $fintectureOrder;
 
@@ -136,9 +130,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
         QuoteFactory $quoteFactory,
         Order $fintectureOrder,
         QuoteIdMaskFactory $quoteIdMaskFactory = null,
-        AddressRepositoryInterface $addressRepository = null,
-        RequestInterface $request = null,
-        RemoteAddress $remoteAddress = null
+        AddressRepositoryInterface $addressRepository = null
     )
     {
         parent::__construct(
@@ -163,9 +155,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             $accountManagement,
             $quoteFactory,
             $quoteIdMaskFactory,
-            $addressRepository,
-            $request,
-            $remoteAddress
+            $addressRepository
         );
         $this->submitQuoteValidator = $submitQuoteValidator;
         $this->fintectureOrder      = $fintectureOrder;
