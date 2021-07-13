@@ -21,19 +21,14 @@ class SubmitObserver extends MagentoSubmitObserver
     /** @var OrderSender */
     private $orderSender;
 
-    /** @var InvoiceSender */
-    private $invoiceSender;
-
     public function __construct(
         LoggerInterface $logger,
-        OrderSender $orderSender,
-        InvoiceSender $invoiceSender
+        OrderSender $orderSender
     )
     {
         $this->logger        = $logger;
         $this->orderSender   = $orderSender;
-        $this->invoiceSender = $invoiceSender;
-        parent::__construct($logger, $orderSender, $invoiceSender);
+        parent::__construct($logger, $orderSender);
     }
 
     public function execute(Observer $observer)
@@ -53,12 +48,6 @@ class SubmitObserver extends MagentoSubmitObserver
         ) {
             try {
                 $this->orderSender->send($order);
-
-                /** @var Order\Invoice $invoice */
-                $invoice = current($order->getInvoiceCollection()->getItems());
-                if ($invoice) {
-                    $this->invoiceSender->send($invoice);
-                }
             }
             catch (Exception $e) {
                 $this->logger->critical($e);
