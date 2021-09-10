@@ -1,6 +1,6 @@
 {
     "name": "fintecture/payment",
-    "description": "Fintecture Payment",
+    "description": "Fintecture Payment Initiation module for Magento2",
     "keywords": ["payment","bank"],
     "homepage": "https://github.com/Fintecture/magento",
     "support": {
