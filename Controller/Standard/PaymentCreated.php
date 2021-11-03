@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
@@ -19,7 +20,7 @@ class PaymentCreated extends WebhookAbstract
                 $this->fintectureLogger->debug('Webhook payment created', [$data]);
 
                 $fintecturePaymentSessionId = $data['session_id'] ?? '';
-                $fintecturePaymentStatus    = $data['status'] ?? '';
+                $fintecturePaymentStatus = $data['status'] ?? '';
 
                 if ($fintecturePaymentSessionId) {
                     $orderCollection = $this->orderCollectionFactory->create();
@@ -31,17 +32,15 @@ class PaymentCreated extends WebhookAbstract
                         $order = $this->_orderFactory->create()->load($orderHooked->getId());
 
                         $data['meta']['session_id'] = $fintecturePaymentSessionId;
-                        $data['meta']['status']     = $fintecturePaymentStatus;
+                        $data['meta']['status'] = $fintecturePaymentStatus;
 
                         $this->_paymentMethod->handleSuccessTransaction($order, $data);
                     }
                 }
             }
-        }
-        catch (LocalizedException $e) {
+        } catch (LocalizedException $e) {
             $this->fintectureLogger->debug('Webhook Payment Created Response Error 1 ' . $e->getMessage(), $e->getTrace());
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug('Webhook Payment Created Response Error 2 ' . $e->getMessage(), $e->getTrace());
         }
     }

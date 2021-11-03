@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
@@ -36,8 +37,8 @@ use const JSON_UNESCAPED_UNICODE;
 
 class Fintecture extends AbstractMethod
 {
-    const PAYMENT_FINTECTURE_CODE = 'fintecture';
-    const CONFIG_PREFIX           = 'payment/fintecture/';
+    public const PAYMENT_FINTECTURE_CODE = 'fintecture';
+    public const CONFIG_PREFIX = 'payment/fintecture/';
 
     public $_code = 'fintecture';
 
@@ -79,15 +80,14 @@ class Fintecture extends AbstractMethod
         SessionManagerInterface $coreSession,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender
-    )
-    {
+    ) {
         $this->fintectureHelper = $fintectureHelper;
-        $this->checkoutSession  = $checkoutSession;
+        $this->checkoutSession = $checkoutSession;
         $this->fintectureLogger = $fintectureLogger;
-        $this->jsonHelper       = $jsonHelper;
-        $this->coreSession      = $coreSession;
-        $this->orderSender      = $orderSender;
-        $this->invoiceSender    = $invoiceSender;
+        $this->jsonHelper = $jsonHelper;
+        $this->coreSession = $coreSession;
+        $this->orderSender = $orderSender;
+        $this->invoiceSender = $invoiceSender;
 
         parent::__construct(
             $context,
@@ -122,7 +122,7 @@ class Fintecture extends AbstractMethod
         $status = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response);
 
         $orderStatus = $status['status'] ?? '';
-        $orderState  = $status['state'] ?? '';
+        $orderState = $status['state'] ?? '';
 
         $order->setStatus($orderStatus);
         $order->setState($orderState);
@@ -145,7 +145,6 @@ class Fintecture extends AbstractMethod
                 $invoice->save();
                 $this->invoiceSender->send($invoice);
             }
-
         }
     }
 
@@ -164,17 +163,16 @@ class Fintecture extends AbstractMethod
             $order->getPayment()->setLastTransId($transactionId);
             $order->getPayment()->setAdditionalInformation($response);
 
-            $note        = $this->fintectureHelper->getStatusHistoryComment($response);
+            $note = $this->fintectureHelper->getStatusHistoryComment($response);
             $orderStatus = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['status'];
-            $orderState  = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
+            $orderState = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
 
             $order->setState($orderState);
             $order->setStatus($orderStatus);
             $order->setCustomerNoteNotify(false);
             $order->addStatusHistoryComment($note);
             $order->save();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
     }
@@ -197,15 +195,14 @@ class Fintecture extends AbstractMethod
             $note = $this->fintectureHelper->getStatusHistoryComment($response);
 
             $orderStatus = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['status'];
-            $orderState  = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
+            $orderState = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
 
             $order->setState($orderState);
             $order->setStatus($orderStatus);
             $order->setCustomerNoteNotify(false);
             $order->addStatusHistoryComment($note);
             $order->save();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
     }
@@ -213,8 +210,8 @@ class Fintecture extends AbstractMethod
     public function getLastPaymentStatusResponse()
     {
         $lastPaymentSessionId = $this->coreSession->getPaymentSessionId();
-        $gatewayClient        = $this->getGatewayClient();
-        $apiResponse          = $gatewayClient->getPayment($lastPaymentSessionId);
+        $gatewayClient = $this->getGatewayClient();
+        $apiResponse = $gatewayClient->getPayment($lastPaymentSessionId);
 
         return $apiResponse;
     }
@@ -223,10 +220,10 @@ class Fintecture extends AbstractMethod
     {
         $gatewayClient = new Client(
             [
-                'fintectureApiUrl'     => $this->getFintectureApiUrl(),
+                'fintectureApiUrl' => $this->getFintectureApiUrl(),
                 'fintecturePrivateKey' => $this->getAppPrivateKey(),
-                'fintectureAppId'      => $this->getAppId(),
-                'fintectureAppSecret'  => $this->getAppSecret(),
+                'fintectureAppId' => $this->getAppId(),
+                'fintectureAppSecret' => $this->getAppSecret(),
             ]
         );
         return $gatewayClient;
@@ -240,11 +237,11 @@ class Fintecture extends AbstractMethod
     public function getAppPrivateKey()
     {
         $objectManager = ObjectManager::getInstance();
-        $configReader  = $objectManager->create('Magento\Framework\Module\Dir\Reader');
-        $modulePath    = $configReader->getModuleDir('etc', 'Fintecture_Payment');
+        $configReader = $objectManager->create('Magento\Framework\Module\Dir\Reader');
+        $modulePath = $configReader->getModuleDir('etc', 'Fintecture_Payment');
 
         $fileDirPath = $modulePath . '/lib/app_private_key_' . $this->environment;
-        $fileName    = $this->findKeyfile($fileDirPath);
+        $fileName = $this->findKeyfile($fileDirPath);
 
         if (!$fileName) {
             return '';
@@ -301,41 +298,41 @@ class Fintecture extends AbstractMethod
     {
         $this->validateConfigValue();
 
-        $lastRealOrder   = $this->checkoutSession->getLastRealOrder();
-        $billingAddress  = $lastRealOrder->getBillingAddress();
+        $lastRealOrder = $this->checkoutSession->getLastRealOrder();
+        $billingAddress = $lastRealOrder->getBillingAddress();
         $shippingAddress = $lastRealOrder->getBillingAddress();
 
         $data = [
             'meta' => [
-                'psu_name'    => $billingAddress->getName(),
-                'psu_email'   => $billingAddress->getEmail(),
-                'psu_phone'   => $billingAddress->getTelephone(),
+                'psu_name' => $billingAddress->getName(),
+                'psu_email' => $billingAddress->getEmail(),
+                'psu_phone' => $billingAddress->getTelephone(),
                 'psu_address' => [
-                    'street'     => implode(' ', $billingAddress->getStreet()),
-                    'number'     => '',
+                    'street' => implode(' ', $billingAddress->getStreet()),
+                    'number' => '',
                     'complement' => '',
-                    'zip'        => $billingAddress->getPostcode(),
-                    'city'       => $billingAddress->getCity(),
-                    'country'    => $billingAddress->getCountryId(),
+                    'zip' => $billingAddress->getPostcode(),
+                    'city' => $billingAddress->getCity(),
+                    'country' => $billingAddress->getCountryId(),
                 ],
             ],
             'data' => [
-                'type'       => 'PIS',
+                'type' => 'PIS',
                 'attributes' => [
-                    'amount'        => number_format($lastRealOrder->getBaseTotalDue(), 2, '.', ''),
-                    'currency'      => $lastRealOrder->getOrderCurrencyCode(),
+                    'amount' => number_format($lastRealOrder->getBaseTotalDue(), 2, '.', ''),
+                    'currency' => $lastRealOrder->getOrderCurrencyCode(),
                     'communication' => 'FINTECTURE-' . $lastRealOrder->getId()
                 ],
             ],
         ];
 
         try {
-            $gatewayClient       = $this->getGatewayClient();
-            $state               = $gatewayClient->getUid();
+            $gatewayClient = $this->getGatewayClient();
+            $state = $gatewayClient->getUid();
             $isRewriteModeActive = $this->isRewriteModeActive();
-            $redirectUrl         = $this->getResponseUrl();
-            $originUrl           = $this->getOriginUrl();
-            $psuType             = $this->getBankType();
+            $redirectUrl = $this->getResponseUrl();
+            $originUrl = $this->getOriginUrl();
+            $psuType = $this->getBankType();
 
             $apiResponse = $gatewayClient->generateConnectURL($data, $isRewriteModeActive, $redirectUrl, $originUrl, $psuType, $state);
 
@@ -352,16 +349,14 @@ class Fintecture extends AbstractMethod
                 $lastRealOrder->setFintecturePaymentCustomerId($sessionId);
                 try {
                     $lastRealOrder->save();
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
                 }
 
                 $this->coreSession->setPaymentSessionId($sessionId);
                 return $apiResponse['meta']['url'] ?? '';
             }
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
 
             $this->checkoutSession->restoreQuote();

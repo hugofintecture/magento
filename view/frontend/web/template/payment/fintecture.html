@@ -4,14 +4,10 @@
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-	<!-- <label data-bind="attr: {'for': getCode()}" class="label img_label" ><span data-bind="text: getTitle()"></span></label> -->
-        <label data-bind="attr: {'for': getCode()}" class="label img_label" ><span>Payer par Virement Instantané</span></label>
-   
-        
+	    <!-- <label data-bind="attr: {'for': getCode()}" class="label img_label" ><span data-bind="text: getTitle()"></span></label> -->
+        <label data-bind="attr: {'for': getCode()}" class="label img_label"><span data-bind="i18n: 'Instant bank payment'"></span></label>
     </div>
   <div data-bind="html: window.checkoutConfig.cms_block"></div>
-    
-
     <div class="payment-method-content">
         <!-- ko foreach: getRegion('messages') -->
         <!-- ko template: getTemplate() --><!-- /ko -->

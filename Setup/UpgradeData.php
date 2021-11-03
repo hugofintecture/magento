@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Setup;
@@ -9,15 +10,12 @@ use Magento\Framework\Setup\UpgradeDataInterface;
 
 class UpgradeData implements UpgradeDataInterface
 {
-
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
-
         if (version_compare($context->getVersion(), '1.0.3', '>')) {
-
             $setup->startSetup();
 
-            $connection     = $setup->getConnection();
+            $connection = $setup->getConnection();
             $coreConfigData = $setup->getTable('core_config_data');
 
             $connection->delete($coreConfigData, ['value' => 'payment/fintecture/fintecture_pis_url_sandbox']);
@@ -28,61 +26,34 @@ class UpgradeData implements UpgradeDataInterface
             $connection->delete($coreConfigData, ['value' => 'payment/fintecture/fintecture_connect_url_production']);
 
             $connection->update(
-                $coreConfigData, ['value' => 'Fintecture'], ['path' => 'payment/fintecture/title',]
+                $coreConfigData,
+                ['value' => 'Fintecture'],
+                ['path' => 'payment/fintecture/title',]
             );
 
             $connection->update(
-                $coreConfigData, ['value' => 'right'],
+                $coreConfigData,
+                ['value' => 'all'],
                 [
-                    'path'  => 'payment/fintecture/general/logo_position',
-                    'value' => 'Right',
-                ]
-            );
-
-            $connection->update(
-                $coreConfigData, ['value' => 'left'],
-                [
-                    'path'  => 'payment/fintecture/general/logo_position',
-                    'value' => 'Left',
-                ]
-            );
-
-            $connection->update(
-                $coreConfigData, ['value' => 'short'],
-                [
-                    'path'  => 'payment/fintecture/general/show_logo',
-                    'value' => 'Short',
-                ]
-            );
-
-            $connection->update(
-                $coreConfigData, ['value' => 'long'],
-                [
-                    'path'  => 'payment/fintecture/general/show_logo',
-                    'value' => 'Long',
-                ]
-            );
-
-            $connection->update(
-                $coreConfigData, ['value' => 'all'],
-                [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'All',
                 ]
             );
 
             $connection->update(
-                $coreConfigData, ['value' => 'corporate'],
+                $coreConfigData,
+                ['value' => 'corporate'],
                 [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'Corporate',
                 ]
             );
 
             $connection->update(
-                $coreConfigData, ['value' => 'retail'],
+                $coreConfigData,
+                ['value' => 'retail'],
                 [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'Retail',
                 ]
             );
@@ -90,25 +61,24 @@ class UpgradeData implements UpgradeDataInterface
             $connection->insertOnDuplicate(
                 $coreConfigData,
                 [
-                    'scope'    => 'default',
+                    'scope' => 'default',
                     'scope_id' => 0,
-                    'path'     => 'payment/fintecture/fintecture_api_url_sandbox',
-                    'value'    => 'https://api-sandbox.fintecture.com/',
+                    'path' => 'payment/fintecture/fintecture_api_url_sandbox',
+                    'value' => 'https://api-sandbox.fintecture.com/',
                 ]
             );
 
             $connection->insertOnDuplicate(
                 $coreConfigData,
                 [
-                    'scope'    => 'default',
+                    'scope' => 'default',
                     'scope_id' => 0,
-                    'path'     => 'payment/fintecture/fintecture_api_url_production',
-                    'value'    => 'https://api.fintecture.com/',
+                    'path' => 'payment/fintecture/fintecture_api_url_production',
+                    'value' => 'https://api.fintecture.com/',
                 ]
             );
 
             $setup->endSetup();
-
         }
     }
 }

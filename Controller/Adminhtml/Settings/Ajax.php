@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
@@ -16,7 +17,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class Ajax extends Action
 {
-    const CONFIG_PREFIX = 'payment/fintecture/';
+    public const CONFIG_PREFIX = 'payment/fintecture/';
     protected $fintectureModel;
     protected $jsonResultFactory;
     protected $scopeConfig;
@@ -31,19 +32,18 @@ class Ajax extends Action
         JsonFactory $jsonResultFactory,
         ScopeConfigInterface $scopeConfig,
         FintectureLogger $fintectureLogger
-    )
-    {
+    ) {
         parent::__construct($context);
-        $this->fintectureModel   = $fintectureModel;
+        $this->fintectureModel = $fintectureModel;
         $this->jsonResultFactory = $jsonResultFactory;
-        $this->scopeConfig       = $scopeConfig;
-        $this->fintectureLogger  = $fintectureLogger;
+        $this->scopeConfig = $scopeConfig;
+        $this->fintectureLogger = $fintectureLogger;
     }
 
     public function execute()
     {
         $fintectureConnectParameters = $this->getRequest()->getParams();
-        $this->environment           = $fintectureConnectParameters['fintectureEnv'] ?? Environment::ENVIRONMENT_PRODUCTION;
+        $this->environment = $fintectureConnectParameters['fintectureEnv'] ?? Environment::ENVIRONMENT_PRODUCTION;
 
         $fintectureAppSecret = $fintectureConnectParameters['fintectureAppSecret'] ?? '';
 
@@ -51,7 +51,7 @@ class Ajax extends Action
             $fintectureAppSecret = $this->scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_secret_' . $this->environment, ScopeInterface::SCOPE_STORE) ?? '';
         }
 
-        $fintectureAppId      = $fintectureConnectParameters['fintectureAppId'] ?? '';
+        $fintectureAppId = $fintectureConnectParameters['fintectureAppId'] ?? '';
         $fintecturePrivateKey = $fintectureConnectParameters['fintecturePrivateKey'] ?? '';
 
         if ($fintecturePrivateKey === '') {
@@ -63,10 +63,10 @@ class Ajax extends Action
 
         $clientGateway = new Client(
             [
-                'fintectureApiUrl'     => $this->getFintectureApiUrl(),
+                'fintectureApiUrl' => $this->getFintectureApiUrl(),
                 'fintecturePrivateKey' => $fintecturePrivateKey,
-                'fintectureAppId'      => $fintectureAppId,
-                'fintectureAppSecret'  => $fintectureAppSecret,
+                'fintectureAppId' => $fintectureAppId,
+                'fintectureAppSecret' => $fintectureAppSecret,
             ]
         );
 
