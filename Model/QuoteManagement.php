@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
@@ -139,8 +140,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
         AddressRepositoryInterface $addressRepository = null,
         RequestInterface $request = null,
         RemoteAddress $remoteAddress = null
-    )
-    {
+    ) {
         parent::__construct(
             $eventManager,
             $submitQuoteValidator,
@@ -168,13 +168,13 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             $remoteAddress
         );
         $this->submitQuoteValidator = $submitQuoteValidator;
-        $this->fintectureOrder      = $fintectureOrder;
-        $this->fintectureLogger     = new Logger('fintecture');
+        $this->fintectureOrder = $fintectureOrder;
+        $this->fintectureLogger = new Logger('fintecture');
     }
 
     protected function submitQuote(QuoteEntity $quote, $orderData = [])
     {
-        $paymentMethod   = $quote->getPayment()->getMethod();
+        $paymentMethod = $quote->getPayment()->getMethod();
         $fintectureState = $this->checkoutSession->getFintectureState();
         $this->updateState($paymentMethod);
 
@@ -201,8 +201,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             } else {
                 $this->checkoutSession->setFintectureState(null);
             }
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
 

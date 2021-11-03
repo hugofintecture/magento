@@ -9,7 +9,7 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
             const fintectureEnv = $('select[name="' + fields + '[environment][value]"]').val() ?? '';
 
             $('input[name="' + fields + '[title][value]"]').attr('disabled', 'disabled');
-            $('input[name="' + fields + '[title][value]"]').val($t('Pay with Instant Transfer'));
+            $('input[name="' + fields + '[title][value]"]').val($t('Instant bank payment'));
 
             $(document).on('click', '#test-connection', function (e) {
                 e.preventDefault();

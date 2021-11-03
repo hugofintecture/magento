@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Plugin;
@@ -16,8 +17,7 @@ class CsrfValidatorSkip
         Closure $proceed,
         RequestInterface $request,
         ActionInterface $action
-    )
-    {
+    ) {
         if ($request->getModuleName() === Fintecture::PAYMENT_FINTECTURE_CODE) {
             return;
         }
