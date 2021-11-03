@@ -1,42 +1,69 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Block;
 
-use Fintecture\Payment\Model\ShowLogo;
+use Magento\Backend\Block\Template\Context;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Module\Dir\Reader;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class CustomLogo extends Template
 {
-    const CUSTOM_LOGO_TYPE     = 'payment/fintecture/general/show_logo';
-    const CUSTOM_LOGO_POSITION = 'payment/fintecture/general/logo_position';
+    public const CUSTOM_LOGO_SHOW = 'payment/fintecture/general/show_logo';
+    public const CUSTOM_LOGO_POSITION = 'payment/fintecture/general/logo_position';
 
-    public function getImageUrl()
-    {
-        $mediaUrl = $this->getViewFileUrl('Fintecture_Payment::images');
-        $logoType = $this->_scopeConfig->getValue(static::CUSTOM_LOGO_TYPE, ScopeInterface::SCOPE_STORE);
-        $imageUrl = $mediaUrl . '/133x29_horizontal_gif.gif';
+    /** @var StoreManagerInterface $_storeManager */
+    protected $_storeManager;
 
-        if ($logoType === ShowLogo::SHORT) {
-            $imageUrl = $mediaUrl . '/29x29_square_gif.gif';
-        }
+    /** @var UrlInterface $_urlInterface */
+    protected $_urlInterface;
 
-        return $imageUrl;
+    /** @var Reader $moduleReader */
+    protected $moduleReader;
+
+    /** @var ScopeConfigInterface $scopeConfig */
+    protected $scopeConfig;
+
+    /**
+     * CustomLogo constructor.
+     *
+     * @param Context               $context
+     * @param FormFactory           $formFactory
+     * @param ScopeConfigInterface  $scopeConfig
+     * @param StoreManagerInterface $storeManager
+     * @param UrlInterface          $urlInterface
+     * @param Reader                $moduleReader
+     * @param array                 $data
+     */
+    public function __construct(
+        Context $context,
+        FormFactory $formFactory,
+        ScopeConfigInterface $scopeConfig,
+        StoreManagerInterface $storeManager,
+        UrlInterface $urlInterface,
+        Reader $moduleReader,
+        array $data = []
+    ) {
+        $this->_storeManager = $storeManager;
+        $this->_urlInterface = $urlInterface;
+        $this->moduleReader = $moduleReader;
+        $this->scopeConfig = $scopeConfig;
+        parent::__construct($context, $data);
     }
 
-    public function getLogoType()
+    /**
+     * @return bool
+     */
+    public function getShowLogo(): bool
     {
-        return $this->_scopeConfig->getValue(
-            static::CUSTOM_LOGO_TYPE,
-            ScopeInterface::SCOPE_STORE
-        );
-    }
-
-    public function getLogoPosition()
-    {
-        return $this->_scopeConfig->getValue(
-            static::CUSTOM_LOGO_POSITION,
+        return $this->scopeConfig->isSetFlag(
+            static::CUSTOM_LOGO_SHOW,
             ScopeInterface::SCOPE_STORE
         );
     }

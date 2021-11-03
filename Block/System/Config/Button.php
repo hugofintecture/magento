@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Block\System\Config;
@@ -29,7 +30,7 @@ class Button extends Field
                        ->createBlock('Magento\Backend\Block\Widget\Button')
                        ->setData(
                            [
-                               'id'    => 'test-connection',
+                               'id' => 'test-connection',
                                'label' => __('Test Connection')
                            ]
                        );

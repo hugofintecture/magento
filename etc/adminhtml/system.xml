@@ -57,18 +57,9 @@
                     <field id="show_logo" translate="label" type="select" sortOrder="20" showInDefault="1"
                            showInWebsite="1" showInStore="1">
                         <label>Show Logo</label>
-
-                        <source_model>Fintecture\Payment\Model\ShowLogo</source_model>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <!-- <config_path>payment/fintecture/environment</config_path> -->
                         <comment>Show logo at checkout</comment>
-                    </field>
-                    <field id="logo_position" translate="label" type="select" sortOrder="20" showInDefault="1"
-                           showInWebsite="1" showInStore="1">
-                        <label>Logo Position</label>
-
-                        <source_model>Fintecture\Payment\Model\LogoPosition</source_model>
-                        <!-- <config_path>payment/fintecture/environment</config_path> -->
-
                     </field>
                     <!-- ############# SANDBOX  START################## -->
                     <field id="fintecture_app_id_sandbox" translate="label" type="text" sortOrder="53" showInDefault="1"

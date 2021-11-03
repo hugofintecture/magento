@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Observer\Quote;
@@ -28,12 +29,11 @@ class SubmitObserver extends MagentoSubmitObserver
         LoggerInterface $logger,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender
-    )
-    {
-        $this->logger        = $logger;
-        $this->orderSender   = $orderSender;
+    ) {
+        $this->logger = $logger;
+        $this->orderSender = $orderSender;
         $this->invoiceSender = $invoiceSender;
-        parent::__construct($logger, $orderSender, $invoiceSender);
+        parent::__construct($logger, $orderSender);
     }
 
     public function execute(Observer $observer)
@@ -45,7 +45,7 @@ class SubmitObserver extends MagentoSubmitObserver
         $order = $observer->getEvent()->getOrder();
 
         $paymentMethod = $order->getPayment()->getData('method');
-        $redirectUrl   = $quote->getPayment()->getOrderPlaceRedirectUrl();
+        $redirectUrl = $quote->getPayment()->getOrderPlaceRedirectUrl();
         if (
             $paymentMethod !== Fintecture::PAYMENT_FINTECTURE_CODE
             && !$redirectUrl
@@ -59,8 +59,7 @@ class SubmitObserver extends MagentoSubmitObserver
                 if ($invoice) {
                     $this->invoiceSender->send($invoice);
                 }
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->critical($e);
             }
         }

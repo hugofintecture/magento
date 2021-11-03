@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Gateway;
@@ -36,9 +37,9 @@ class Client
 
     public function __construct($params)
     {
-        $this->fintectureApiUrl     = $params['fintectureApiUrl'];
-        $this->fintectureAppId      = $params['fintectureAppId'];
-        $this->fintectureAppSecret  = $params['fintectureAppSecret'];
+        $this->fintectureApiUrl = $params['fintectureApiUrl'];
+        $this->fintectureAppId = $params['fintectureAppId'];
+        $this->fintectureAppSecret = $params['fintectureAppSecret'];
         $this->fintecturePrivateKey = $params['fintecturePrivateKey'];
         $this->client = new Curl();
     }
@@ -47,35 +48,35 @@ class Client
     {
         $data = [
             'grant_type' => 'client_credentials',
-            'app_id'     => $this->fintectureAppId,
-            'scope'      => 'PIS',
+            'app_id' => $this->fintectureAppId,
+            'scope' => 'PIS',
         ];
 
         $basicToken = base64_encode($this->fintectureAppId . ':' . $this->fintectureAppSecret);
         $xRequestId = $this->getUid();
-        $date       = (new DateTime('now'))->format('r');
+        $date = (new DateTime('now'))->format('r');
 
-        $digest        = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
         $signingString = 'date: ' . $date . PHP_EOL . 'digest: ' . $digest . PHP_EOL . 'x-request-id: ' . $xRequestId;
         openssl_sign($signingString, $cryptedString, $this->fintecturePrivateKey, OPENSSL_ALGO_SHA256);
         $signature = 'keyId="' . $this->fintectureAppId . '",algorithm="rsa-sha256",headers="date digest x-request-id",signature="' . base64_encode($cryptedString) . '"';
 
         $headers = [
-            'accept'        => 'application/json',
+            'accept' => 'application/json',
             'cache-control' => 'no-cache',
-            'content-type'  => 'application/x-www-form-urlencoded',
-            'app_id'        => $this->fintectureAppId,
-            'digest'        => $digest,
-            'date'          => $date,
-            'x-request-id'  => $xRequestId,
-            'signature'     => $signature,
+            'content-type' => 'application/x-www-form-urlencoded',
+            'app_id' => $this->fintectureAppId,
+            'digest' => $digest,
+            'date' => $date,
+            'x-request-id' => $xRequestId,
+            'signature' => $signature,
             'authorization' => 'Basic ' . $basicToken,
         ];
         $options = [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_2_0,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
         ];
 
         $this->client->setHeaders($headers);
@@ -89,21 +90,20 @@ class Client
 
     public function getUid(): string
     {
-        $data    = openssl_random_pseudo_bytes(16);
+        $data = openssl_random_pseudo_bytes(16);
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-
     }
 
     public function generateConnectURL($data, bool $isRewriteModeActive, string $redirectUrl, string $originUrl, string $psuType, string $state = '')
     {
         $accessToken = $this->getAccessToken();
-        $xRequestId  = $this->getUid();
-        $date        = (new DateTime('now'))->format('r');
+        $xRequestId = $this->getUid();
+        $date = (new DateTime('now'))->format('r');
 
-        $digest        = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
         $signingString = 'date: ' . $date . PHP_EOL . 'digest: ' . $digest . PHP_EOL . 'x-request-id: ' . $xRequestId;
         openssl_sign($signingString, $cryptedString, $this->fintecturePrivateKey, OPENSSL_ALGO_SHA256);
         $signature = 'keyId="' . $this->fintectureAppId . '",algorithm="rsa-sha256",headers="date digest x-request-id",signature="' . base64_encode($cryptedString) . '"';
@@ -115,22 +115,22 @@ class Client
         }
 
         $headers = [
-            'accept'        => ' application/json',
+            'accept' => ' application/json',
             'authorization' => 'Bearer ' . $accessToken,
             'cache-control' => 'no-cache',
-            'content-type'  => 'application/json',
-            'app_id'        => $this->fintectureAppId,
-            'digest'        => $digest,
-            'date'          => $date,
-            'x-request-id'  => $xRequestId,
-            'x-psu-type'    => $psuType,
-            'signature'     => $signature,
+            'content-type' => 'application/json',
+            'app_id' => $this->fintectureAppId,
+            'digest' => $digest,
+            'date' => $date,
+            'x-request-id' => $xRequestId,
+            'x-psu-type' => $psuType,
+            'signature' => $signature,
         ];
         $options = [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_2_0,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
         ];
 
         $this->client->setHeaders($headers);
@@ -145,35 +145,35 @@ class Client
     {
         $data = [
             'grant_type' => 'client_credentials',
-            'app_id'     => $this->fintectureAppId,
-            'scope'      => 'PIS',
+            'app_id' => $this->fintectureAppId,
+            'scope' => 'PIS',
         ];
 
         $basicToken = base64_encode($this->fintectureAppId . ':' . $this->fintectureAppSecret);
         $xRequestId = $this->getUid();
-        $date       = (new DateTime('now'))->format('r');
+        $date = (new DateTime('now'))->format('r');
 
-        $digest        = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
         $signingString = 'date: ' . $date . PHP_EOL . 'digest: ' . $digest . PHP_EOL . 'x-request-id: ' . $xRequestId;
         openssl_sign($signingString, $cryptedString, $this->fintecturePrivateKey, OPENSSL_ALGO_SHA256);
         $signature = 'keyId="' . $this->fintectureAppId . '",algorithm="rsa-sha256",headers="date digest x-request-id",signature="' . base64_encode($cryptedString) . '"';
 
         $headers = [
-            'accept'        => 'application/json',
+            'accept' => 'application/json',
             'cache-control' => 'no-cache',
-            'content-type'  => 'application/x-www-form-urlencoded',
-            'app_id'        => $this->fintectureAppId,
-            'digest'        => $digest,
-            'date'          => $date,
-            'x-request-id'  => $xRequestId,
-            'signature'     => $signature,
+            'content-type' => 'application/x-www-form-urlencoded',
+            'app_id' => $this->fintectureAppId,
+            'digest' => $digest,
+            'date' => $date,
+            'x-request-id' => $xRequestId,
+            'signature' => $signature,
             'authorization' => 'Basic ' . $basicToken,
         ];
         $options = [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_2_0,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
         ];
 
         $this->client->setHeaders($headers);
@@ -189,31 +189,31 @@ class Client
     {
         $accessToken = $this->getAccessToken();
 
-        $data       = [];
+        $data = [];
         $xRequestId = $this->getUid();
-        $date       = (new DateTime('now'))->format('r');
+        $date = (new DateTime('now'))->format('r');
 
-        $digest        = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
         $signingString = 'date: ' . $date . PHP_EOL . 'digest: ' . $digest . PHP_EOL . 'x-request-id: ' . $xRequestId;
         openssl_sign($signingString, $cryptedString, $this->fintecturePrivateKey, OPENSSL_ALGO_SHA256);
         $signature = 'keyId="' . $this->fintectureAppId . '",algorithm="rsa-sha256",headers="date digest x-request-id",signature="' . base64_encode($cryptedString) . '"';
 
         $headers = [
-            'accept'        => 'application/json',
+            'accept' => 'application/json',
             'cache-control' => 'no-cache',
-            'content-type'  => 'application/json',
-            'app_id'        => $this->fintectureAppId,
-            'digest'        => $digest,
-            'date'          => $date,
-            'x-request-id'  => $xRequestId,
-            'signature'     => $signature,
+            'content-type' => 'application/json',
+            'app_id' => $this->fintectureAppId,
+            'digest' => $digest,
+            'date' => $date,
+            'x-request-id' => $xRequestId,
+            'signature' => $signature,
             'authorization' => 'Bearer ' . $accessToken,
         ];
         $options = [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_2_0,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
         ];
 
         $this->client->setHeaders($headers);
