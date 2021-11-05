@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
@@ -7,9 +8,9 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class BankType implements OptionSourceInterface
 {
-    const BANK_RETAIL    = 'retail';
-    const BANK_CORPORATE = 'corporate';
-    const BANK_ALL       = 'all';
+    public const BANK_RETAIL    = 'retail';
+    public const BANK_CORPORATE = 'corporate';
+    public const BANK_ALL       = 'all';
 
     public function toOptionArray(): array
     {

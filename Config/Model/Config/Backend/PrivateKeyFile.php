@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Config\Model\Config\Backend;
@@ -20,7 +21,6 @@ class PrivateKeyFile extends File
         $file  = $this->getFileData();
 
         if (!empty($file)) {
-
             if (!isset($file['name'])) {
                 throw new LocalizedException(__('%1', 'Private Key file name was not specified'));
             }
@@ -37,8 +37,7 @@ class PrivateKeyFile extends File
                 $uploader->setAllowRenameFiles(false);
                 $uploader->addValidateCallback('size', $this, 'validateMaxSize');
                 $result = $uploader->save($uploadDir);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 throw new LocalizedException(__('%1', $e->getMessage()));
             }
             $filename = $result['file'];

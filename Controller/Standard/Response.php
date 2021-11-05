@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
@@ -54,11 +55,9 @@ class Response extends FintectureAbstract
                             $this->invoiceSender->send($invoice);
                         }
                     */
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     $this->fintectureLogger->error($e, $e->getTrace());
                 }
-
             } elseif ($status === Order::STATE_PENDING_PAYMENT) {
                 $returnUrl = $this->getCheckoutHelper()->getUrl('checkout/onepage/success');
                 $paymentMethod->handleHoldedTransaction($order, $response);
@@ -71,13 +70,10 @@ class Response extends FintectureAbstract
                 $returnUrl = $this->getCheckoutHelper()->getUrl('checkout') . "#payment";
                 $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
             }
-        }
-        catch (LocalizedException $e) {
+        } catch (LocalizedException $e) {
             $this->fintectureLogger->debug('Response Error 1 : ' . $e->getMessage(), $e->getTrace());
             $this->messageManager->addExceptionMessage($e, __($e->getMessage()));
-        }
-
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug('Response Error 2 : ' . $e->getMessage(), $e->getTrace());
             $this->messageManager->addExceptionMessage($e, __('We can\'t place the order.'));
         }

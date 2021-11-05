@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Block\Adminhtml\System\Config\Fieldset;
@@ -40,7 +41,7 @@ class Payment extends Fieldset
         $demoLink          = isset($groupConfig['demo_url']) ? '<a class="link-demo" href="' . $groupConfig['demo_url'] . '" target="_blank">' . __('View Demo') . '</a>' : '';
         $state             = $this->getUrl('adminhtml/*/state');
 
-        $title       = __('Pay with Instant Transfer');
+        $title       = __('Instant bank payment');
         $description = __('Pay instantly and securely directly from your bank account. Collect payments without any credit limit. Reduce your transaction fees by 40% !');
         $configure   = __('Configure');
         $close       = __('Close');
