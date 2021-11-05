@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
@@ -79,8 +80,7 @@ class Fintecture extends AbstractMethod
         SessionManagerInterface $coreSession,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender
-    )
-    {
+    ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession  = $checkoutSession;
         $this->fintectureLogger = $fintectureLogger;
@@ -145,7 +145,6 @@ class Fintecture extends AbstractMethod
                 $invoice->save();
                 $this->invoiceSender->send($invoice);
             }
-
         }
     }
 
@@ -173,8 +172,7 @@ class Fintecture extends AbstractMethod
             $order->setCustomerNoteNotify(false);
             $order->addStatusHistoryComment($note);
             $order->save();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
     }
@@ -204,8 +202,7 @@ class Fintecture extends AbstractMethod
             $order->setCustomerNoteNotify(false);
             $order->addStatusHistoryComment($note);
             $order->save();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
     }
@@ -352,16 +349,14 @@ class Fintecture extends AbstractMethod
                 $lastRealOrder->setFintecturePaymentCustomerId($sessionId);
                 try {
                     $lastRealOrder->save();
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
                 }
 
                 $this->coreSession->setPaymentSessionId($sessionId);
                 return $apiResponse['meta']['url'] ?? '';
             }
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
 
             $this->checkoutSession->restoreQuote();

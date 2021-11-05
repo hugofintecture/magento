@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Observer\Quote\Webapi;
@@ -24,8 +25,7 @@ class SubmitObserver extends MagentoSubmitObserver
     public function __construct(
         LoggerInterface $logger,
         OrderSender $orderSender
-    )
-    {
+    ) {
         $this->logger        = $logger;
         $this->orderSender   = $orderSender;
         parent::__construct($logger, $orderSender);
@@ -48,8 +48,7 @@ class SubmitObserver extends MagentoSubmitObserver
         ) {
             try {
                 $this->orderSender->send($order);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->critical($e);
             }
         }

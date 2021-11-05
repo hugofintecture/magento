@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
@@ -54,8 +55,7 @@ abstract class FintectureAbstract extends Action
         \Magento\Quote\Api\CartManagementInterface $cartManagement,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-    )
-    {
+    ) {
         $this->_customerSession  = $customerSession;
         $this->_checkoutSession  = $checkoutSession;
         $this->quoteRepository   = $quoteRepository;

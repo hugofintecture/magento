@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Helper;
@@ -31,8 +32,7 @@ class Fintecture extends AbstractHelper
         Quote $quote,
         QuoteManagement $quoteManagement,
         FintectureLogger $fintectureLogger
-    )
-    {
+    ) {
         $this->session          = $session;
         $this->quote            = $quote;
         $this->quoteManagement  = $quoteManagement;

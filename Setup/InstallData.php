@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Setup;
@@ -9,7 +10,6 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 
 class InstallData implements InstallDataInterface
 {
-
     public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $setup->startSetup();
