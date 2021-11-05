@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
@@ -37,11 +38,9 @@ class PaymentUnsuccessful extends WebhookAbstract
                     }
                 }
             }
-        }
-        catch (LocalizedException $e) {
+        } catch (LocalizedException $e) {
             $this->fintectureLogger->debug('Webhook Payment UnsuccessfulResponse Error 1 ' . $e->getMessage(), $e->getTrace());
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug('Webhook PaymentUnsuccessful Response Error 2 ' . $e->getMessage(), $e->getTrace());
         }
     }

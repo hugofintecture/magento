@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
@@ -126,8 +127,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
         QuoteFactory $quoteFactory,
         Order $fintectureOrder,
         QuoteIdMaskFactory $quoteIdMaskFactory = null
-    )
-    {
+    ) {
         parent::__construct(
             $eventManager,
             $submitQuoteValidator,
@@ -185,8 +185,7 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             } else {
                 $this->checkoutSession->setFintectureState(null);
             }
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
 

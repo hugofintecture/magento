@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
@@ -47,8 +48,7 @@ abstract class WebhookAbstract extends Action
         FintectureHelper $checkoutHelper,
         JsonFactory $resultJsonFactory,
         CollectionFactory $orderCollectionFactory
-    )
-    {
+    ) {
         $this->_orderFactory          = $orderFactory;
         $this->_paymentMethod         = $paymentMethod;
         $this->_checkoutHelper        = $checkoutHelper;
@@ -102,7 +102,7 @@ abstract class WebhookAbstract extends Action
         $signature = stripslashes($_SERVER['HTTP_SIGNATURE']);
         $signature = str_replace('"', '', $signature);
         $signature = explode(',', $signature)[3] ?? ''; // 0: keyId, 1: algorithm, 2: headers, 3: signature
-        $signature = explode('=', $signature)[1] ?? ''; // just keep the part after "signature="
+        $signature = explode('signature=', $signature)[1] ?? ''; // just keep the part after "signature="
         openssl_private_decrypt(base64_decode($signature), $decrypted, $pkeyid, OPENSSL_PKCS1_OAEP_PADDING);
         $signingString = preg_split('/\n|\r\n?/', $decrypted);
         $digestSignature = str_replace('"', '', substr($signingString[1] ?? '', 8)); // 0: date, 1: digest, 2: x-request-id

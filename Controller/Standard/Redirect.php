@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
@@ -43,8 +44,7 @@ class Redirect extends FintectureAbstract
             $params['url'] = $response;
 
             return $this->resultJsonFactory->create()->setData($params);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug('Error Redirection : ' . $e->getMessage(), $e->getTrace());
 
             $this->getCheckoutSession()->restoreQuote();

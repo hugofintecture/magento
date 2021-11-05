@@ -1,7 +1,7 @@
-"Pay with Instant Transfer by Fintecture","Pay with Instant Transfer by Fintecture",
+"Instant bank payment","Instant bank payment",
 "Pay instantly and securely directly from your bank account. Collect payments without any credit limit. Reduce your transaction fees by 40% !","Pay instantly and securely directly from your bank account. Collect payments without any credit limit. Reduce your transaction fees by 40% !",
 "Environment","Environment"
-"Bank Type","Bak Type"
+"Bank Type","Bank Type"
 "Show Logo","Show Logo"
 "Fintecture APP ID","Fintecture APP ID"
 "Fintecture APP Secret","Fintecture APP Secret"
@@ -15,12 +15,7 @@
 "All","All"
 "Retail","Retail"
 "Corporate","Corporate"
-"Short","Short"
-"Long","Long"
 "Fintecture Private Key","Fintecture Private Key"
-"Logo Position","Logo Position"
-"Left of Title","Left of Title"
-"Right of Title","Right of Title"
 "Connection succeeded","Connection succeeded"
 "Connection did not succeed. Make sure you have entered the right parameters.","Connection did not succeed. Make sure you have entered the right parameters."
 "Enabled", "Enabled"
@@ -31,7 +26,6 @@
 "Only French banks are supported at this time.", "Only French banks are supported at this time."
 "Something went wrong try another payment method!", "Something went wrong try another payment method!"
 "Test Connection", "Test Connection"
-
 "Technical Error, the bank has rejected the payment initiation or has timeout", "Technical Error, the bank has rejected the payment initiation or has timeout"
 "Payment pending", "Payment pending"
 "The buyer has select *Pay By Bank* as payment method, got redirected to Connect but has not selected any banks.", "The buyer has select *Pay By Bank* as payment method, got redirected to Connect but has not selected any banks."
@@ -40,7 +34,6 @@
 "The payment initiation has been created successfully", "The payment initiation has been created successfully"
 "Payment pending", "Payment pending"
 "Payment", "Payment"
-
 "Private Key file name was not specified", "Private Key file name was not specified"
 "The base directory to upload file is not specified.", "The base directory to upload file is not specified."
 "No private key file found", "No private key file found"
@@ -48,7 +41,10 @@
 "Pay Now","Pay Now"
 "Automatic invoice.", "Automatic invoice."
 "We can't place the order.", "We can't place the order."
-
-
-
-
+"You will be automatically redirected to your secured bank environment to confirm your payment.", "You will be automatically redirected to your secured bank environment to confirm your payment."
+"Pay for your purchases instantly and securely.", "Pay for your purchases instantly and securely."
+"How it works?", "How it works?"
+"Select your bank", "Select your bank"
+"Login with your usual banking ID’s", "Login with your usual banking ID’s"
+"Confirm your payment securely", "Confirm your payment securely"
+"Your purchase is confirmed!", "Your purchase is confirmed!"

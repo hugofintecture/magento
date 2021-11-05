@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
@@ -31,8 +32,7 @@ class Ajax extends Action
         JsonFactory $jsonResultFactory,
         ScopeConfigInterface $scopeConfig,
         FintectureLogger $fintectureLogger
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->fintectureModel   = $fintectureModel;
         $this->jsonResultFactory = $jsonResultFactory;

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Gateway;
@@ -94,7 +95,6 @@ class Client
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-
     }
 
     public function generateConnectURL($data, bool $isRewriteModeActive, string $redirectUrl, string $originUrl, string $psuType, string $state = '')
