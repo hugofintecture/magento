@@ -1,4 +1,5 @@
 <?php
+
 namespace Fintecture\Payment\Model;
 
 class Order extends \Magento\Sales\Model\Order

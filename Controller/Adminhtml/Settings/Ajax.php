@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
@@ -16,7 +17,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class Ajax extends Action
 {
-    const CONFIG_PREFIX = 'payment/fintecture/';
+    public const CONFIG_PREFIX = 'payment/fintecture/';
     protected $fintectureModel;
     protected $jsonResultFactory;
     protected $scopeConfig;
@@ -31,8 +32,7 @@ class Ajax extends Action
         JsonFactory $jsonResultFactory,
         ScopeConfigInterface $scopeConfig,
         FintectureLogger $fintectureLogger
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->fintectureModel   = $fintectureModel;
         $this->jsonResultFactory = $jsonResultFactory;

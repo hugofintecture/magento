@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fintecture\Payment\Plugin\Checkout\Controller;
@@ -36,8 +37,7 @@ class CheckFintectureState
         Fintecture $checkoutHelper,
         Order $fintectureOrder,
         RedirectInterface $redirect
-    )
-    {
+    ) {
         $this->storeManager    = $storeManager;
         $this->checkoutSession = $checkoutSession;
         $this->checkoutHelper  = $checkoutHelper;
