@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-	<body>
-	<referenceContainer name="page.messages" remove="false"/>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="page.messages" remove="false" />
         <referenceBlock name="checkout.root">
             <arguments>
                 <argument name="jsLayout" xsi:type="array">
@@ -20,7 +20,6 @@
                                                             <item name="children" xsi:type="array">
                                                                 <item name="fintecture-payment" xsi:type="array">
                                                                     <item name="component" xsi:type="string">Fintecture_Payment/js/view/payment/fintecture-payment</item>
-                                                                       <item name="template" xsi:type="string">Fintecture_Payment/cms-block</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="fintecture" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>

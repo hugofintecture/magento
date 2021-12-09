@@ -8,17 +8,22 @@ use Exception;
 use Fintecture\Payment\Gateway\Client;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
+use function implode;
+use function json_encode;
+use const JSON_UNESCAPED_UNICODE;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Json\Helper\Data as JsonHelperData;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Payment\Helper\Data as PaymentData;
+use Magento\Payment\Model\Config as PaymentConfig;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Api\Data\TransactionInterface;
@@ -26,21 +31,19 @@ use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Store\Model\ScopeInterface;
-use function file_get_contents;
-use function implode;
-use function json_encode;
+use Magento\Store\Model\StoreManagerInterface;
 use function number_format;
-use function scandir;
-use function strpos;
-use const DIRECTORY_SEPARATOR;
-use const JSON_UNESCAPED_UNICODE;
 
 class Fintecture extends AbstractMethod
 {
+    private const MODULE_VERSION = '1.2.0';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
     public $_code = 'fintecture';
+
+    /** @var EncryptorInterface */
+    protected $encryptor;
 
     /** @var FintectureHelper */
     protected $fintectureHelper;
@@ -65,9 +68,19 @@ class Fintecture extends AbstractMethod
     /** @var InvoiceSender $invoiceSender */
     protected $invoiceSender;
 
+    /** @var ProductMetadataInterface $productMetadata */
+    protected $productMetadata;
+
+    /** @var StoreManagerInterface $storeManager */
+    protected $storeManager;
+
+    /** @var PaymentConfig $paymentConfig */
+    protected $paymentConfig;
+
     public function __construct(
         Context $context,
         Registry $registry,
+        EncryptorInterface $encryptor,
         ExtensionAttributesFactory $extensionFactory,
         AttributeValueFactory $customAttributeFactory,
         PaymentData $paymentData,
@@ -79,15 +92,21 @@ class Fintecture extends AbstractMethod
         JsonHelperData $jsonHelper,
         SessionManagerInterface $coreSession,
         OrderSender $orderSender,
-        InvoiceSender $invoiceSender
+        InvoiceSender $invoiceSender,
+        ProductMetadataInterface $productMetadata,
+        StoreManagerInterface $storeManager,
+        PaymentConfig $paymentConfig
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
         $this->fintectureLogger = $fintectureLogger;
         $this->jsonHelper = $jsonHelper;
         $this->coreSession = $coreSession;
+        $this->productMetadata = $productMetadata;
         $this->orderSender = $orderSender;
         $this->invoiceSender = $invoiceSender;
+        $this->storeManager = $storeManager;
+        $this->paymentConfig = $paymentConfig;
 
         parent::__construct(
             $context,
@@ -99,6 +118,7 @@ class Fintecture extends AbstractMethod
             $logger
         );
 
+        $this->encryptor = $encryptor;
         $this->environment = $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'environment', ScopeInterface::SCOPE_STORE);
     }
 
@@ -229,52 +249,29 @@ class Fintecture extends AbstractMethod
         return $gatewayClient;
     }
 
-    public function getFintectureApiUrl(): string
+    public function getFintectureApiUrl(): ?string
     {
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_api_url_' . $this->environment, ScopeInterface::SCOPE_STORE);
     }
 
-    public function getAppPrivateKey()
+    public function getAppPrivateKey(): ?string
     {
-        $objectManager = ObjectManager::getInstance();
-        $configReader = $objectManager->create('Magento\Framework\Module\Dir\Reader');
-        $modulePath = $configReader->getModuleDir('etc', 'Fintecture_Payment');
-
-        $fileDirPath = $modulePath . '/lib/app_private_key_' . $this->environment;
-        $fileName = $this->findKeyfile($fileDirPath);
-
-        if (!$fileName) {
-            return '';
-        }
-
-        return file_get_contents(
-            $modulePath
-            . DIRECTORY_SEPARATOR
-            . 'lib'
-            . DIRECTORY_SEPARATOR
-            . 'app_private_key_' . $this->environment
-            . DIRECTORY_SEPARATOR
-            . $fileName
-        );
+        $privateKey = $this->_scopeConfig->getValue(self::CONFIG_PREFIX . 'custom_file_upload_' . $this->environment, ScopeInterface::SCOPE_STORE);
+        return $privateKey ? $this->encryptor->decrypt($privateKey) : null;
     }
 
-    private function findKeyfile($dir_path)
+    public function getShopName(): ?string
     {
-        $files = scandir($dir_path);
-        foreach ($files as $file) {
-            if (strpos($file, '.pem') !== false) {
-                return $file;
-            }
-        }
-        return false;
+        return $this->_scopeConfig->getValue('general/store_information/name', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getAppId(): string
+    public function getAppId(?string $environment = null): ?string
     {
-        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_id_' . $this->environment, ScopeInterface::SCOPE_STORE);
+        $environment = $environment ?: $this->environment;
+        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_id_' . $environment, ScopeInterface::SCOPE_STORE);
     }
 
-    public function getAppSecret(): string
+    public function getAppSecret(): ?string
     {
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_secret_' . $this->environment, ScopeInterface::SCOPE_STORE);
     }
@@ -284,29 +281,36 @@ class Fintecture extends AbstractMethod
         return $this->_scopeConfig->getValue('web/seo/use_rewrites', ScopeInterface::SCOPE_STORE) === "1";
     }
 
-    public function getBankType(): string
+    public function getBankType(): ?string
     {
         return $this->_scopeConfig->getValue('payment/fintecture/general/bank_type', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getPaymentGatewayRedirectUrl(): string
+    public function getActive(): ?int
     {
-        return $this->buildCheckoutURL();
+        return (int) $this->_scopeConfig->isSetFlag('payment/fintecture/active', ScopeInterface::SCOPE_STORE);
     }
 
-    public function buildCheckoutURL(): string
+    public function getShowLogo(): ?int
+    {
+        return (int) $this->_scopeConfig->isSetFlag('payment/fintecture/general/show_logo', ScopeInterface::SCOPE_STORE);
+    }
+
+    public function getPaymentGatewayRedirectUrl(): string
     {
         $this->validateConfigValue();
 
         $lastRealOrder = $this->checkoutSession->getLastRealOrder();
         $billingAddress = $lastRealOrder->getBillingAddress();
-        $shippingAddress = $lastRealOrder->getBillingAddress();
+        //$shippingAddress = $lastRealOrder->getBillingAddress();
 
         $data = [
             'meta' => [
                 'psu_name' => $billingAddress->getName(),
                 'psu_email' => $billingAddress->getEmail(),
+                'psu_company' => $billingAddress->getCompany(),
                 'psu_phone' => $billingAddress->getTelephone(),
+                'psu_ip' => $lastRealOrder->getRemoteIp(),
                 'psu_address' => [
                     'street' => implode(' ', $billingAddress->getStreet()),
                     'number' => '',
@@ -394,48 +398,74 @@ class Fintecture extends AbstractMethod
         return $this->fintectureHelper->getUrl('fintecture/standard/redirect');
     }
 
-    public function getBeneficiaryName(): string
+    public function getBeneficiaryName(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_name', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryStreet(): string
+    public function getBeneficiaryStreet(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_street', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryNumber(): string
+    public function getBeneficiaryNumber(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_number', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryCity(): string
+    public function getBeneficiaryCity(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_city', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryZip(): string
+    public function getBeneficiaryZip(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_zip', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryCountry(): string
+    public function getBeneficiaryCountry(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_country', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryIban(): string
+    public function getBeneficiaryIban(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_iban', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiarySwiftBic(): string
+    public function getBeneficiarySwiftBic(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_swift_bic', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getBeneficiaryBankName(): string
+    public function getBeneficiaryBankName(): ?string
     {
         return $this->_scopeConfig->getValue('beneficiary_bank_name', ScopeInterface::SCOPE_STORE);
+    }
+
+    public function getNumberOfActivePaymentMethods(): int
+    {
+        return count($this->paymentConfig->getActiveMethods());
+    }
+
+    public function getConfigurationSummary(): array
+    {
+        $conf = [
+            'type' => 'php-mg-1',
+            'php_version' => PHP_VERSION,
+            'shop_name' => $this->getShopName(),
+            'shop_domain' => $this->storeManager->getStore()->getBaseUrl(),
+            'shop_cms' => 'magento',
+            'shop_cms_version' => $this->productMetadata->getVersion(),
+            'module_version' => self::MODULE_VERSION,
+            'module_position' => '', // TODO: find way to get to find position
+            'shop_payment_methods' => $this->getNumberOfActivePaymentMethods(),
+            'module_enabled' => $this->getActive(),
+            'module_production' => $this->environment === Environment::ENVIRONMENT_PRODUCTION ? 1 : 0,
+            'module_sandbox_app_id' => $this->getAppId(Environment::ENVIRONMENT_SANDBOX),
+            'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
+            'module_branding' => $this->getShowLogo()
+        ];
+        return $conf;
     }
 }

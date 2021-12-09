@@ -14,14 +14,12 @@
     color: #19b5bc;
     font-family: sans-serif;
     font-weight: bolder;
-
 }
 
 .fintecture-payment-title {
     font-size: 14px;
     display: inline-block;
 }
-
 
 .apsp-getstarted {
     display: inline-block;
@@ -32,7 +30,8 @@
     display: inline-block;
 }
 
-#checkout_https_required, #checkout_reload {
+#checkout_https_required,
+#checkout_reload {
     color: red;
     display: none;
 }
@@ -69,10 +68,9 @@
     display: none;
 }
 
-.checkout-payment-section.section-config.active > .admin__collapsible-block + input + fieldset {
+.checkout-payment-section.section-config.active>.admin__collapsible-block+input+fieldset {
     margin-left: 40px;
 }
-
 
 .config-heading.fintecture_section {
     display: flex;
@@ -82,12 +80,6 @@
 
 .config-heading.fintecture_section img {
     width: 100px;
-}
-
-#row_payment_us_fintecture_general_custom_file_upload_sandbox > td.value > div,
-#payment_us_fintecture_general_custom_file_upload_sandbox_delete,
-#row_payment_us_fintecture_general_custom_file_upload_sandbox > td.value > div > label {
-    display: none;
 }
 
 #connect-message {
