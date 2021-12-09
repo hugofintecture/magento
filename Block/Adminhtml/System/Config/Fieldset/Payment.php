@@ -16,7 +16,7 @@ class Payment extends Fieldset
 
     public function _isPaymentEnabled($element)
     {
-        $groupConfig   = $element->getGroup();
+        $groupConfig = $element->getGroup();
         $activityPaths = $groupConfig['activity_path'] ?? [];
 
         foreach ($activityPaths as $activityPath) {
@@ -30,21 +30,21 @@ class Payment extends Fieldset
 
     public function _getHeaderTitleHtml($element)
     {
-        $isPaymentEnabled  = $this->_isPaymentEnabled($element);
-        $logo              = $this->getViewFileUrl('Fintecture_Payment::images/logo.png');
+        $isPaymentEnabled = $this->_isPaymentEnabled($element);
+        $logo = $this->getViewFileUrl('Fintecture_Payment::images/logo.png');
         $disabledAttribute = $isPaymentEnabled ? '' : ' disabled="disabled"';
         $disabledClassName = $isPaymentEnabled ? '' : ' disabled';
-        $htmlId            = $element->getHtmlId();
-        $groupConfig       = $element->getGroup();
-        $classes           = ($groupConfig['checkout_com_separator'] ?? ' checkout-com-separator') . $disabledClassName;
-        $moreLink          = isset($groupConfig['demo_url']) ? '<a class="link-more" href="' . $groupConfig['more_url'] . '" target="_blank">' . __('Learn More') . '</a>' : '';
-        $demoLink          = isset($groupConfig['demo_url']) ? '<a class="link-demo" href="' . $groupConfig['demo_url'] . '" target="_blank">' . __('View Demo') . '</a>' : '';
-        $state             = $this->getUrl('adminhtml/*/state');
+        $htmlId = $element->getHtmlId();
+        $groupConfig = $element->getGroup();
+        $classes = ($groupConfig['checkout_com_separator'] ?? ' checkout-com-separator') . $disabledClassName;
+        $moreLink = isset($groupConfig['demo_url']) ? '<a class="link-more" href="' . $groupConfig['more_url'] . '" target="_blank">' . __('Learn More') . '</a>' : '';
+        $demoLink = isset($groupConfig['demo_url']) ? '<a class="link-demo" href="' . $groupConfig['demo_url'] . '" target="_blank">' . __('View Demo') . '</a>' : '';
+        $state = $this->getUrl('adminhtml/*/state');
 
-        $title       = __('Instant bank payment');
+        $title = __('Instant bank payment');
         $description = __('Pay instantly and securely directly from your bank account. Collect payments without any credit limit. Reduce your transaction fees by 40% !');
-        $configure   = __('Configure');
-        $close       = __('Close');
+        $configure = __('Configure');
+        $close = __('Close');
 
         $html = '
         <div class="config-heading fintecture_section">

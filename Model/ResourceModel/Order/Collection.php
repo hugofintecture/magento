@@ -20,8 +20,8 @@ class Collection extends AbstractCollection
     public function getOpenOrders($quote)
     {
         $curr_code = $quote->getQuoteCurrencyCode();
-        $email     = $quote->getCustomerEmail();
-        $date      = $quote->getCreatedAt();
+        $email = $quote->getCustomerEmail();
+        $date = $quote->getCreatedAt();
         $this->getSelect()
              ->where('main_table.state =?', 'new')
              ->where('main_table.status =?', 'pending')

@@ -1,4 +1,4 @@
-# Fintecture Payment module for magento 2.1
+# Fintecture Payment module for Magento 2.1
 
 Fintecture is a Fintech that has a payment solution via bank transfer available at https://www.fintecture.com.
 

@@ -56,16 +56,16 @@ abstract class FintectureAbstract extends Action
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
     ) {
-        $this->_customerSession  = $customerSession;
-        $this->_checkoutSession  = $checkoutSession;
-        $this->quoteRepository   = $quoteRepository;
-        $this->_orderFactory     = $orderFactory;
-        $this->_paymentMethod    = $paymentMethod;
-        $this->_checkoutHelper   = $checkoutHelper;
-        $this->cartManagement    = $cartManagement;
+        $this->_customerSession = $customerSession;
+        $this->_checkoutSession = $checkoutSession;
+        $this->quoteRepository = $quoteRepository;
+        $this->_orderFactory = $orderFactory;
+        $this->_paymentMethod = $paymentMethod;
+        $this->_checkoutHelper = $checkoutHelper;
+        $this->cartManagement = $cartManagement;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->cart              = $cart;
-        $this->fintectureLogger        = $finlogger;
+        $this->cart = $cart;
+        $this->fintectureLogger = $finlogger;
         parent::__construct($context);
     }
 
@@ -93,8 +93,8 @@ abstract class FintectureAbstract extends Action
     protected function getOrderById($order_id)
     {
         $objectManager = ObjectManager::getInstance();
-        $order         = $objectManager->get('Magento\Sales\Model\Order');
-        $order_info    = $order->loadByIncrementId($order_id);
+        $order = $objectManager->get('Magento\Sales\Model\Order');
+        $order_info = $order->loadByIncrementId($order_id);
         return $order_info;
     }
 

@@ -14,26 +14,26 @@ class InstallData implements InstallDataInterface
     {
         $setup->startSetup();
 
-        $connection     = $setup->getConnection();
+        $connection = $setup->getConnection();
         $coreConfigData = $setup->getTable('core_config_data');
 
         $connection->insertOnDuplicate(
             $coreConfigData,
             [
-                'scope'    => 'default',
+                'scope' => 'default',
                 'scope_id' => 0,
-                'path'     => 'payment/fintecture/fintecture_api_url_sandbox',
-                'value'    => 'https://api-sandbox.fintecture.com/',
+                'path' => 'payment/fintecture/fintecture_api_url_sandbox',
+                'value' => 'https://api-sandbox.fintecture.com/',
             ]
         );
 
         $connection->insertOnDuplicate(
             $coreConfigData,
             [
-                'scope'    => 'default',
+                'scope' => 'default',
                 'scope_id' => 0,
-                'path'     => 'payment/fintecture/fintecture_api_url_production',
-                'value'    => 'https://api.fintecture.com/',
+                'path' => 'payment/fintecture/fintecture_api_url_production',
+                'value' => 'https://api.fintecture.com/',
             ]
         );
 
