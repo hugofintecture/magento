@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Config\Model\Config\Backend;
 
+use const DIRECTORY_SEPARATOR;
 use Exception;
+use function file_exists;
+use function is_array;
 use Magento\Config\Model\Config\Backend\File;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\MediaStorage\Model\File\Uploader;
-use function file_exists;
-use function is_array;
-use const DIRECTORY_SEPARATOR;
 
 class PrivateKeyFile extends File
 {
     public function beforeSave()
     {
         $value = $this->getValue();
-        $file  = $this->getFileData();
+        $file = $this->getFileData();
 
         if (!empty($file)) {
             if (!isset($file['name'])) {

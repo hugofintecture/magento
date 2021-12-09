@@ -9,20 +9,6 @@ ObjectManager/etc/config.xsd">
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Checkout\Model\CompositeConfigProvider">
-        <arguments>
-            <argument name="configProviders" xsi:type="array">
-                <item name="cms_block_provider" xsi:type="object">Fintecture\Payment\Model\Cmsblock\ConfigProvider
-                </item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Fintecture\Payment\Model\Cmsblock\ConfigProvider">
-        <arguments>
-            <!--ID OF THE CMS BLOCK-->
-            <argument name="blockId" xsi:type="string">19</argument>
-        </arguments>
-    </type>
     <type name="Magento\Checkout\Controller\Index\Index">
         <plugin name="checkFintectureState" type="Fintecture\Payment\Plugin\Checkout\Controller\CheckFintectureState"/>
     </type>

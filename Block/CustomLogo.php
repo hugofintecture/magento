@@ -9,7 +9,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class CustomLogo extends Template
 {
-    public const CUSTOM_LOGO_SHOW = 'payment/fintecture/general/show_logo';
+    const CUSTOM_LOGO_SHOW = 'payment/fintecture/general/show_logo';
 
     public function getShowLogo()
     {

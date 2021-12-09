@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
 
+use function base64_decode;
+use function base64_encode;
+use function explode;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Fintecture;
+use function hash;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
-use function base64_decode;
-use function base64_encode;
-use function explode;
-use function hash;
+use const OPENSSL_PKCS1_OAEP_PADDING;
 use function openssl_private_decrypt;
 use function str_replace;
-use const OPENSSL_PKCS1_OAEP_PADDING;
 
 abstract class WebhookAbstract extends Action
 {
@@ -49,11 +49,11 @@ abstract class WebhookAbstract extends Action
         JsonFactory $resultJsonFactory,
         CollectionFactory $orderCollectionFactory
     ) {
-        $this->_orderFactory          = $orderFactory;
-        $this->_paymentMethod         = $paymentMethod;
-        $this->_checkoutHelper        = $checkoutHelper;
-        $this->resultJsonFactory      = $resultJsonFactory;
-        $this->fintectureLogger       = $finlogger;
+        $this->_orderFactory = $orderFactory;
+        $this->_paymentMethod = $paymentMethod;
+        $this->_checkoutHelper = $checkoutHelper;
+        $this->resultJsonFactory = $resultJsonFactory;
+        $this->fintectureLogger = $finlogger;
         $this->orderCollectionFactory = $orderCollectionFactory;
         parent::__construct($context);
     }
@@ -96,7 +96,7 @@ abstract class WebhookAbstract extends Action
             return false;
         }
 
-        $digestBody   = 'SHA-256=' . base64_encode(hash('sha256', $body, true));
+        $digestBody = 'SHA-256=' . base64_encode(hash('sha256', $body, true));
         $digestHeader = stripslashes($_SERVER['HTTP_DIGEST']);
 
         $signature = stripslashes($_SERVER['HTTP_SIGNATURE']);
