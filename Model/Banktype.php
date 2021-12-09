@@ -8,9 +8,9 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class BankType implements OptionSourceInterface
 {
-    const BANK_RETAIL    = 'retail';
+    const BANK_RETAIL = 'retail';
     const BANK_CORPORATE = 'corporate';
-    const BANK_ALL       = 'all';
+    const BANK_ALL = 'all';
 
     public function toOptionArray(): array
     {

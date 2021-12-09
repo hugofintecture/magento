@@ -20,7 +20,7 @@ class PaymentUnsuccessful extends WebhookAbstract
                 $this->fintectureLogger->debug('Webhook payment unsuccessful', $data);
 
                 $fintecturePaymentSessionId = $data['session_id'] ?? '';
-                $fintecturePaymentStatus    = $data['status'] ?? '';
+                $fintecturePaymentStatus = $data['status'] ?? '';
 
                 if ($fintecturePaymentSessionId) {
                     $orderCollection = $this->orderCollectionFactory->create();
@@ -32,7 +32,7 @@ class PaymentUnsuccessful extends WebhookAbstract
                         $order = $this->_orderFactory->create()->load($orderHooked->getId());
 
                         $data['meta']['session_id'] = $fintecturePaymentSessionId;
-                        $data['meta']['status']     = $fintecturePaymentStatus;
+                        $data['meta']['status'] = $fintecturePaymentStatus;
 
                         $this->_paymentMethod->handleFailedTransaction($order, $data);
                     }

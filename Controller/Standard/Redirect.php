@@ -36,7 +36,7 @@ class Redirect extends FintectureAbstract
             $quote->setCustomerEmail($email);
             $quote->save();
 
-            $params   = [];
+            $params = [];
             $response = $this->getPaymentMethod()->getPaymentGatewayRedirectUrl();
 
             $this->fintectureLogger->debug('Redirection', [$response]);

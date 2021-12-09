@@ -12,15 +12,13 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\ManagerInterface as EventManager;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\CustomerManagement;
-use Magento\Quote\Model\Quote as QuoteEntity;
 use Magento\Quote\Model\Quote\Address\ToOrder as ToOrderConverter;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress as ToOrderAddressConverter;
 use Magento\Quote\Model\Quote\AddressFactory;
+use Magento\Quote\Model\Quote as QuoteEntity;
 use Magento\Quote\Model\Quote\Item\ToOrderItem as ToOrderItemConverter;
 use Magento\Quote\Model\Quote\Payment\ToOrderPayment as ToOrderPaymentConverter;
 use Magento\Quote\Model\QuoteFactory;
@@ -152,13 +150,13 @@ class QuoteManagement extends \Magento\Quote\Model\QuoteManagement
             $quoteIdMaskFactory
         );
         $this->submitQuoteValidator = $submitQuoteValidator;
-        $this->fintectureOrder      = $fintectureOrder;
-        $this->fintectureLogger     = new Logger('fintecture');
+        $this->fintectureOrder = $fintectureOrder;
+        $this->fintectureLogger = new Logger('fintecture');
     }
 
     protected function submitQuote(QuoteEntity $quote, $orderData = [])
     {
-        $paymentMethod   = $quote->getPayment()->getMethod();
+        $paymentMethod = $quote->getPayment()->getMethod();
         $fintectureState = $this->checkoutSession->getFintectureState();
         $this->updateState($paymentMethod);
 

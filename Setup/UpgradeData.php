@@ -15,7 +15,7 @@ class UpgradeData implements UpgradeDataInterface
         if (version_compare($context->getVersion(), '1.0.3', '>')) {
             $setup->startSetup();
 
-            $connection     = $setup->getConnection();
+            $connection = $setup->getConnection();
             $coreConfigData = $setup->getTable('core_config_data');
 
             $connection->delete($coreConfigData, ['value' => 'payment/fintecture/fintecture_pis_url_sandbox']);
@@ -35,7 +35,7 @@ class UpgradeData implements UpgradeDataInterface
                 $coreConfigData,
                 ['value' => 'all'],
                 [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'All',
                 ]
             );
@@ -44,7 +44,7 @@ class UpgradeData implements UpgradeDataInterface
                 $coreConfigData,
                 ['value' => 'corporate'],
                 [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'Corporate',
                 ]
             );
@@ -53,7 +53,7 @@ class UpgradeData implements UpgradeDataInterface
                 $coreConfigData,
                 ['value' => 'retail'],
                 [
-                    'path'  => 'payment/fintecture/general/bank_type',
+                    'path' => 'payment/fintecture/general/bank_type',
                     'value' => 'Retail',
                 ]
             );
@@ -61,20 +61,20 @@ class UpgradeData implements UpgradeDataInterface
             $connection->insertOnDuplicate(
                 $coreConfigData,
                 [
-                    'scope'    => 'default',
+                    'scope' => 'default',
                     'scope_id' => 0,
-                    'path'     => 'payment/fintecture/fintecture_api_url_sandbox',
-                    'value'    => 'https://api-sandbox.fintecture.com/',
+                    'path' => 'payment/fintecture/fintecture_api_url_sandbox',
+                    'value' => 'https://api-sandbox.fintecture.com/',
                 ]
             );
 
             $connection->insertOnDuplicate(
                 $coreConfigData,
                 [
-                    'scope'    => 'default',
+                    'scope' => 'default',
                     'scope_id' => 0,
-                    'path'     => 'payment/fintecture/fintecture_api_url_production',
-                    'value'    => 'https://api.fintecture.com/',
+                    'path' => 'payment/fintecture/fintecture_api_url_production',
+                    'value' => 'https://api.fintecture.com/',
                 ]
             );
 
