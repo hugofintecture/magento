@@ -1,36 +1,71 @@
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
-        <input type="radio"
-               name="payment[method]"
-               class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-	    <!-- <label data-bind="attr: {'for': getCode()}" class="label img_label" ><span data-bind="text: getTitle()"></span></label> -->
-        <label data-bind="attr: {'for': getCode()}" class="label img_label"><span data-bind="i18n: 'Instant bank payment'"></span></label>
+        <input type="radio" name="payment[method]" class="radio"
+            data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()" />
+        <label data-bind="attr: {'for': getCode()}" class="label img_label"><span
+                data-bind="i18n: 'Instant bank payment'"></span></label>
     </div>
-  <div data-bind="html: window.checkoutConfig.cms_block"></div>
+    <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
+        <div class="checkout_block payment-method-content">
+            <p id="f-description">
+                <span
+                    data-bind="i18n: 'You will be automatically redirected to your secured bank environment to confirm your payment.'"></span>
+                <span><b data-bind="i18n: 'Pay for your purchases instantly and securely.'"></b></span>
+            </p>
+
+            <p id="f-howto" data-bind="i18n: 'How it works?'"></p>
+
+            <div id="f-steps">
+                <div class="f-step-wrapper">
+                    <div class="f-step-icon f-step-1-icon">
+                        <div class="f-step-img f-step-1-img"></div>
+                    </div>
+                    <p data-bind="i18n: 'Select your bank'"></p>
+                </div>
+                <div class="f-step-wrapper">
+                    <div class="f-step-icon f-step-2-icon">
+                        <div class="f-step-img f-step-2-img"></div>
+                    </div>
+                    <p data-bind="i18n: 'Login with your usual banking ID’s'"></p>
+                </div>
+                <div class="f-step-wrapper">
+                    <div class="f-step-icon f-step-3-icon">
+                        <div class="f-step-img f-step-3-img"></div>
+                    </div>
+                    <p data-bind="i18n: 'Confirm your payment securely'"></p>
+                </div>
+                <div class="f-step-wrapper">
+                    <div class="f-step-icon f-step-4-icon">
+                        <div class="f-step-img f-step-4-img"></div>
+                    </div>
+                    <p data-bind="i18n: 'Your purchase is confirmed!'"></p>
+                </div>
+            </div>
+        </div>
+
         <!-- ko foreach: getRegion('messages') -->
-        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!-- ko template: getTemplate() -->
+        <!-- /ko -->
         <!--/ko-->
         <div class="payment-method-billing-address">
             <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!-- ko template: getTemplate() -->
+            <!-- /ko -->
             <!--/ko-->
         </div>
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!-- ko template: getTemplate() -->
+            <!-- /ko -->
             <!--/ko-->
         </div>
         <div class="actions-toolbar">
             <div class="primary">
-                <button class="action primary checkout"
-                        type="submit"
-                        data-bind="
+                <button class="action primary checkout" type="submit" data-bind="
                         click: placeOrder,
                         enable: (getCode() == isChecked())
-                        "
-                        disabled>
+                        " disabled>
                     <span data-bind="i18n: 'Pay Now'"></span>
                 </button>
             </div>

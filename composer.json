@@ -7,7 +7,7 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "license": [
         "GPL-3.0"
     ],
@@ -17,8 +17,9 @@
         "ext-openssl": "*"
     },
     "require-dev": {
-        "phpstan/phpstan": "^0.12.99",
-        "bitexpert/phpstan-magento": "^0.9.0"
+        "magento/community-edition": "^2.3",
+        "phpstan/phpstan": "^1",
+        "bitexpert/phpstan-magento": "^0.11.0"
     },
     "autoload": {
         "files": [

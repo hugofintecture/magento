@@ -4,27 +4,26 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Gateway;
 
-use DateTime;
-use Magento\Framework\HTTP\Client\Curl;
 use function base64_encode;
 use function chr;
-use function hash;
-use function http_build_query;
-use function json_decode;
-use function json_encode;
-use function openssl_random_pseudo_bytes;
-use function openssl_sign;
-use function str_split;
-use function vsprintf;
-use const CURLOPT_ENCODING;
 use const CURLOPT_HTTP_VERSION;
 use const CURLOPT_MAXREDIRS;
 use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_TIMEOUT;
+use DateTime;
+use function hash;
+use function http_build_query;
+use function json_decode;
+use function json_encode;
 use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
+use Magento\Framework\HTTP\Client\Curl;
 use const OPENSSL_ALGO_SHA256;
+use function openssl_random_pseudo_bytes;
+use function openssl_sign;
 use const PHP_EOL;
+use function str_split;
+use function vsprintf;
 
 class Client
 {
@@ -33,7 +32,9 @@ class Client
     public $fintectureAppId;
     public $fintectureAppSecret;
     public $fintecturePrivateKey;
-    public $headers;
+    public $curlOptions;
+
+    public const STATS_URL = 'https://api.fintecture.com/ext/v1/activity';
 
     public function __construct($params)
     {
@@ -42,6 +43,27 @@ class Client
         $this->fintectureAppSecret = $params['fintectureAppSecret'];
         $this->fintecturePrivateKey = $params['fintecturePrivateKey'];
         $this->client = new Curl();
+        $this->curlOptions = [
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
+        ];
+    }
+
+    public function logAction(string $action, array $systemInfos): bool
+    {
+        $headers = [
+            'Content-Type' => 'application/json'
+        ];
+
+        $data = array_merge($systemInfos, ['action' => $action]);
+
+        $this->client->setHeaders($headers);
+        $this->client->setOptions($this->curlOptions);
+        $this->client->post(self::STATS_URL, json_encode($data));
+
+        return $this->client->getStatus() === 204;
     }
 
     public function testConnection(): string
@@ -72,15 +94,9 @@ class Client
             'signature' => $signature,
             'authorization' => 'Basic ' . $basicToken,
         ];
-        $options = [
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
-        ];
 
         $this->client->setHeaders($headers);
-        $this->client->setOptions($options);
+        $this->client->setOptions($this->curlOptions);
         $this->client->post($this->fintectureApiUrl . 'oauth/secure/accesstoken', http_build_query($data));
         $response = $this->client->getBody();
 
@@ -126,15 +142,9 @@ class Client
             'x-psu-type' => $psuType,
             'signature' => $signature,
         ];
-        $options = [
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
-        ];
 
         $this->client->setHeaders($headers);
-        $this->client->setOptions($options);
+        $this->client->setOptions($this->curlOptions);
         $this->client->post($url, json_encode($data));
         $response = $this->client->getBody();
 
@@ -169,15 +179,9 @@ class Client
             'signature' => $signature,
             'authorization' => 'Basic ' . $basicToken,
         ];
-        $options = [
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
-        ];
 
         $this->client->setHeaders($headers);
-        $this->client->setOptions($options);
+        $this->client->setOptions($this->curlOptions);
         $this->client->post($this->fintectureApiUrl . '/oauth/accesstoken', http_build_query($data));
         $response = $this->client->getBody();
 
@@ -209,15 +213,9 @@ class Client
             'signature' => $signature,
             'authorization' => 'Bearer ' . $accessToken,
         ];
-        $options = [
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
-        ];
 
         $this->client->setHeaders($headers);
-        $this->client->setOptions($options);
+        $this->client->setOptions($this->curlOptions);
         $this->client->get($this->fintectureApiUrl . '/pis/v2/payments/' . $sessionId);
         $response = $this->client->getBody();
 
