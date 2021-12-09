@@ -8,8 +8,8 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class Environment implements OptionSourceInterface
 {
-    public const ENVIRONMENT_PRODUCTION = 'production';
-    public const ENVIRONMENT_SANDBOX    = 'sandbox';
+    const ENVIRONMENT_PRODUCTION = 'production';
+    const ENVIRONMENT_SANDBOX = 'sandbox';
 
     public function toOptionArray(): array
     {

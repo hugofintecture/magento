@@ -10,5 +10,5 @@ use Monolog\Logger as MonoLogger;
 class Handler extends Base
 {
     protected $loggerType = MonoLogger::DEBUG;
-    protected $fileName   = '/var/log/payment/fintecture/payment.log';
+    protected $fileName = '/var/log/payment/fintecture/payment.log';
 }

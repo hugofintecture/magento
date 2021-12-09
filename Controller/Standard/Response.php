@@ -17,14 +17,14 @@ class Response extends FintectureAbstract
 
         try {
             $paymentMethod = $this->getPaymentMethod();
-            $response      = $paymentMethod->getLastPaymentStatusResponse();
+            $response = $paymentMethod->getLastPaymentStatusResponse();
 
             $this->fintectureLogger->debug('Response', [$response]);
 
             $order = $this->getOrder();
 
             $orderStatus = $this->getCheckoutHelper()->getOrderStatusBasedOnPaymentStatus($response);
-            $status      = $orderStatus['status'] ?? '';
+            $status = $orderStatus['status'] ?? '';
 
             if ($status === Order::STATE_PROCESSING) {
                 $returnUrl = $this->getCheckoutHelper()->getUrl('checkout/onepage/success');
@@ -33,7 +33,7 @@ class Response extends FintectureAbstract
 
                 try {
                     $this->getCheckoutSession()->setFintectureState(null);
-                    $quote    = $this->getQuote();
+                    $quote = $this->getQuote();
                     $ordernum = $order->getIncrementId();
 
                     $this->getCheckoutSession()->setLastSuccessQuoteId($order->getQouteId());

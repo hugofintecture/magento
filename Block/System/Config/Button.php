@@ -30,7 +30,7 @@ class Button extends Field
                        ->createBlock('Magento\Backend\Block\Widget\Button')
                        ->setData(
                            [
-                               'id'    => 'test-connection',
+                               'id' => 'test-connection',
                                'label' => __('Test Connection')
                            ]
                        );

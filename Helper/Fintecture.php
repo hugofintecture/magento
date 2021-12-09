@@ -33,9 +33,9 @@ class Fintecture extends AbstractHelper
         QuoteManagement $quoteManagement,
         FintectureLogger $fintectureLogger
     ) {
-        $this->session          = $session;
-        $this->quote            = $quote;
-        $this->quoteManagement  = $quoteManagement;
+        $this->session = $session;
+        $this->quote = $quote;
+        $this->quoteManagement = $quoteManagement;
         $this->fintectureLogger = $fintectureLogger;
         parent::__construct($context);
     }
@@ -57,15 +57,15 @@ class Fintecture extends AbstractHelper
 
         switch ($status) {
             case 'payment_created':
-                $return['state']  = Order::STATE_PROCESSING;
+                $return['state'] = Order::STATE_PROCESSING;
                 $return['status'] = 'processing';
                 break;
             case 'payment_pending':
-                $return['state']  = Order::STATE_PENDING_PAYMENT;
+                $return['state'] = Order::STATE_PENDING_PAYMENT;
                 $return['status'] = 'pending_payment';
                 break;
             default:
-                $return['state']  = Order::STATE_NEW;
+                $return['state'] = Order::STATE_NEW;
                 $return['status'] = 'pending';
                 break;
         }

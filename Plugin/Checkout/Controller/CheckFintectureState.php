@@ -38,18 +38,18 @@ class CheckFintectureState
         Order $fintectureOrder,
         RedirectInterface $redirect
     ) {
-        $this->storeManager    = $storeManager;
+        $this->storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
-        $this->checkoutHelper  = $checkoutHelper;
+        $this->checkoutHelper = $checkoutHelper;
         $this->fintectureOrder = $fintectureOrder;
-        $this->redirect        = $redirect;
+        $this->redirect = $redirect;
     }
 
     public function beforeExecute($subject)
     {
-        $quote         = $this->checkoutSession->getQuote();
+        $quote = $this->checkoutSession->getQuote();
         $paymentMethod = $quote->getPayment()->getMethod();
-        $order         = $this->getOrder();
+        $order = $this->getOrder();
         if (null === $paymentMethod // payment type not available on bank site
             && 'created' === $this->checkoutSession->getFintectureState()
             && 'pending' === $order->getStatus()

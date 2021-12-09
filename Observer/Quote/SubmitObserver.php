@@ -10,7 +10,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Observer\SubmitObserver as MagentoSubmitObserver;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Psr\Log\LoggerInterface;
 
@@ -26,8 +25,8 @@ class SubmitObserver extends MagentoSubmitObserver
         LoggerInterface $logger,
         OrderSender $orderSender
     ) {
-        $this->logger        = $logger;
-        $this->orderSender   = $orderSender;
+        $this->logger = $logger;
+        $this->orderSender = $orderSender;
         parent::__construct($logger, $orderSender);
     }
 
@@ -40,7 +39,7 @@ class SubmitObserver extends MagentoSubmitObserver
         $order = $observer->getEvent()->getOrder();
 
         $paymentMethod = $order->getPayment()->getData('method');
-        $redirectUrl   = $quote->getPayment()->getOrderPlaceRedirectUrl();
+        $redirectUrl = $quote->getPayment()->getOrderPlaceRedirectUrl();
         if (
             $paymentMethod !== Fintecture::PAYMENT_FINTECTURE_CODE
             && !$redirectUrl

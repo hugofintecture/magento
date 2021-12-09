@@ -16,27 +16,27 @@ class InstallSchema implements InstallSchemaInterface
         $setup->startSetup();
 
         $salesOrderTable = $setup->getTable('sales_order');
-        $connection      = $setup->getConnection();
+        $connection = $setup->getConnection();
         $connection->addColumn(
             $salesOrderTable,
             'fintecture_payment_session_id',
             [
-                                'type'     => Table::TYPE_TEXT,
+                                'type' => Table::TYPE_TEXT,
                                 'nullable' => true,
-                                'length'   => 255,
-                                'after'    => null, // column name to insert new column after
-                                'comment'  => 'Fintecture payment session id'
+                                'length' => 255,
+                                'after' => null, // column name to insert new column after
+                                'comment' => 'Fintecture payment session id'
                             ]
         );
         $connection->addColumn(
             $salesOrderTable,
             'fintecture_payment_customer_id',
             [
-                                'type'     => Table::TYPE_TEXT,
+                                'type' => Table::TYPE_TEXT,
                                 'nullable' => true,
-                                'length'   => 255,
-                                'after'    => null, // column name to insert new column after
-                                'comment'  => 'Fintecture payment customer id'
+                                'length' => 255,
+                                'after' => null, // column name to insert new column after
+                                'comment' => 'Fintecture payment customer id'
                             ]
         );
         $setup->endSetup();
