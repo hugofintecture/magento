@@ -16,7 +16,6 @@ use Magento\Store\Model\StoreManagerInterface;
 class CustomLogo extends Template
 {
     public const CUSTOM_LOGO_SHOW = 'payment/fintecture/general/show_logo';
-    public const CUSTOM_LOGO_POSITION = 'payment/fintecture/general/logo_position';
 
     /** @var StoreManagerInterface $_storeManager */
     protected $_storeManager;
