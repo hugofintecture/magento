@@ -8,9 +8,6 @@ use Exception;
 use Fintecture\Payment\Gateway\Client;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
-use function implode;
-use function json_encode;
-use const JSON_UNESCAPED_UNICODE;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
@@ -32,11 +29,10 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use function number_format;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.0';
+    private const MODULE_VERSION = '1.2.1';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
