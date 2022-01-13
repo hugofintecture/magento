@@ -32,7 +32,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.1';
+    private const MODULE_VERSION = '1.2.2';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -142,6 +142,7 @@ class Fintecture extends AbstractMethod
 
         $order->setStatus($orderStatus);
         $order->setState($orderState);
+        $order->setTotalPaid($order->getTotalDue());
 
         $note = $this->fintectureHelper->getStatusHistoryComment($response);
 
@@ -446,7 +447,7 @@ class Fintecture extends AbstractMethod
 
     public function getConfigurationSummary(): array
     {
-        $conf = [
+        return [
             'type' => 'php-mg-1',
             'php_version' => PHP_VERSION,
             'shop_name' => $this->getShopName(),
@@ -462,6 +463,5 @@ class Fintecture extends AbstractMethod
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->getShowLogo()
         ];
-        return $conf;
     }
 }
