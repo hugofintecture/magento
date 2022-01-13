@@ -13,9 +13,6 @@ abstract class FintectureAbstract extends Action
     /** @var \Magento\Checkout\Model\Session */
     protected $_checkoutSession;
 
-    /** @var \Magento\Sales\Model\OrderFactory */
-    protected $_orderFactory;
-
     /** @var \Magento\Customer\Model\Session */
     protected $_customerSession;
 
@@ -34,37 +31,25 @@ abstract class FintectureAbstract extends Action
     /** @var \Fintecture\Payment\Helper\Fintecture */
     protected $_checkoutHelper;
 
-    /** @var \Magento\Quote\Api\CartManagementInterface */
-    protected $cartManagement;
-
     /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $resultJsonFactory;
-
-    /** @var \Magento\Checkout\Model\Cart */
-    protected $cart;
 
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
         \Fintecture\Payment\Logger\Logger $finlogger,
         \Fintecture\Payment\Model\Fintecture $paymentMethod,
         \Fintecture\Payment\Helper\Fintecture $checkoutHelper,
-        \Magento\Quote\Api\CartManagementInterface $cartManagement,
-        \Magento\Checkout\Model\Cart $cart,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
     ) {
         $this->_customerSession = $customerSession;
         $this->_checkoutSession = $checkoutSession;
         $this->quoteRepository = $quoteRepository;
-        $this->_orderFactory = $orderFactory;
         $this->_paymentMethod = $paymentMethod;
         $this->_checkoutHelper = $checkoutHelper;
-        $this->cartManagement = $cartManagement;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->cart = $cart;
         $this->fintectureLogger = $finlogger;
         parent::__construct($context);
     }
@@ -100,9 +85,7 @@ abstract class FintectureAbstract extends Action
 
     protected function getOrder()
     {
-        return $this->_orderFactory->create()->loadByIncrementId(
-            $this->_checkoutSession->getLastRealOrderId()
-        );
+        return $this->getCheckoutSession()->getLastRealOrder();
     }
 
     protected function getQuote()
