@@ -33,7 +33,7 @@ class SubmitObserver extends MagentoSubmitObserver
         $this->logger = $logger;
         $this->orderSender = $orderSender;
         $this->invoiceSender = $invoiceSender;
-        parent::__construct($logger, $orderSender, $invoiceSender);
+        parent::__construct($logger, $orderSender);
     }
 
     public function execute(Observer $observer)
