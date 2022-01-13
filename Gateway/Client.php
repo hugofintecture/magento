@@ -4,26 +4,13 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Gateway;
 
-use function base64_encode;
-use function chr;
-use const CURLOPT_HTTP_VERSION;
-use const CURLOPT_MAXREDIRS;
-use const CURLOPT_RETURNTRANSFER;
-use const CURLOPT_TIMEOUT;
 use DateTime;
-use function hash;
-use function http_build_query;
-use function json_decode;
-use function json_encode;
-use const JSON_UNESCAPED_SLASHES;
-use const JSON_UNESCAPED_UNICODE;
 use Magento\Framework\HTTP\Client\Curl;
-use const OPENSSL_ALGO_SHA256;
-use function openssl_random_pseudo_bytes;
-use function openssl_sign;
-use const PHP_EOL;
-use function str_split;
-use function vsprintf;
+
+// CURL_HTTP_VERSION_2_0 is not available in old curl versions
+if (!defined('CURL_HTTP_VERSION_2_0')) {
+    define('CURL_HTTP_VERSION_2_0', 3);
+}
 
 class Client
 {

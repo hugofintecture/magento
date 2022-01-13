@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
 
-use const DIRECTORY_SEPARATOR;
 use Exception;
-use function file_get_contents;
 use Fintecture\Payment\Gateway\Client;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
-use function implode;
-use function json_encode;
-use const JSON_UNESCAPED_UNICODE;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
@@ -34,13 +29,10 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use function number_format;
-use function scandir;
-use function strpos;
 
 class Fintecture extends AbstractMethod
 {
-    const MODULE_VERSION = '1.2.0';
+    const MODULE_VERSION = '1.2.2';
     const PAYMENT_FINTECTURE_CODE = 'fintecture';
     const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -145,6 +137,7 @@ class Fintecture extends AbstractMethod
 
         $order->setStatus($orderStatus);
         $order->setState($orderState);
+        $order->setTotalPaid($order->getTotalDue());
 
         $note = $this->fintectureHelper->getStatusHistoryComment($response);
 
@@ -482,7 +475,7 @@ class Fintecture extends AbstractMethod
 
     public function getConfigurationSummary(): array
     {
-        $conf = [
+        return [
             'type' => 'php-mg-1',
             'php_version' => PHP_VERSION,
             'shop_name' => $this->getShopName(),
@@ -498,6 +491,5 @@ class Fintecture extends AbstractMethod
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->getShowLogo()
         ];
-        return $conf;
     }
 }
