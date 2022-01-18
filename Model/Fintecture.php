@@ -13,9 +13,9 @@ use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\DB\Transaction;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Json\Helper\Data as JsonHelperData;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -26,13 +26,13 @@ use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.3';
+    private const MODULE_VERSION = '1.2.4';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -52,9 +52,6 @@ class Fintecture extends AbstractMethod
     /**  @var FintectureLogger */
     protected $fintectureLogger;
 
-    /** @var JsonHelperData $jsonHelper */
-    protected $jsonHelper;
-
     /** @var SessionManagerInterface $coreSession */
     protected $coreSession;
 
@@ -64,6 +61,9 @@ class Fintecture extends AbstractMethod
     /** @var InvoiceSender $invoiceSender */
     protected $invoiceSender;
 
+    /** @var InvoiceService $invoiceService */
+    protected $invoiceService;
+
     /** @var ProductMetadataInterface $productMetadata */
     protected $productMetadata;
 
@@ -72,6 +72,9 @@ class Fintecture extends AbstractMethod
 
     /** @var PaymentConfig $paymentConfig */
     protected $paymentConfig;
+
+    /** @var Transaction $transaction */
+    protected $transaction;
 
     public function __construct(
         Context $context,
@@ -85,24 +88,26 @@ class Fintecture extends AbstractMethod
         FintectureHelper $fintectureHelper,
         Session $checkoutSession,
         FintectureLogger $fintectureLogger,
-        JsonHelperData $jsonHelper,
         SessionManagerInterface $coreSession,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender,
+        InvoiceService $invoiceService,
         ProductMetadataInterface $productMetadata,
         StoreManagerInterface $storeManager,
-        PaymentConfig $paymentConfig
+        PaymentConfig $paymentConfig,
+        Transaction $transaction
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
         $this->fintectureLogger = $fintectureLogger;
-        $this->jsonHelper = $jsonHelper;
         $this->coreSession = $coreSession;
         $this->productMetadata = $productMetadata;
         $this->orderSender = $orderSender;
+        $this->invoiceService = $invoiceService;
         $this->invoiceSender = $invoiceSender;
         $this->storeManager = $storeManager;
         $this->paymentConfig = $paymentConfig;
+        $this->transaction = $transaction;
 
         parent::__construct(
             $context,
@@ -142,26 +147,27 @@ class Fintecture extends AbstractMethod
 
         $order->setStatus($orderStatus);
         $order->setState($orderState);
-        $order->setTotalPaid($order->getTotalDue());
-
-        $note = $this->fintectureHelper->getStatusHistoryComment($response);
-
-        $order->addStatusHistoryComment($note);
 
         $order->save();
 
         $this->orderSender->send($order);
-        if (!$order->hasInvoices() && $order->canInvoice()) {
-            $invoice = $order->prepareInvoice();
 
-            if ($invoice->getTotalQty() > 0) {
-                $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
-                $invoice->setTransactionId($order->getPayment()->getTransactionId());
-                $invoice->register();
-                $invoice->addComment(__('Automatic invoice.'), false);
-                $invoice->save();
-                $this->invoiceSender->send($invoice);
-            }
+        if ($order->canInvoice()) {
+            $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->register();
+            $invoice->save();
+            $transactionSave = $this->transaction
+                ->addObject(
+                    $invoice
+                )->addObject(
+                    $invoice->getOrder()
+                );
+            $transactionSave->save();
+            // Send Invoice mail to customer
+            $this->invoiceSender->send($invoice);
+            $order->addStatusHistoryComment($this->fintectureHelper->getStatusHistoryComment($response))
+                ->setIsCustomerNotified(true)
+                ->save();
         }
     }
 
