@@ -19,8 +19,7 @@ class Response extends FintectureAbstract
             $paymentMethod = $this->getPaymentMethod();
             $response = $paymentMethod->getLastPaymentStatusResponse();
 
-            $this->fintectureLogger->debug('Response', [$response]);
-
+            $quote = $this->getQuote();
             $order = $this->getOrder();
 
             $orderStatus = $this->getCheckoutHelper()->getOrderStatusBasedOnPaymentStatus($response);
@@ -32,29 +31,17 @@ class Response extends FintectureAbstract
                 $paymentMethod->handleSuccessTransaction($order, $response);
 
                 try {
-                    $this->getCheckoutSession()->setFintectureState(null);
-                    $quote = $this->getQuote();
-                    $ordernum = $order->getIncrementId();
+                    $this->getCheckoutSession()->setLastQuoteId($quote->getId());
+                    $this->getCheckoutSession()->setLastSuccessQuoteId($quote->getId());
 
-                    $this->getCheckoutSession()->setLastSuccessQuoteId($order->getQouteId());
-                    $this->getCheckoutSession()->setLastQuoteId($order->getQouteId());
-                    $this->getCheckoutSession()->setLastOrderId($order->getEntityId());
+                    $this->getCheckoutSession()->setLastOrderId($order->getId());
+                    $this->getCheckoutSession()->setLastRealOrderId($order->getIncrementId());
+                    $this->getCheckoutSession()->setLastOrderStatus($order->getStatus());
+
+                    $this->getCheckoutSession()->setFintectureState(null);
 
                     $quote->setIsActive(false);
-                    $this->cart->truncate()->save();
                     $this->quoteRepository->save($quote);
-                    $this->getCheckoutSession()->clearStorage();
-
-                    // clear any previous messages
-                    $this->messageManager->getMessages(true);
-                    $this->messageManager->addSuccess(__('Your Order is confirmed'));
-                    $this->messageManager->addSuccess("#$ordernum");
-                    /*
-                        $invoice = current($order->getInvoiceCollection()->getItems());
-                        if ($invoice) {
-                            $this->invoiceSender->send($invoice);
-                        }
-                    */
                 } catch (Exception $e) {
                     $this->fintectureLogger->error($e, $e->getTrace());
                 }
@@ -64,10 +51,10 @@ class Response extends FintectureAbstract
                 $this->getCheckoutSession()->setFintectureState(null);
                 $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.'));
             } else {
+                $returnUrl = $this->getCheckoutHelper()->getUrl('checkout') . "#payment";
                 $paymentMethod->handleFailedTransaction($order, $response);
                 $this->getCheckoutSession()->setFintectureState('failed');
                 $this->getCheckoutSession()->restoreQuote();
-                $returnUrl = $this->getCheckoutHelper()->getUrl('checkout') . "#payment";
                 $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
             }
         } catch (LocalizedException $e) {
@@ -79,5 +66,6 @@ class Response extends FintectureAbstract
         }
 
         $this->_redirect($returnUrl);
+        return;
     }
 }
