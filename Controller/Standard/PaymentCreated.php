@@ -17,8 +17,6 @@ class PaymentCreated extends WebhookAbstract
                 $body = file_get_contents('php://input');
                 parse_str($body, $data);
 
-                $this->fintectureLogger->debug('Webhook payment created', [$data]);
-
                 $fintecturePaymentSessionId = $data['session_id'] ?? '';
                 $fintecturePaymentStatus = $data['status'] ?? '';
 

@@ -17,8 +17,6 @@ class PaymentUnsuccessful extends WebhookAbstract
                 $body = file_get_contents('php://input');
                 parse_str($body, $data);
 
-                $this->fintectureLogger->debug('Webhook payment unsuccessful', $data);
-
                 $fintecturePaymentSessionId = $data['session_id'] ?? '';
                 $fintecturePaymentStatus = $data['status'] ?? '';
 
@@ -39,9 +37,9 @@ class PaymentUnsuccessful extends WebhookAbstract
                 }
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Webhook Payment UnsuccessfulResponse Error 1 ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->debug('Webhook Payment Unsuccessful Response Error 1 ' . $e->getMessage(), $e->getTrace());
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Webhook PaymentUnsuccessful Response Error 2 ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->debug('Webhook Payment Unsuccessful Response Error 2 ' . $e->getMessage(), $e->getTrace());
         }
     }
 }
