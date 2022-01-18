@@ -17,8 +17,6 @@ class PaymentPending extends WebhookAbstract
                 $body = file_get_contents('php://input');
                 parse_str($body, $data);
 
-                $this->fintectureLogger->debug('Webhook payment pending', $data);
-
                 $fintecturePaymentSessionId = $data['session_id'] ?? '';
                 $fintecturePaymentStatus = $data['status'] ?? '';
 
