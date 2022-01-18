@@ -49,7 +49,7 @@ Go to Stores > Configuration > Sales > Payment methods.
 
 See https://github.com/magento/magento2/issues/19127.
 
-Open `vendor/magento/framework/HTTP/Client/Curl.php` and change;
+Open `vendor/magento/framework/HTTP/Client/Curl.php` or `lib/internal/Magento/Framework/HTTP/Client/Curl.php` and change;
 
 ```php
 protected function parseHeaders($ch, $data)

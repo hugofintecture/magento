@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Config\Model\Config\Backend;
 
-use const DIRECTORY_SEPARATOR;
 use Exception;
-use function file_exists;
-use function is_array;
 use Magento\Config\Model\Config\Backend\File;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;

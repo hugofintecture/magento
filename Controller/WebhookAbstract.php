@@ -4,21 +4,14 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
 
-use function base64_decode;
-use function base64_encode;
-use function explode;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Fintecture;
-use function hash;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
-use const OPENSSL_PKCS1_OAEP_PADDING;
-use function openssl_private_decrypt;
-use function str_replace;
 
 abstract class WebhookAbstract extends Action
 {
