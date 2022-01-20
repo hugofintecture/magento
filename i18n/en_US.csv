@@ -37,7 +37,7 @@
 "Private Key file name was not specified", "Private Key file name was not specified"
 "The base directory to upload file is not specified.", "The base directory to upload file is not specified."
 "No private key file found", "No private key file found"
-"No private key file found", "We can't initialize checkout."
+"We can't initialize checkout.", "We can't initialize checkout."
 "Pay Now","Pay Now"
 "Automatic invoice.", "Automatic invoice."
 "We can't place the order.", "We can't place the order."
