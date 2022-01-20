@@ -63,7 +63,7 @@ class Ajax extends Action
 
         $clientGateway = new Client(
             [
-                'fintectureApiUrl' => $this->getFintectureApiUrl(),
+                'fintectureApiUrl' => $this->fintectureModel->getFintectureApiUrl(),
                 'fintecturePrivateKey' => $fintecturePrivateKey,
                 'fintectureAppId' => $fintectureAppId,
                 'fintectureAppSecret' => $fintectureAppSecret,
@@ -75,13 +75,5 @@ class Ajax extends Action
         $resultJson = $this->jsonResultFactory->create();
 
         return $resultJson->setData($response);
-    }
-
-    public function getFintectureApiUrl()
-    {
-        return $this->scopeConfig->getValue(
-            static::CONFIG_PREFIX . 'fintecture_api_url_' . $this->environment,
-            ScopeInterface::SCOPE_STORE
-        );
     }
 }
