@@ -32,7 +32,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.4';
+    private const MODULE_VERSION = '1.2.5';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -248,7 +248,8 @@ class Fintecture extends AbstractMethod
 
     public function getFintectureApiUrl(): string
     {
-        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_api_url_' . $this->environment, ScopeInterface::SCOPE_STORE);
+        return $this->environment === 'sandbox'
+            ? 'https://api-sandbox.fintecture.com/' : 'https://api.fintecture.com/';
     }
 
     public function getAppPrivateKey()
