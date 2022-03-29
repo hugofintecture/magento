@@ -39,8 +39,6 @@ class Redirect extends FintectureAbstract
             $params = [];
             $response = $this->getPaymentMethod()->getPaymentGatewayRedirectUrl();
 
-            $this->fintectureLogger->debug('Redirection', [$response]);
-
             $params['url'] = $response;
 
             return $this->resultJsonFactory->create()->setData($params);

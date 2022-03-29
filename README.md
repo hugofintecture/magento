@@ -6,8 +6,8 @@ Email to developer@fintecture.com to get the full API documentation.
 
 ## Requirements
 
-- PHP 7.0 or greater with extensions 'json', 'openssl' activated
-- Magento 2.2
+- Magento 2.2 at least
+- PHP 7.0 or greater with extensions **json**, **openssl** activated
 
 ## Installation
 

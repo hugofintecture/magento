@@ -88,8 +88,10 @@ class Fintecture extends AbstractHelper
                 return __('The buyer has select *Pay By Bank* as payment method, got redirected to Connect but has not selected any banks.');
             case 'payment_error':
                 return __('Technical Error, the bank has rejected the payment initiation or has timeout');
-            default:
+            case 'payment_pending':
                 return __('Payment pending');
+            default:
+                return __('Unknown status');
         }
     }
 }
