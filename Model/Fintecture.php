@@ -24,15 +24,18 @@ use Magento\Payment\Model\Config as PaymentConfig;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.5';
+    private const MODULE_VERSION = '1.2.6';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -76,6 +79,12 @@ class Fintecture extends AbstractMethod
     /** @var Transaction $transaction */
     protected $transaction;
 
+    /** @var OrderManagementInterface $orderManagement */
+    protected $orderManagement;
+
+    /** @var HistoryFactory orderStatusHistoryFactory */
+    private $orderStatusHistoryFactory;
+
     public function __construct(
         Context $context,
         Registry $registry,
@@ -95,7 +104,9 @@ class Fintecture extends AbstractMethod
         ProductMetadataInterface $productMetadata,
         StoreManagerInterface $storeManager,
         PaymentConfig $paymentConfig,
-        Transaction $transaction
+        Transaction $transaction,
+        OrderManagementInterface $orderManagement,
+        HistoryFactory $orderStatusHistoryFactory
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
@@ -108,6 +119,8 @@ class Fintecture extends AbstractMethod
         $this->storeManager = $storeManager;
         $this->paymentConfig = $paymentConfig;
         $this->transaction = $transaction;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
 
         parent::__construct(
             $context,
@@ -123,30 +136,29 @@ class Fintecture extends AbstractMethod
         $this->environment = $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'environment', ScopeInterface::SCOPE_STORE);
     }
 
-    public function handleSuccessTransaction($order, $response)
+    public function handleSuccessTransaction($order, $status, $sessionId, $statuses, $webhook = false)
     {
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         if (!$order->getId()) {
             $this->fintectureLogger->debug('There is no order id found');
             return;
         }
 
-        $transactionId = $response['meta']['session_id'] ?? '';
+        // Don't update order if state has already been set
+        if ($order->getState() === $statuses['state']) {
+            $this->fintectureLogger->debug('State is already set');
+            return;
+        }
 
-        $order->getPayment()->setTransactionId($transactionId);
-        $order->getPayment()->setLastTransId($transactionId);
+        $order->getPayment()->setTransactionId($sessionId);
+        $order->getPayment()->setLastTransId($sessionId);
         $order->getPayment()->addTransaction(TransactionInterface::TYPE_ORDER);
         $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->setAdditionalInformation($response);
+        $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
         $order->getPayment()->place();
 
-        $status = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response);
-
-        $orderStatus = $status['status'] ?? '';
-        $orderState = $status['state'] ?? '';
-
-        $order->setStatus($orderStatus);
-        $order->setState($orderState);
+        $order->setState($statuses['state']);
+        $order->setStatus($statuses['status']);
 
         $order->save();
 
@@ -165,65 +177,74 @@ class Fintecture extends AbstractMethod
             $transactionSave->save();
             // Send Invoice mail to customer
             $this->invoiceSender->send($invoice);
-            $order->addStatusHistoryComment($this->fintectureHelper->getStatusHistoryComment($response))
+
+            $note = $this->fintectureHelper->getStatusHistoryComment($status);
+            $note = $webhook ? 'webhook: ' . $note : $note;
+
+            $order->addStatusHistoryComment($note)
                 ->setIsCustomerNotified(true)
                 ->save();
         }
     }
 
-    public function handleFailedTransaction($order, $response)
+    public function handleFailedTransaction($order, $status, $sessionId, $webhook = false)
     {
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         if (!$order->getId()) {
             $this->fintectureLogger->debug('There is no order id found');
             return;
         }
 
         try {
-            $transactionId = $response['meta']['session_id'] ?? '';
+            if ($order->canCancel()) {
+                if ($this->orderManagement->cancel($order->getEntityId())) {
+                    $order->getPayment()->setTransactionId($sessionId);
+                    $order->getPayment()->setLastTransId($sessionId);
+                    $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
-            $order->getPayment()->setTransactionId($transactionId);
-            $order->getPayment()->setLastTransId($transactionId);
-            $order->getPayment()->setAdditionalInformation($response);
+                    $note = $this->fintectureHelper->getStatusHistoryComment($status);
+                    $note = $webhook ? 'webhook: ' . $note : $note;
 
-            $note = $this->fintectureHelper->getStatusHistoryComment($response);
-            $orderStatus = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['status'];
-            $orderState = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
-
-            $order->setState($orderState);
-            $order->setStatus($orderStatus);
-            $order->setCustomerNoteNotify(false);
-            $order->addStatusHistoryComment($note);
-            $order->save();
+                    $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                            ->setParentId($order->getEntityId())
+                            ->setEntityName('order')
+                            ->setStatus(Order::STATE_CANCELED)
+                            ->setComment($note);
+                    $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                }
+            }
         } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
         }
     }
 
-    public function handleHoldedTransaction($order, $response)
+    public function handleHoldedTransaction($order, $status, $sessionId, $statuses, $webhook = false)
     {
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         if (!$order->getId()) {
             $this->fintectureLogger->debug('There is no order id found');
             return;
         }
 
+        // Don't update order if state has already been set
+        if ($order->getState() === $statuses['state']) {
+            $this->fintectureLogger->debug('State is already set');
+            return;
+        }
+
         try {
-            $transactionId = $response['meta']['session_id'] ?? '';
+            $order->getPayment()->setTransactionId($sessionId);
+            $order->getPayment()->setLastTransId($sessionId);
+            $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
-            $order->getPayment()->setTransactionId($transactionId);
-            $order->getPayment()->setLastTransId($transactionId);
-            $order->getPayment()->setAdditionalInformation($response);
-
-            $note = $this->fintectureHelper->getStatusHistoryComment($response);
-
-            $orderStatus = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['status'];
-            $orderState = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response)['state'];
-
-            $order->setState($orderState);
-            $order->setStatus($orderStatus);
-            $order->setCustomerNoteNotify(false);
+            $note = $this->fintectureHelper->getStatusHistoryComment($status);
+            $note = $webhook ? 'webhook: ' . $note : $note;
             $order->addStatusHistoryComment($note);
+
+            $order->setState($statuses['state']);
+            $order->setStatus($statuses['status']);
+
+            $order->setCustomerNoteNotify(false);
             $order->save();
         } catch (Exception $e) {
             $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
@@ -305,8 +326,16 @@ class Fintecture extends AbstractMethod
         $this->validateConfigValue();
 
         $lastRealOrder = $this->checkoutSession->getLastRealOrder();
+        if (!$lastRealOrder) {
+            $this->fintectureLogger->debug('No order found in session, please try again');
+            throw new LocalizedException(__('No order found in session, please try again'));
+        }
+
         $billingAddress = $lastRealOrder->getBillingAddress();
-        //$shippingAddress = $lastRealOrder->getBillingAddress();
+        if (!$billingAddress) {
+            $this->fintectureLogger->debug('No billing address found in order, please try again');
+            throw new LocalizedException(__('No billing address found in order, please try again'));
+        }
 
         $data = [
             'meta' => [
@@ -329,7 +358,7 @@ class Fintecture extends AbstractMethod
                 'attributes' => [
                     'amount' => number_format($lastRealOrder->getBaseTotalDue(), 2, '.', ''),
                     'currency' => $lastRealOrder->getOrderCurrencyCode(),
-                    'communication' => 'FINTECTURE-' . $lastRealOrder->getId()
+                    'communication' => 'FINTECTURE-' . $lastRealOrder->getIncrementId()
                 ],
             ],
         ];
@@ -394,7 +423,7 @@ class Fintecture extends AbstractMethod
 
     public function getOriginUrl(): string
     {
-        return $this->fintectureHelper->getUrl('checkout/') . '#payment';
+        return $this->fintectureHelper->getUrl('fintecture/standard/response');
     }
 
     public function getRedirectUrl(): string

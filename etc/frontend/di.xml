@@ -9,7 +9,4 @@ ObjectManager/etc/config.xsd">
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Checkout\Controller\Index\Index">
-        <plugin name="checkFintectureState" type="Fintecture\Payment\Plugin\Checkout\Controller\CheckFintectureState"/>
-    </type>
 </config>
