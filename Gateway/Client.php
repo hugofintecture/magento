@@ -7,11 +7,6 @@ namespace Fintecture\Payment\Gateway;
 use DateTime;
 use Magento\Framework\HTTP\Client\Curl;
 
-// CURL_HTTP_VERSION_2_0 is not available in old curl versions
-if (!defined('CURL_HTTP_VERSION_2_0')) {
-    define('CURL_HTTP_VERSION_2_0', 3);
-}
-
 class Client
 {
     public $client;
@@ -33,8 +28,7 @@ class Client
         $this->curlOptions = [
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0,
+            CURLOPT_TIMEOUT => 30
         ];
     }
 
