@@ -13,44 +13,35 @@ class Redirect extends FintectureAbstract
 {
     public function execute()
     {
-        if (!$this->getRequest()->isAjax()) {
-            $this->_cancelPayment();
-            $this->getCheckoutSession()->restoreQuote();
-            $this->getResponse()
-                 ->setRedirect(
-                     $this->getCheckoutHelper()->getUrl('checkout') . "#payment"
-                 )->sendResponse();
+        if (!$this->request->isAjax()) {
+            $this->fintectureLogger->debug('Error Redirection : non ajax request');
+            throw new LocalizedException(__('Error Redirection : non ajax request'));
         }
 
         try {
             $quote = $this->getQuote();
-            $email = $this->getRequest()->getParam('email');
-            $quote->setCheckoutMethod(Onepage::METHOD_GUEST);
+            $email = $this->request->getParam('email');
 
-            if ($this->getCustomerSession()->isLoggedIn()) {
+            if ($this->customerSession->isLoggedIn()) {
                 $quote->setCheckoutMethod(Onepage::METHOD_CUSTOMER);
-                $this->getCheckoutSession()->loadCustomerQuote();
+                $this->checkoutSession->loadCustomerQuote();
                 $quote->updateCustomerData($this->getQuote()->getCustomer());
+            } else {
+                $quote->setCheckoutMethod(Onepage::METHOD_GUEST);
             }
 
             $quote->setCustomerEmail($email);
             $quote->save();
 
-            $params = [];
-            $response = $this->getPaymentMethod()->getPaymentGatewayRedirectUrl();
-
-            $this->fintectureLogger->debug('Redirection', [$response]);
-
-            $params['url'] = $response;
+            $response = $this->paymentMethod->getPaymentGatewayRedirectUrl();
+            $params = [
+                'url' => $response
+            ];
 
             return $this->resultJsonFactory->create()->setData($params);
         } catch (Exception $e) {
             $this->fintectureLogger->debug('Error Redirection : ' . $e->getMessage(), $e->getTrace());
-
-            $this->getCheckoutSession()->restoreQuote();
-            throw new LocalizedException(
-                __($e->getMessage())
-            );
+            throw new LocalizedException(__($e->getMessage()));
         }
     }
 }

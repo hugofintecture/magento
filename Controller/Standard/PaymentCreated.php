@@ -12,34 +12,57 @@ class PaymentCreated extends WebhookAbstract
 {
     public function execute()
     {
+        $result = $this->resultRawFactory->create();
+        $result->setHeader('Content-Type', 'text/plain');
+
         try {
-            if ($this->validateWebhook()) {
-                $body = file_get_contents('php://input');
+            $body = file_get_contents('php://input');
+            list($validWebhook, $webhookError) = $this->validateWebhook($body);
+            if ($validWebhook) {
                 parse_str($body, $data);
 
-                $fintecturePaymentSessionId = $data['session_id'] ?? '';
-                $fintecturePaymentStatus = $data['status'] ?? '';
+                if (isset($data['session_id']) && isset($data['status'])
+                    && !empty($data['session_id']) && !empty($data['status'])) {
+                    $sessionId = $data['session_id'];
+                    $status = $data['status'];
 
-                if ($fintecturePaymentSessionId) {
+                    $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+
                     $orderCollection = $this->orderCollectionFactory->create();
-                    $orderCollection->addFieldToFilter('fintecture_payment_session_id', $fintecturePaymentSessionId);
+                    $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
 
-                    $orderHooked = $orderCollection->getFirstItem();
+                    $order = $orderCollection->getFirstItem();
+                    if ($order && $order->getId()) {
+                        if ($statuses['status'] === Order::STATE_PROCESSING) {
+                            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
+                        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+                            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+                        } else {
+                            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
+                        }
 
-                    if ($orderHooked->getId()) {
-                        $order = $this->_orderFactory->create()->load($orderHooked->getId());
-
-                        $data['meta']['session_id'] = $fintecturePaymentSessionId;
-                        $data['meta']['status'] = $fintecturePaymentStatus;
-
-                        $this->_paymentMethod->handleSuccessTransaction($order, $data);
+                        $result->setHttpResponseCode(200);
+                    } else {
+                        $this->fintectureLogger->debug('Webhook error: no order found');
+                        $result->setHttpResponseCode(401);
+                        $result->setContents('Webhook error: no order found');
                     }
                 }
+            } else {
+                $this->fintectureLogger->debug('Webhook error: ' . $webhookError);
+                $result->setHttpResponseCode(401);
+                $result->setContents('Webhook error: ' . $webhookError);
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Webhook Payment Created Response Error 1 ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $result->setHttpResponseCode(500);
+            $result->setContents('Webhook error: ' . $e->getMessage());
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Webhook Payment Created Response Error 2 ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $result->setHttpResponseCode(500);
+            $result->setContents('Webhook error: ' . $e->getMessage());
         }
+
+        return $result;
     }
 }
