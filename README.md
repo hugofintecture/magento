@@ -6,9 +6,9 @@ Email to developer@fintecture.com to get the full API documentation.
 
 ## Requirements
 
-- PHP 7.0 with extensions 'json', 'openssl' activated
-- Magento 2.1
-- Fix curl bug
+- Magento 2.1 at least
+- PHP 7.0 with extensions **json**, **openssl** activated
+- Fix curl bug (see section below)
 
 ## Installation
 
