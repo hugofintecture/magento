@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.7';
+    private const MODULE_VERSION = '1.2.8';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -489,7 +489,7 @@ class Fintecture extends AbstractMethod
             'shop_name' => $this->getShopName(),
             'shop_domain' => $this->storeManager->getStore()->getBaseUrl(),
             'shop_cms' => 'magento',
-            'shop_cms_version' => $this->productMetadata->getVersion(),
+            'shop_cms_version' => $this->getMagentoVersion(),
             'module_version' => self::MODULE_VERSION,
             'module_position' => '', // TODO: find way to get to find position
             'shop_payment_methods' => $this->getNumberOfActivePaymentMethods(),
@@ -499,5 +499,15 @@ class Fintecture extends AbstractMethod
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->getShowLogo()
         ];
+    }
+
+    public function getMagentoVersion(): string
+    {
+        $version = $this->productMetadata->getVersion();
+        if ($version === 'UNKNOWN') {
+            $this->fintectureLogger->debug("Can't detect Magento version. It may cause some errors.");
+            return '2.4.0'; // assume that the version is the lowest possible
+        }
+        return $version;
     }
 }

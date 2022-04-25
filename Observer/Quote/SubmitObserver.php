@@ -28,12 +28,20 @@ class SubmitObserver extends MagentoSubmitObserver
     public function __construct(
         LoggerInterface $logger,
         OrderSender $orderSender,
-        InvoiceSender $invoiceSender
+        InvoiceSender $invoiceSender,
+        Fintecture $fintecture
     ) {
         $this->logger = $logger;
         $this->orderSender = $orderSender;
         $this->invoiceSender = $invoiceSender;
-        parent::__construct($logger, $orderSender);
+
+        // Needed because $invoiceSender param has been delete in Magento 2.4.3
+        // See: https://github.com/Fintecture/magento/issues/9
+        if (version_compare($fintecture->getMagentoVersion(), '2.4.3', '>=')) {
+            parent::__construct($logger, $orderSender);
+        } else {
+            parent::__construct($logger, $orderSender, $invoiceSender);
+        }
     }
 
     public function execute(Observer $observer)
