@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.8';
+    private const MODULE_VERSION = '1.2.9';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -165,6 +165,10 @@ class Fintecture extends AbstractMethod
         $this->orderSender->send($order);
 
         if ($order->canInvoice()) {
+            // Re-enable email sending
+            $order->setCanSendNewEmailFlag(true);
+            $order->save();
+
             $invoice = $this->invoiceService->prepareInvoice($order);
             $invoice->register();
             $invoice->save();
