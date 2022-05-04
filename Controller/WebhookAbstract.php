@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
 
+use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\App\ActionInterface;
@@ -15,6 +16,9 @@ abstract class WebhookAbstract implements ActionInterface
 {
     /** @var FintectureLogger $fintectureLogger */
     protected $fintectureLogger;
+
+    /** @var FintectureHelper */
+    protected $fintectureHelper;
 
     /** @var Fintecture */
     protected $paymentMethod;
@@ -30,15 +34,17 @@ abstract class WebhookAbstract implements ActionInterface
 
     public function __construct(
         FintectureLogger $fintectureLogger,
+        FintectureHelper $fintectureHelper,
         Fintecture $paymentMethod,
         JsonFactory $resultJsonFactory,
         RawFactory $resultRawFactory,
         CollectionFactory $orderCollectionFactory
     ) {
+        $this->fintectureLogger = $fintectureLogger;
+        $this->fintectureHelper = $fintectureHelper;
         $this->paymentMethod = $paymentMethod;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->resultRawFactory = $resultRawFactory;
-        $this->fintectureLogger = $fintectureLogger;
         $this->orderCollectionFactory = $orderCollectionFactory;
     }
 

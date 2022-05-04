@@ -7,6 +7,7 @@ namespace Fintecture\Payment\Controller\Standard;
 use Exception;
 use Fintecture\Payment\Controller\WebhookAbstract;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
 
 class PaymentCreated extends WebhookAbstract
 {
