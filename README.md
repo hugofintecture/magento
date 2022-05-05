@@ -8,7 +8,7 @@ Email to developer@fintecture.com to get the full API documentation.
 
 ## Requirements
 
-- Magento 2.4.3 at least
+- Magento 2.4.0 at least
 - PHP 7.3 or greater
 
 More information on [Magento documentation](https://devdocs.magento.com/guides/v2.4/install-gde/system-requirements.html).
