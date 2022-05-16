@@ -9,7 +9,6 @@ define(['Magento_Checkout/js/view/payment/default', 'Fintecture_Payment/js/actio
                 afterPlaceOrder: function () {
                     setPaymentMethod();
                 }
-
             }
         );
     }

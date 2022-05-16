@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.9';
+    private const MODULE_VERSION = '1.2.10';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -140,13 +140,18 @@ class Fintecture extends AbstractMethod
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
 
         // Don't update order if state has already been set
         if ($order->getState() === $statuses['state']) {
-            $this->fintectureLogger->debug('State is already set');
+            $this->fintectureLogger->error('Error', [
+                'message' => 'State is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentState' => $order->getState(),
+                'state' => $statuses['state']
+            ]);
             return;
         }
 
@@ -195,7 +200,7 @@ class Fintecture extends AbstractMethod
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
 
@@ -218,7 +223,7 @@ class Fintecture extends AbstractMethod
                 }
             }
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', ['exception' => $e]);
         }
     }
 
@@ -226,13 +231,18 @@ class Fintecture extends AbstractMethod
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
 
         // Don't update order if state has already been set
         if ($order->getState() === $statuses['state']) {
-            $this->fintectureLogger->debug('State is already set');
+            $this->fintectureLogger->error('Error', [
+                'message' => 'State is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentState' => $order->getState(),
+                'state' => $statuses['state']
+            ]);
             return;
         }
 
@@ -251,7 +261,7 @@ class Fintecture extends AbstractMethod
             $order->setCustomerNoteNotify(false);
             $order->save();
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', ['exception' => $e]);
         }
     }
 
@@ -331,13 +341,16 @@ class Fintecture extends AbstractMethod
 
         $lastRealOrder = $this->checkoutSession->getLastRealOrder();
         if (!$lastRealOrder) {
-            $this->fintectureLogger->debug('No order found in session, please try again');
+            $this->fintectureLogger->error('Error', ['message' => 'No order found in session, please try again']);
             throw new LocalizedException(__('No order found in session, please try again'));
         }
 
         $billingAddress = $lastRealOrder->getBillingAddress();
         if (!$billingAddress) {
-            $this->fintectureLogger->debug('No billing address found in order, please try again');
+            $this->fintectureLogger->error('Error', [
+                'message' => 'No billing address found in order, please try again',
+                'incrementOrderId' => $lastRealOrder->getIncrementId(),
+            ]);
             throw new LocalizedException(__('No billing address found in order, please try again'));
         }
 
@@ -378,7 +391,11 @@ class Fintecture extends AbstractMethod
             $apiResponse = $gatewayClient->generateConnectURL($data, $isRewriteModeActive, $redirectUrl, $originUrl, $psuType, $state);
 
             if (!isset($apiResponse['meta'])) {
-                $this->fintectureLogger->debug('Error building Checkout URL ' . json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE));
+                $this->fintectureLogger->error('Error', [
+                    'message' => 'Error building connect URL',
+                    'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                    'response' => json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE)
+                ]);
                 $this->checkoutSession->restoreQuote();
                 throw new LocalizedException(
                     __('Sorry, something went wrong. Please try again later.')
@@ -391,14 +408,20 @@ class Fintecture extends AbstractMethod
                 try {
                     $lastRealOrder->save();
                 } catch (Exception $e) {
-                    $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+                    $this->fintectureLogger->error('Error', [
+                        'exception' => $e,
+                        'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                    ]);
                 }
 
                 $this->coreSession->setPaymentSessionId($sessionId);
                 return $apiResponse['meta']['url'] ?? '';
             }
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', [
+                'exception' => $e,
+                'incrementOrderId' => $lastRealOrder->getIncrementId(),
+            ]);
 
             $this->checkoutSession->restoreQuote();
             throw new LocalizedException(

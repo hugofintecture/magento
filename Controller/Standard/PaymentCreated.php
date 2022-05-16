@@ -34,6 +34,12 @@ class PaymentCreated extends WebhookAbstract
 
                     $order = $orderCollection->getFirstItem();
                     if ($order && $order->getId()) {
+                        $this->fintectureLogger->debug('Webhook', [
+                            'orderIncrementId' => $order->getIncrementId(),
+                            'fintectureStatus' => $status,
+                            'status' => $statuses['status']
+                        ]);
+
                         if ($statuses['status'] === Order::STATE_PROCESSING) {
                             $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
                         } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
@@ -44,22 +50,30 @@ class PaymentCreated extends WebhookAbstract
 
                         $result->setHttpResponseCode(200);
                     } else {
-                        $this->fintectureLogger->debug('Webhook error: no order found');
+                        $this->fintectureLogger->error('Webhook error', [
+                            'message' => 'No order found',
+                            'sessionId' => $sessionId,
+                            'status' => $status
+                        ]);
                         $result->setHttpResponseCode(401);
                         $result->setContents('Webhook error: no order found');
                     }
                 }
             } else {
-                $this->fintectureLogger->debug('Webhook error: ' . $webhookError);
+                $this->fintectureLogger->error('Webhook error', [
+                    'message' => $webhookError,
+                    'sessionId' => $data['session_id'] ?? '',
+                    'status' => $data['status'] ?? ''
+                ]);
                 $result->setHttpResponseCode(401);
                 $result->setContents('Webhook error: ' . $webhookError);
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
             $result->setContents('Webhook error: ' . $e->getMessage());
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
             $result->setContents('Webhook error: ' . $e->getMessage());
         }
