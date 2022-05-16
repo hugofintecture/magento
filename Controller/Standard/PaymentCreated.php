@@ -34,6 +34,12 @@ class PaymentCreated extends WebhookAbstract
 
                     $order = $orderCollection->getFirstItem();
                     if ($order && $order->getId()) {
+                        $this->fintectureLogger->debug('Webhook', [
+                            'orderIncrementId' => $order->getIncrementId(),
+                            'fintectureStatus' => $status,
+                            'status' => $statuses['status']
+                        ]);
+
                         if ($statuses['status'] === Order::STATE_PROCESSING) {
                             $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
                         } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
