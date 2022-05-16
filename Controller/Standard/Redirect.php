@@ -6,7 +6,6 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use Exception;
 use Fintecture\Payment\Controller\FintectureAbstract;
-use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\Exception\LocalizedException;
 
 class Redirect extends FintectureAbstract
@@ -14,33 +13,46 @@ class Redirect extends FintectureAbstract
     public function execute()
     {
         if (!$this->request->isAjax()) {
-            $this->fintectureLogger->debug('Error Redirection : non ajax request');
-            throw new LocalizedException(__('Error Redirection : non ajax request'));
+            $this->fintectureLogger->error('Redirection error', ['message' => 'non ajax request']);
+            throw new LocalizedException(__('Redirection error: non ajax request'));
         }
 
         try {
-            $quote = $this->getQuote();
-            $email = $this->request->getParam('email');
-
-            if ($this->customerSession->isLoggedIn()) {
-                $quote->setCheckoutMethod(Onepage::METHOD_CUSTOMER);
-                $this->checkoutSession->loadCustomerQuote();
-                $quote->updateCustomerData($this->getQuote()->getCustomer());
-            } else {
-                $quote->setCheckoutMethod(Onepage::METHOD_GUEST);
+            $quoteId = $this->request->getParam('quoteId');
+            if (strlen($quoteId) === 32) {
+                try {
+                    $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
+                } catch (Exception $e) {
+                    $this->fintectureLogger->error('Redirection error', [
+                        'exception' => $e,
+                        'message' => "Can't find a quote with this masked id",
+                        'maskedQuoteId' => $quoteId
+                    ]);
+                }
             }
 
-            $quote->setCustomerEmail($email);
-            $quote->save();
+            $quote = $this->quoteFactory->create()->load($quoteId);
+            if (!$quote) {
+                $message = "Can't find a quote with this id";
+                $this->fintectureLogger->error('Redirection error', [
+                    'message' => $message,
+                    'quoteId' => $quoteId
+                ]);
+                throw new LocalizedException(__($message));
+            }
 
-            $response = $this->paymentMethod->getPaymentGatewayRedirectUrl();
-            $params = [
-                'url' => $response
-            ];
+            $redirectUrl = $this->paymentMethod->getPaymentGatewayRedirectUrl();
+            $this->fintectureLogger->debug('Redirection', [
+                'quoteId' => $quote->getId(),
+                'reservedIncrementOrderId' => $quote->getReservedOrderId(), // it's the incrementId, not the orderId
+                'redirectUrl' => $redirectUrl
+            ]);
 
-            return $this->resultJsonFactory->create()->setData($params);
+            return $this->resultJsonFactory->create()->setData([
+                'url' => $redirectUrl
+            ]);
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Error Redirection : ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Redirection error', ['exception' => $e]);
             throw new LocalizedException(__($e->getMessage()));
         }
     }

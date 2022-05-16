@@ -20,10 +20,15 @@ class Response extends FintectureAbstract
             $status = $response['meta']['status'];
             $sessionId = $response['meta']['session_id'];
 
-            $quote = $this->getQuote();
             $order = $this->getOrder();
 
             $statuses = $this->checkoutHelper->getOrderStatusBasedOnPaymentStatus($status);
+
+            $this->fintectureLogger->debug('Response', [
+                'orderIncrementId' => $order->getIncrementId(),
+                'fintectureStatus' => $status,
+                'status' => $statuses['status']
+            ]);
 
             if ($statuses['status'] === Order::STATE_PROCESSING) {
                 $returnUrl = $this->checkoutHelper->getUrl('checkout/onepage/success');
@@ -31,18 +36,19 @@ class Response extends FintectureAbstract
                 $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses);
 
                 try {
-                    $this->checkoutSession->setLastQuoteId($quote->getId());
-                    $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
-
+                    $this->checkoutSession->setLastQuoteId($order->getQuoteId());
+                    $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
                     $this->checkoutSession->setLastOrderId($order->getId());
                     $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
                     $this->checkoutSession->setLastOrderStatus($order->getStatus());
 
-                    $quote->setIsActive(false);
-                    $this->quoteRepository->save($quote);
                     return $this->resultRedirect->create()->setPath($returnUrl);
                 } catch (Exception $e) {
-                    $this->fintectureLogger->error($e, $e->getTrace());
+                    $this->fintectureLogger->error('Error', [
+                        'exception' => $e,
+                        'incrementOrderId' => $order->getIncrementId(),
+                        'status' => $order->getStatus()
+                    ]);
                 }
             } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
                 $returnUrl = $this->checkoutHelper->getUrl('checkout/onepage/success');
@@ -55,10 +61,10 @@ class Response extends FintectureAbstract
                 $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Response error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Response error', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, __($e->getMessage()));
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Response error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Response error', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, __('We can\'t place the order.'));
         }
 

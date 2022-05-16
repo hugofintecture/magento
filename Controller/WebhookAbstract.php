@@ -60,18 +60,15 @@ abstract class WebhookAbstract implements ActionInterface
     public function validateWebhook($body): array
     {
         if (!$body || empty($body)) {
-            $this->fintectureLogger->debug('Empty hook data');
             return [false, 'Empty hook data'];
         }
 
         $pkeyid = openssl_pkey_get_private($this->paymentMethod->getAppPrivateKey());
         if ($pkeyid === false) {
-            $this->fintectureLogger->debug('Invalid private key');
             return [false, 'Invalid private key'];
         }
 
         if (!isset($_SERVER['HTTP_DIGEST']) || !isset($_SERVER['HTTP_SIGNATURE'])) {
-            $this->fintectureLogger->debug('Missing HTTP_DIGEST or HTTP_SIGNATURE', [$_SERVER]);
             return [false, 'Missing HTTP_DIGEST or HTTP_SIGNATURE'];
         }
 
@@ -89,7 +86,6 @@ abstract class WebhookAbstract implements ActionInterface
         // match the digest calculated from the received payload, the digest found in the headers and the digest uncoded from the signature
         $matchDigest = $digestBody === $digestSignature && $digestBody === $digestHeader;
         if (!$matchDigest) {
-            $this->fintectureLogger->debug('Mismatching digest signatures');
             return [false, 'Mismatching digest signatures'];
         }
 

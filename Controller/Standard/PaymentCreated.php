@@ -44,22 +44,30 @@ class PaymentCreated extends WebhookAbstract
 
                         $result->setHttpResponseCode(200);
                     } else {
-                        $this->fintectureLogger->debug('Webhook error: no order found');
+                        $this->fintectureLogger->error('Webhook error', [
+                            'message' => 'No order found',
+                            'sessionId' => $sessionId,
+                            'status' => $status
+                        ]);
                         $result->setHttpResponseCode(401);
                         $result->setContents('Webhook error: no order found');
                     }
                 }
             } else {
-                $this->fintectureLogger->debug('Webhook error: ' . $webhookError);
+                $this->fintectureLogger->error('Webhook error', [
+                    'message' => $webhookError,
+                    'sessionId' => $data['session_id'] ?? '',
+                    'status' => $data['status'] ?? ''
+                ]);
                 $result->setHttpResponseCode(401);
                 $result->setContents('Webhook error: ' . $webhookError);
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
             $result->setContents('Webhook error: ' . $e->getMessage());
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Webhook error: ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
             $result->setContents('Webhook error: ' . $e->getMessage());
         }
