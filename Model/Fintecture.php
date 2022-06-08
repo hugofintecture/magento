@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.10';
+    private const MODULE_VERSION = '1.2.11';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -239,6 +239,14 @@ class Fintecture extends AbstractMethod
         if ($order->getState() === $statuses['state']) {
             $this->fintectureLogger->error('Error', [
                 'message' => 'State is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentState' => $order->getState(),
+                'state' => $statuses['state']
+            ]);
+            return;
+        } elseif ($order->getState() === 'processing') {
+            $this->fintectureLogger->error('Error', [
+                'message' => 'State is already set to processing',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentState' => $order->getState(),
                 'state' => $statuses['state']
