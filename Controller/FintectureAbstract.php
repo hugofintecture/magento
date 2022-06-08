@@ -4,115 +4,76 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Exception\LocalizedException;
+use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
+use Fintecture\Payment\Logger\Logger;
+use Fintecture\Payment\Model\Fintecture as FintectureModel;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use Magento\Quote\Model\QuoteFactory;
 
-abstract class FintectureAbstract extends Action
+abstract class FintectureAbstract implements ActionInterface
 {
-    /** @var \Magento\Checkout\Model\Session */
-    protected $_checkoutSession;
+    /** @var CheckoutSession */
+    protected $checkoutSession;
 
-    /** @var \Magento\Customer\Model\Session */
-    protected $_customerSession;
-
-    /** @var \Magento\Quote\Api\CartRepositoryInterface */
-    protected $quoteRepository;
-
-    /** @var \Fintecture\Payment\Logger\Logger */
+    /** @var Logger */
     protected $fintectureLogger;
 
-    /** @var \Magento\Quote\Model\Quote */
-    protected $_quote;
+    /** @var FintectureModel */
+    protected $paymentMethod;
 
-    /** @var \Fintecture\Payment\Model\Fintecture */
-    protected $_paymentMethod;
+    /** @var FintectureHelper */
+    protected $checkoutHelper;
 
-    /** @var \Fintecture\Payment\Helper\Fintecture */
-    protected $_checkoutHelper;
-
-    /** @var \Magento\Framework\Controller\Result\JsonFactory */
+    /** @var JsonFactory */
     protected $resultJsonFactory;
 
+    /** @var RequestInterface */
+    protected $request;
+
+    /** @var RedirectFactory */
+    protected $resultRedirect;
+
+    /** @var QuoteFactory */
+    protected $quoteFactory;
+
+    /** @var ManagerInterface */
+    protected $messageManager;
+
+    /** @var MaskedQuoteIdToQuoteIdInterface */
+    protected $maskedQuoteIdToQuoteId;
+
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Fintecture\Payment\Logger\Logger $finlogger,
-        \Fintecture\Payment\Model\Fintecture $paymentMethod,
-        \Fintecture\Payment\Helper\Fintecture $checkoutHelper,
-        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
+        CheckoutSession $checkoutSession,
+        Logger $fintectureLogger,
+        FintectureModel $paymentMethod,
+        FintectureHelper $checkoutHelper,
+        JsonFactory $resultJsonFactory,
+        RequestInterface $request,
+        RedirectFactory $resultRedirect,
+        ManagerInterface $messageManager,
+        QuoteFactory $quoteFactory,
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
     ) {
-        $this->_customerSession = $customerSession;
-        $this->_checkoutSession = $checkoutSession;
-        $this->quoteRepository = $quoteRepository;
-        $this->_paymentMethod = $paymentMethod;
-        $this->_checkoutHelper = $checkoutHelper;
+        $this->checkoutSession = $checkoutSession;
+        $this->paymentMethod = $paymentMethod;
+        $this->checkoutHelper = $checkoutHelper;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->fintectureLogger = $finlogger;
-        parent::__construct($context);
-    }
-
-    protected function initCheckout()
-    {
-        $quote = $this->getQuote();
-        if (!$quote->hasItems() || $quote->getHasError()) {
-            $this->getResponse()->setStatusHeader(403, '1.1', 'Forbidden');
-            throw new LocalizedException(__('We can\'t initialize checkout.'));
-        }
-    }
-
-    protected function _cancelPayment($errorMsg = '')
-    {
-        $gotoSection = false;
-        $this->_checkoutHelper->cancelCurrentOrder($errorMsg);
-        if ($this->_checkoutSession->restoreQuote()) {
-            //Redirect to payment step
-            $gotoSection = 'paymentMethod';
-        }
-
-        return $gotoSection;
-    }
-
-    protected function getOrderById($order_id)
-    {
-        $objectManager = ObjectManager::getInstance();
-        $order = $objectManager->get('Magento\Sales\Model\Order');
-        $order_info = $order->loadByIncrementId($order_id);
-        return $order_info;
+        $this->fintectureLogger = $fintectureLogger;
+        $this->request = $request;
+        $this->resultRedirect = $resultRedirect;
+        $this->messageManager = $messageManager;
+        $this->quoteFactory = $quoteFactory;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
     }
 
     protected function getOrder()
     {
-        return $this->getCheckoutSession()->getLastRealOrder();
-    }
-
-    protected function getQuote()
-    {
-        if (!$this->_quote) {
-            $this->_quote = $this->getCheckoutSession()->getQuote();
-        }
-        return $this->_quote;
-    }
-
-    protected function getCheckoutSession()
-    {
-        return $this->_checkoutSession;
-    }
-
-    public function getCustomerSession()
-    {
-        return $this->_customerSession;
-    }
-
-    public function getPaymentMethod()
-    {
-        return $this->_paymentMethod;
-    }
-
-    protected function getCheckoutHelper()
-    {
-        return $this->_checkoutHelper;
+        return $this->checkoutSession->getLastRealOrder();
     }
 }
