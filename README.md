@@ -44,3 +44,9 @@ Go to Stores > Configuration > Sales > Payment methods.
 - Select payment method display (show logo or not)
 - Test your connection (if everything is ok you should have a green message)
 - Don't forget to enable the payment method unless it won't be displayed in the front end
+
+## Other Magento versions
+
+- Magento 2.4 : https://github.com/Fintecture/magento
+- Magento 2.2 : Please contact us to get our plugin for this version.
+- Magento 2.1 : Please contact us to get our plugin for this version.
