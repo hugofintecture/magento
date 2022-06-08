@@ -3,27 +3,19 @@ define(
         'jquery',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/customer-data',
-        'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/full-screen-loader',
         'Fintecture_Payment/js/form/form-builder',
         'Magento_Ui/js/modal/alert',
         'mage/translate'
     ],
-    function ($, quote, customerData,customer, fullScreenLoader, formBuilder,alert, translate) {
+    function ($, quote, customerData, fullScreenLoader, formBuilder, alert, translate) {
         'use strict';
 
         return function (messageContainer) {
             var serviceUrl,
-                email,
                 form;
 
-            if (!customer.isLoggedIn()) {
-                email = quote.guestEmail;
-            } else {
-                email = customer.customerData.email;
-            }
-
-            serviceUrl = window.checkoutConfig.payment.fintecture.redirectUrl+'?email='+email;
+            serviceUrl = window.checkoutConfig.payment.fintecture.redirectUrl+'?quoteId='+quote.getQuoteId();
             fullScreenLoader.startLoader();
 
             $.ajax(

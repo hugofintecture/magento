@@ -6,7 +6,7 @@ Email to developer@fintecture.com to get the full API documentation.
 
 ## Requirements
 
-- Magento 2.3.3 at least
+- Magento 2.3 at least
 - PHP 7.1 or greater
 
 More information on [Magento documentation](https://devdocs.magento.com/guides/v2.3/install-gde/system-requirements.html).
@@ -24,7 +24,7 @@ More information on [Magento documentation](https://devdocs.magento.com/guides/v
 - Create folder Fintecture
 - Upload the code in there (final file structure : app/code/Fintecture/Payment/*)
 - Don't forget to set the correct permission for files and folder specially /etc/lib/* should be writable
-- Come back to magento main installation path
+- Come back to Magento main installation path
 
 ## Activation
 

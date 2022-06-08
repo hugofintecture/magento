@@ -12,9 +12,9 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\DB\Transaction;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
@@ -35,11 +35,14 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.7';
+    private const MODULE_VERSION = '1.2.10';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
     public $_code = 'fintecture';
+
+    /** @var EncryptorInterface */
+    protected $encryptor;
 
     /** @var FintectureHelper */
     protected $fintectureHelper;
@@ -85,6 +88,7 @@ class Fintecture extends AbstractMethod
     public function __construct(
         Context $context,
         Registry $registry,
+        EncryptorInterface $encryptor,
         ExtensionAttributesFactory $extensionFactory,
         AttributeValueFactory $customAttributeFactory,
         PaymentData $paymentData,
@@ -110,8 +114,8 @@ class Fintecture extends AbstractMethod
         $this->coreSession = $coreSession;
         $this->productMetadata = $productMetadata;
         $this->orderSender = $orderSender;
-        $this->invoiceSender = $invoiceSender;
         $this->invoiceService = $invoiceService;
+        $this->invoiceSender = $invoiceSender;
         $this->storeManager = $storeManager;
         $this->paymentConfig = $paymentConfig;
         $this->transaction = $transaction;
@@ -128,44 +132,48 @@ class Fintecture extends AbstractMethod
             $logger
         );
 
+        $this->encryptor = $encryptor;
         $this->environment = $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'environment', ScopeInterface::SCOPE_STORE);
     }
 
-    public function handleSuccessTransaction($order, $response)
+    public function handleSuccessTransaction($order, $status, $sessionId, $statuses, $webhook = false)
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
-
-        $status = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response);
-        $orderStatus = $status['status'] ?? '';
-        $orderState = $status['state'] ?? '';
 
         // Don't update order if state has already been set
-        if ($order->getState() === $orderState) {
-            $this->fintectureLogger->debug('State is already set');
+        if ($order->getState() === $statuses['state']) {
+            $this->fintectureLogger->error('Error', [
+                'message' => 'State is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentState' => $order->getState(),
+                'state' => $statuses['state']
+            ]);
             return;
         }
 
-        $metaSessionId = $response['meta']['session_id'] ?? '';
-        $metaStatus = $response['meta']['status'] ?? '';
-
-        $order->getPayment()->setTransactionId($metaSessionId);
-        $order->getPayment()->setLastTransId($metaSessionId);
+        $order->getPayment()->setTransactionId($sessionId);
+        $order->getPayment()->setLastTransId($sessionId);
         $order->getPayment()->addTransaction(TransactionInterface::TYPE_ORDER);
         $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->setAdditionalInformation(['status' => $metaStatus, 'sessionId' => $metaSessionId]);
+        $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
         $order->getPayment()->place();
 
-        $order->setStatus($orderStatus);
-        $order->setState($orderState);
+        $order->setState($statuses['state']);
+        $order->setStatus($statuses['status']);
+
         $order->save();
 
         $this->orderSender->send($order);
 
         if ($order->canInvoice()) {
+            // Re-enable email sending
+            $order->setCanSendNewEmailFlag(true);
+            $order->save();
+
             $invoice = $this->invoiceService->prepareInvoice($order);
             $invoice->register();
             $invoice->save();
@@ -178,31 +186,33 @@ class Fintecture extends AbstractMethod
             $transactionSave->save();
             // Send Invoice mail to customer
             $this->invoiceSender->send($invoice);
-            $order->addStatusHistoryComment($this->fintectureHelper->getStatusHistoryComment($response))
+
+            $note = $this->fintectureHelper->getStatusHistoryComment($status);
+            $note = $webhook ? 'webhook: ' . $note : $note;
+
+            $order->addStatusHistoryComment($note)
                 ->setIsCustomerNotified(true)
                 ->save();
         }
     }
 
-    public function handleFailedTransaction($order, $response)
+    public function handleFailedTransaction($order, $status, $sessionId, $webhook = false)
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
 
         try {
             if ($order->canCancel()) {
                 if ($this->orderManagement->cancel($order->getEntityId())) {
-                    $sessionId = $response['meta']['session_id'] ?? '';
-                    $status = $response['meta']['status'] ?? '';
-
                     $order->getPayment()->setTransactionId($sessionId);
                     $order->getPayment()->setLastTransId($sessionId);
                     $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
                     $note = $this->fintectureHelper->getStatusHistoryComment($status);
+                    $note = $webhook ? 'webhook: ' . $note : $note;
 
                     $orderStatusHistory = $this->orderStatusHistoryFactory->create()
                             ->setParentId($order->getEntityId())
@@ -213,45 +223,45 @@ class Fintecture extends AbstractMethod
                 }
             }
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', ['exception' => $e]);
         }
     }
 
-    public function handleHoldedTransaction($order, $response)
+    public function handleHoldedTransaction($order, $status, $sessionId, $statuses, $webhook = false)
     {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->debug('There is no order id found');
+            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
             return;
         }
 
-        $status = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($response);
-        $orderStatus = $status['status'] ?? '';
-        $orderState = $status['state'] ?? '';
-
         // Don't update order if state has already been set
-        if ($order->getState() === $orderState) {
-            $this->fintectureLogger->debug('State is already set');
+        if ($order->getState() === $statuses['state']) {
+            $this->fintectureLogger->error('Error', [
+                'message' => 'State is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentState' => $order->getState(),
+                'state' => $statuses['state']
+            ]);
             return;
         }
 
         try {
-            $metaSessionId = $response['meta']['session_id'] ?? '';
-            $metaStatus = $response['meta']['status'] ?? '';
+            $order->getPayment()->setTransactionId($sessionId);
+            $order->getPayment()->setLastTransId($sessionId);
+            $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
-            $order->getPayment()->setTransactionId($metaSessionId);
-            $order->getPayment()->setLastTransId($metaSessionId);
-            $order->getPayment()->setAdditionalInformation(['status' => $metaStatus, 'sessionId' => $metaSessionId]);
-
-            $note = $this->fintectureHelper->getStatusHistoryComment($response);
-
-            $order->setState($orderState);
-            $order->setStatus($orderStatus);
-            $order->setCustomerNoteNotify(false);
+            $note = $this->fintectureHelper->getStatusHistoryComment($status);
+            $note = $webhook ? 'webhook: ' . $note : $note;
             $order->addStatusHistoryComment($note);
+
+            $order->setState($statuses['state']);
+            $order->setStatus($statuses['status']);
+
+            $order->setCustomerNoteNotify(false);
             $order->save();
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', ['exception' => $e]);
         }
     }
 
@@ -283,39 +293,10 @@ class Fintecture extends AbstractMethod
             ? 'https://api-sandbox.fintecture.com/' : 'https://api.fintecture.com/';
     }
 
-    public function getAppPrivateKey()
+    public function getAppPrivateKey(): ?string
     {
-        $objectManager = ObjectManager::getInstance();
-        $configReader = $objectManager->create('Magento\Framework\Module\Dir\Reader');
-        $modulePath = $configReader->getModuleDir('etc', 'Fintecture_Payment');
-
-        $fileDirPath = $modulePath . '/lib/app_private_key_' . $this->environment;
-        $fileName = $this->findKeyfile($fileDirPath);
-
-        if (!$fileName) {
-            return '';
-        }
-
-        return file_get_contents(
-            $modulePath
-            . DIRECTORY_SEPARATOR
-            . 'lib'
-            . DIRECTORY_SEPARATOR
-            . 'app_private_key_' . $this->environment
-            . DIRECTORY_SEPARATOR
-            . $fileName
-        );
-    }
-
-    private function findKeyfile($dir_path)
-    {
-        $files = scandir($dir_path);
-        foreach ($files as $file) {
-            if (strpos($file, '.pem') !== false) {
-                return $file;
-            }
-        }
-        return false;
+        $privateKey = $this->_scopeConfig->getValue(self::CONFIG_PREFIX . 'custom_file_upload_' . $this->environment, ScopeInterface::SCOPE_STORE);
+        return $privateKey ? $this->encryptor->decrypt($privateKey) : null;
     }
 
     public function getShopName(): ?string
@@ -360,13 +341,16 @@ class Fintecture extends AbstractMethod
 
         $lastRealOrder = $this->checkoutSession->getLastRealOrder();
         if (!$lastRealOrder) {
-            $this->fintectureLogger->debug('No order found in session, please try again');
+            $this->fintectureLogger->error('Error', ['message' => 'No order found in session, please try again']);
             throw new LocalizedException(__('No order found in session, please try again'));
         }
 
         $billingAddress = $lastRealOrder->getBillingAddress();
         if (!$billingAddress) {
-            $this->fintectureLogger->debug('No billing address found in order, please try again');
+            $this->fintectureLogger->error('Error', [
+                'message' => 'No billing address found in order, please try again',
+                'incrementOrderId' => $lastRealOrder->getIncrementId(),
+            ]);
             throw new LocalizedException(__('No billing address found in order, please try again'));
         }
 
@@ -407,7 +391,11 @@ class Fintecture extends AbstractMethod
             $apiResponse = $gatewayClient->generateConnectURL($data, $isRewriteModeActive, $redirectUrl, $originUrl, $psuType, $state);
 
             if (!isset($apiResponse['meta'])) {
-                $this->fintectureLogger->debug('Error building Checkout URL ' . json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE));
+                $this->fintectureLogger->error('Error', [
+                    'message' => 'Error building connect URL',
+                    'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                    'response' => json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE)
+                ]);
                 $this->checkoutSession->restoreQuote();
                 throw new LocalizedException(
                     __('Sorry, something went wrong. Please try again later.')
@@ -420,14 +408,20 @@ class Fintecture extends AbstractMethod
                 try {
                     $lastRealOrder->save();
                 } catch (Exception $e) {
-                    $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+                    $this->fintectureLogger->error('Error', [
+                        'exception' => $e,
+                        'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                    ]);
                 }
 
                 $this->coreSession->setPaymentSessionId($sessionId);
                 return $apiResponse['meta']['url'] ?? '';
             }
         } catch (Exception $e) {
-            $this->fintectureLogger->debug($e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Error', [
+                'exception' => $e,
+                'incrementOrderId' => $lastRealOrder->getIncrementId(),
+            ]);
 
             $this->checkoutSession->restoreQuote();
             throw new LocalizedException(
@@ -456,7 +450,7 @@ class Fintecture extends AbstractMethod
 
     public function getOriginUrl(): string
     {
-        return $this->fintectureHelper->getUrl('checkout/') . '#payment';
+        return $this->fintectureHelper->getUrl('fintecture/standard/response');
     }
 
     public function getRedirectUrl(): string
@@ -522,7 +516,7 @@ class Fintecture extends AbstractMethod
             'shop_name' => $this->getShopName(),
             'shop_domain' => $this->storeManager->getStore()->getBaseUrl(),
             'shop_cms' => 'magento',
-            'shop_cms_version' => $this->productMetadata->getVersion(),
+            'shop_cms_version' => $this->getMagentoVersion(),
             'module_version' => self::MODULE_VERSION,
             'module_position' => '', // TODO: find way to get to find position
             'shop_payment_methods' => $this->getNumberOfActivePaymentMethods(),
@@ -532,5 +526,15 @@ class Fintecture extends AbstractMethod
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->getShowLogo()
         ];
+    }
+
+    public function getMagentoVersion(): string
+    {
+        $version = $this->productMetadata->getVersion();
+        if ($version === 'UNKNOWN') {
+            $this->fintectureLogger->debug("Can't detect Magento version. It may cause some errors.");
+            return '2.4.0'; // assume that the version is the lowest possible
+        }
+        return $version;
     }
 }

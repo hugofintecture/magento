@@ -1,9 +1,10 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="fintecture" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <attribute type="fintecture_separator">0</attribute>
-                <fieldset_css>checkout-settings checkout-payment-section</fieldset_css>
+            <group id="fintecture" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Instant bank payment</label>
+                <comment><![CDATA[Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!]]></comment>
+                <fieldset_css>fintecture-admin-section</fieldset_css>
                 <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
 
                 <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -60,14 +61,14 @@
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     </field>
 
-                    <field id="custom_file_upload_sandbox" translate="label" type="Magento\Config\Block\System\Config\Form\Field\File" sortOrder="35" showInDefault="1" showInWebsite="1">
+                    <field id="custom_file_upload_sandbox" translate="label" type="Fintecture\Payment\Model\Config\File\PemFile" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture Private Key</label>
                         <depends>
                             <field id="environment">sandbox</field>
                         </depends>
                         <config_path>payment/fintecture/custom_file_upload_sandbox</config_path>
-                        <backend_model>Fintecture\Payment\Config\Model\Config\Backend\PrivateKeyFile</backend_model>
-                        <upload_dir config="system" scope_info="0">lib/app_private_key_sandbox</upload_dir>
+                        <backend_model>Fintecture\Payment\Model\Config\File\PrivateKeyPem</backend_model>
+                        <upload_dir config="system" scope_info="1">lib/app_private_key_sandbox</upload_dir>
                     </field>
                     <!-- SANDBOX END -->
 
@@ -93,14 +94,14 @@
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     </field>
 
-                    <field id="custom_file_upload_production" translate="label" type="Magento\Config\Block\System\Config\Form\Field\File" sortOrder="50" showInDefault="1" showInWebsite="1">
+                    <field id="custom_file_upload_production" translate="label" type="Fintecture\Payment\Model\Config\File\PemFile" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture Private Key</label>
                         <depends>
                             <field id="environment">production</field>
                         </depends>
                         <config_path>payment/fintecture/custom_file_upload_production</config_path>
-                        <backend_model>Fintecture\Payment\Config\Model\Config\Backend\PrivateKeyFile</backend_model>
-                        <upload_dir config="system" scope_info="0">lib/app_private_key_production</upload_dir>
+                        <backend_model>Fintecture\Payment\Model\Config\File\PrivateKeyPem</backend_model>
+                        <upload_dir config="system" scope_info="1">lib/app_private_key_production</upload_dir>
                     </field>
 
                     <field id="button_id" translate="label" type="button" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">

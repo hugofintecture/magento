@@ -13,59 +13,62 @@ class Response extends FintectureAbstract
 {
     public function execute()
     {
-        $returnUrl = $this->getCheckoutHelper()->getUrl('checkout');
+        $returnUrl = $this->checkoutHelper->getUrl('checkout');
 
         try {
-            $paymentMethod = $this->getPaymentMethod();
-            $response = $paymentMethod->getLastPaymentStatusResponse();
+            $response = $this->paymentMethod->getLastPaymentStatusResponse();
+            $status = $response['meta']['status'];
+            $sessionId = $response['meta']['session_id'];
 
-            $quote = $this->getQuote();
             $order = $this->getOrder();
 
-            $orderStatus = $this->getCheckoutHelper()->getOrderStatusBasedOnPaymentStatus($response);
-            $status = $orderStatus['status'] ?? '';
+            $statuses = $this->checkoutHelper->getOrderStatusBasedOnPaymentStatus($status);
 
-            if ($status === Order::STATE_PROCESSING) {
-                $returnUrl = $this->getCheckoutHelper()->getUrl('checkout/onepage/success');
+            $this->fintectureLogger->debug('Response', [
+                'orderIncrementId' => $order->getIncrementId(),
+                'fintectureStatus' => $status,
+                'status' => $statuses['status']
+            ]);
 
-                $paymentMethod->handleSuccessTransaction($order, $response);
+            if ($statuses['status'] === Order::STATE_PROCESSING) {
+                $returnUrl = $this->checkoutHelper->getUrl('checkout/onepage/success');
+
+                $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses);
 
                 try {
-                    $this->getCheckoutSession()->setLastQuoteId($quote->getId());
-                    $this->getCheckoutSession()->setLastSuccessQuoteId($quote->getId());
+                    $this->checkoutSession->setLastQuoteId($order->getQuoteId());
+                    $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
+                    $this->checkoutSession->setLastOrderId($order->getId());
+                    $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
+                    $this->checkoutSession->setLastOrderStatus($order->getStatus());
 
-                    $this->getCheckoutSession()->setLastOrderId($order->getId());
-                    $this->getCheckoutSession()->setLastRealOrderId($order->getIncrementId());
-                    $this->getCheckoutSession()->setLastOrderStatus($order->getStatus());
-
-                    $this->getCheckoutSession()->setFintectureState(null);
-
-                    $quote->setIsActive(false);
-                    $this->quoteRepository->save($quote);
+                    return $this->resultRedirect->create()->setPath($returnUrl);
                 } catch (Exception $e) {
-                    $this->fintectureLogger->error($e, $e->getTrace());
+                    $this->fintectureLogger->error('Error', [
+                        'exception' => $e,
+                        'incrementOrderId' => $order->getIncrementId(),
+                        'status' => $order->getStatus()
+                    ]);
                 }
-            } elseif ($status === Order::STATE_PENDING_PAYMENT) {
-                $returnUrl = $this->getCheckoutHelper()->getUrl('checkout/onepage/success');
-                $paymentMethod->handleHoldedTransaction($order, $response);
-                $this->getCheckoutSession()->setFintectureState(null);
+            } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+                $returnUrl = $this->checkoutHelper->getUrl('checkout/onepage/success');
+                $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses);
                 $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.'));
+                return $this->resultRedirect->create()->setPath($returnUrl);
             } else {
-                $returnUrl = $this->getCheckoutHelper()->getUrl('checkout') . "#payment";
-                $paymentMethod->handleFailedTransaction($order, $response);
-                $this->getCheckoutSession()->setFintectureState('failed');
-                $this->getCheckoutSession()->restoreQuote();
+                $returnUrl = $this->checkoutHelper->getUrl('checkout') . "#payment";
+                $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId);
                 $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->debug('Response Error 1 : ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Response error', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, __($e->getMessage()));
         } catch (Exception $e) {
-            $this->fintectureLogger->debug('Response Error 2 : ' . $e->getMessage(), $e->getTrace());
+            $this->fintectureLogger->error('Response error', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, __('We can\'t place the order.'));
         }
 
-        $this->_redirect($returnUrl);
-        return;
+        $this->checkoutSession->restoreQuote(); // restore cart in case of error
+        return $this->resultRedirect->create()->setPath($returnUrl);
     }
 }

@@ -7,86 +7,69 @@ namespace Fintecture\Payment\Controller;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Fintecture;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\ActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Sales\Model\OrderFactory;
+use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 
-abstract class WebhookAbstract extends Action
+abstract class WebhookAbstract implements ActionInterface
 {
-    /** @var OrderFactory */
-    protected $_orderFactory;
-
     /** @var FintectureLogger $fintectureLogger */
     protected $fintectureLogger;
 
-    /** @var Fintecture */
-    protected $_paymentMethod;
+    /** @var FintectureHelper */
+    protected $fintectureHelper;
 
-    /** @var FintectureHelper $_checkoutHelper */
-    protected $_checkoutHelper;
+    /** @var Fintecture */
+    protected $paymentMethod;
 
     /** @var JsonFactory */
     protected $resultJsonFactory;
+
+    /** @var ResultFactory */
+    protected $resultFactory;
 
     /** @var CollectionFactory */
     protected $orderCollectionFactory;
 
     public function __construct(
-        Context $context,
-        OrderFactory $orderFactory,
-        FintectureLogger $finlogger,
+        FintectureLogger $fintectureLogger,
+        FintectureHelper $fintectureHelper,
         Fintecture $paymentMethod,
-        FintectureHelper $checkoutHelper,
         JsonFactory $resultJsonFactory,
+        RawFactory $resultRawFactory,
         CollectionFactory $orderCollectionFactory
     ) {
-        $this->_orderFactory = $orderFactory;
-        $this->_paymentMethod = $paymentMethod;
-        $this->_checkoutHelper = $checkoutHelper;
+        $this->fintectureLogger = $fintectureLogger;
+        $this->fintectureHelper = $fintectureHelper;
+        $this->paymentMethod = $paymentMethod;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->fintectureLogger = $finlogger;
+        $this->resultRawFactory = $resultRawFactory;
         $this->orderCollectionFactory = $orderCollectionFactory;
-        parent::__construct($context);
     }
 
-    /*
+    /**
+     * @return array{bool, string}
+     *
      * session_id=b2bca2bcd3b64a32a7da0766df59a7d2
      * &status=payment_created
      * &customer_id=1ef74051a77673de120820fb370dc382
      * &provider=provider
      * &state=thisisastate
      */
-    public function validateWebhook(): bool
+    public function validateWebhook($body): array
     {
-        $body = file_get_contents('php://input');
-        parse_str($body, $data);
-        $this->fintectureLogger->debug('Validating Webhook', $data);
-
-        $response = $this->getResponse();
-
-        if (!count($data)) {
-            $this->fintectureLogger->debug('Empty hook data');
-            $response->setStatusHeader(406, '1.1', 'Empty hook data');
-
-            return false;
+        if (!$body || empty($body)) {
+            return [false, 'Empty hook data'];
         }
 
-        $pkeyid = openssl_pkey_get_private($this->_paymentMethod->getAppPrivateKey());
-
+        $pkeyid = openssl_pkey_get_private($this->paymentMethod->getAppPrivateKey());
         if ($pkeyid === false) {
-            $this->fintectureLogger->debug('Invalid private key');
-            $response->setStatusHeader(401, '1.1', 'Invalid private key');
-
-            return false;
+            return [false, 'Invalid private key'];
         }
 
-        if (!isset($_SERVER['HTTP_DIGEST'], $_SERVER['HTTP_SIGNATURE'])) {
-            $this->fintectureLogger->debug('Missing HTTP_DIGEST or HTTP_SIGNATURE', [$_SERVER]);
-            $response->setStatusHeader(400, '1.1', 'Missing HTTP_DIGEST or HTTP_SIGNATURE');
-
-            return false;
+        if (!isset($_SERVER['HTTP_DIGEST']) || !isset($_SERVER['HTTP_SIGNATURE'])) {
+            return [false, 'Missing HTTP_DIGEST or HTTP_SIGNATURE'];
         }
 
         $digestBody = 'SHA-256=' . base64_encode(hash('sha256', $body, true));
@@ -99,17 +82,14 @@ abstract class WebhookAbstract extends Action
         openssl_private_decrypt(base64_decode($signature), $decrypted, $pkeyid, OPENSSL_PKCS1_OAEP_PADDING);
         $signingString = preg_split('/\n|\r\n?/', $decrypted);
         $digestSignature = str_replace('"', '', substr($signingString[1] ?? '', 8)); // 0: date, 1: digest, 2: x-request-id
+
         // match the digest calculated from the received payload, the digest found in the headers and the digest uncoded from the signature
         $matchDigest = $digestBody === $digestSignature && $digestBody === $digestHeader;
-
         if (!$matchDigest) {
-            $this->fintectureLogger->debug('Mismatching digest signatures');
-            $response->setStatusHeader(410, '1.1', 'Mismatching digest signatures');
-
-            return false;
+            return [false, 'Mismatching digest signatures'];
         }
 
-        return true;
+        return [true, ''];
     }
 
     abstract public function execute();
