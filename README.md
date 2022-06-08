@@ -27,7 +27,7 @@ More information on [Magento documentation](https://devdocs.magento.com/guides/v
 - Create folder Fintecture
 - Upload the code in there (final file structure : app/code/Fintecture/Payment/*)
 - Don't forget to set the correct permission for files and folder specially /etc/lib/* should be writable
-- Come back to magento main installation path
+- Come back to Magento main installation path
 
 ## Activation
 
@@ -47,3 +47,9 @@ Go to Stores > Configuration > Sales > Payment methods.
 - Select payment method display (show logo or not)
 - Test your connection (if everything is ok you should have a green message)
 - Don't forget to enable the payment method unless it won't be displayed in the front end
+
+## Other Magento versions
+
+- Magento 2.3 : https://github.com/Fintecture/magento/tree/magento2.3
+- Magento 2.2 : Please contact us to get our plugin for this version.
+- Magento 2.1 : Please contact us to get our plugin for this version.
