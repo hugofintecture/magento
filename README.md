@@ -12,10 +12,6 @@ Email to developer@fintecture.com to get the full API documentation.
 More information on [Magento documentation](https://devdocs.magento.com/guides/v2.3/install-gde/system-requirements.html).
 ## Installation
 
-### Composer (recommended)
-
-`composer require fintecture/payment`
-
 ### FTP
 
 - Connect to your server (FTP/SSH...)

@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.11';
+    private const MODULE_VERSION = '1.2.12';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -146,7 +146,7 @@ class Fintecture extends AbstractMethod
 
         // Don't update order if state has already been set
         if ($order->getState() === $statuses['state']) {
-            $this->fintectureLogger->error('Error', [
+            $this->fintectureLogger->info('Error', [
                 'message' => 'State is already set',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentState' => $order->getState(),
@@ -237,7 +237,7 @@ class Fintecture extends AbstractMethod
 
         // Don't update order if state has already been set
         if ($order->getState() === $statuses['state']) {
-            $this->fintectureLogger->error('Error', [
+            $this->fintectureLogger->info('Error', [
                 'message' => 'State is already set',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentState' => $order->getState(),
@@ -245,7 +245,7 @@ class Fintecture extends AbstractMethod
             ]);
             return;
         } elseif ($order->getState() === 'processing') {
-            $this->fintectureLogger->error('Error', [
+            $this->fintectureLogger->info('Error', [
                 'message' => 'State is already set to processing',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentState' => $order->getState(),
@@ -412,7 +412,6 @@ class Fintecture extends AbstractMethod
                 $sessionId = $apiResponse['meta']['session_id'] ?? '';
 
                 $lastRealOrder->setFintecturePaymentSessionId($sessionId);
-                $lastRealOrder->setFintecturePaymentCustomerId($sessionId);
                 try {
                     $lastRealOrder->save();
                 } catch (Exception $e) {
