@@ -109,9 +109,28 @@
                     </field>
                     <!-- PRODUCTION END -->
                 </group>
+                
+                <!-- Start Advanced Options -->
+                <group id="fintecture_advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Advanced Fintecture Settings</label>
+
+                    <field id="expiration_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enable expiration of pending orders</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/fintecture/expiration_active</config_path>
+                    </field>
+
+                    <field id="title" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Expiration of pending orders after (in minutes)</label>
+                        <comment>Minimum value: 1</comment>
+                        <config_path>payment/fintecture/expiration_after</config_path>
+                        <validate>validate-number validate-greater-than-zero</validate>
+                    </field>
+                </group>
+                <!-- End Advanced Options -->
 
                 <!-- Start Payment Options -->
-                <group id="payment_options" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <group id="payment_options" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Payment Options</label>
 
                     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
