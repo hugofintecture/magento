@@ -35,7 +35,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.12';
+    private const MODULE_VERSION = '1.2.13';
     public const PAYMENT_FINTECTURE_CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
@@ -285,6 +285,8 @@ class Fintecture extends AbstractMethod
     public function getGatewayClient()
     {
         $gatewayClient = new Client(
+            $this->fintectureHelper,
+            $this->fintectureLogger,
             [
                 'fintectureApiUrl' => $this->getFintectureApiUrl(),
                 'fintecturePrivateKey' => $this->getAppPrivateKey(),

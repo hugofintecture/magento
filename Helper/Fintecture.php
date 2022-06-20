@@ -27,6 +27,21 @@ class Fintecture extends AbstractHelper
         $this->session->restoreQuote();
     }
 
+    /**
+     * @return array|false
+     */
+    public function decodeJson($json)
+    {
+        if ($json && is_string($json)) {
+            $decodedJson = json_decode($json, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decodedJson;
+            }
+            return false;
+        }
+        return false;
+    }
+
     public function getUrl($route, $params = []): string
     {
         return rtrim($this->_getUrl($route, $params), '/');
