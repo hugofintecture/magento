@@ -28,7 +28,7 @@ abstract class FintectureAbstract implements ActionInterface
     protected $paymentMethod;
 
     /** @var FintectureHelper */
-    protected $checkoutHelper;
+    protected $fintectureHelper;
 
     /** @var JsonFactory */
     protected $resultJsonFactory;
@@ -52,7 +52,7 @@ abstract class FintectureAbstract implements ActionInterface
         CheckoutSession $checkoutSession,
         Logger $fintectureLogger,
         FintectureModel $paymentMethod,
-        FintectureHelper $checkoutHelper,
+        FintectureHelper $fintectureHelper,
         JsonFactory $resultJsonFactory,
         RequestInterface $request,
         RedirectFactory $resultRedirect,
@@ -62,7 +62,7 @@ abstract class FintectureAbstract implements ActionInterface
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->paymentMethod = $paymentMethod;
-        $this->checkoutHelper = $checkoutHelper;
+        $this->fintectureHelper = $fintectureHelper;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->fintectureLogger = $fintectureLogger;
         $this->request = $request;

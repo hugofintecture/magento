@@ -5,21 +5,43 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Gateway;
 
 use DateTime;
+use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
+use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Magento\Framework\HTTP\Client\Curl;
 
 class Client
 {
+    /** @var FintectureHelper */
+    protected $fintectureHelper;
+
+    /** @var FintectureLogger */
+    protected $fintectureLogger;
+
+    /** @var Curl */
     public $client;
+
+    /** @var string */
     public $fintectureApiUrl;
+
+    /** @var string */
     public $fintectureAppId;
+
+    /** @var string */
     public $fintectureAppSecret;
+
+    /** @var string */
     public $fintecturePrivateKey;
+
+    /** @var array */
     public $curlOptions;
 
     public const STATS_URL = 'https://api.fintecture.com/ext/v1/activity';
+    public const MAX_ATTEMPTS = 3;
 
-    public function __construct($params)
+    public function __construct($fintectureHelper, $fintectureLogger, $params)
     {
+        $this->fintectureHelper = $fintectureHelper;
+        $this->fintectureLogger = $fintectureLogger;
         $this->fintectureApiUrl = $params['fintectureApiUrl'];
         $this->fintectureAppId = $params['fintectureAppId'];
         $this->fintectureAppSecret = $params['fintectureAppSecret'];
@@ -32,6 +54,36 @@ class Client
         ];
     }
 
+    /**
+     * @param array|string $params
+     */
+    private function post(string $uri, $params): void
+    {
+        $retry = true;
+        $error = true;
+        $attempts = 0;
+
+        while ($retry && $attempts < self::MAX_ATTEMPTS) {
+            $attempts++;
+
+            try {
+                $this->client->post($uri, $params);
+            } catch (\Exception $e) {
+                $this->fintectureLogger->warning('Failed curl attempt', [
+                    'exception' => $e
+                ]);
+                continue; // go to next attempt
+            }
+
+            $error = false;
+            $retry = false;
+        }
+
+        if ($error) {
+            $this->fintectureLogger->error('Error', ['message' => 'All curl attempts failed']);
+        }
+    }
+
     public function logAction(string $action, array $systemInfos): bool
     {
         $headers = [
@@ -42,7 +94,7 @@ class Client
 
         $this->client->setHeaders($headers);
         $this->client->setOptions($this->curlOptions);
-        $this->client->post(self::STATS_URL, json_encode($data));
+        $this->post(self::STATS_URL, json_encode($data));
 
         return $this->client->getStatus() === 204;
     }
@@ -78,11 +130,14 @@ class Client
 
         $this->client->setHeaders($headers);
         $this->client->setOptions($this->curlOptions);
-        $this->client->post($this->fintectureApiUrl . 'oauth/secure/accesstoken', http_build_query($data));
+        $this->post($this->fintectureApiUrl . 'oauth/secure/accesstoken', http_build_query($data));
         $response = $this->client->getBody();
 
-        $responseObject = json_decode($response, true);
-        return $responseObject['access_token'] ?? '';
+        $responseObject = $this->fintectureHelper->decodeJson($response);
+        if ($responseObject && isset($responseObject['access_token'])) {
+            return $responseObject['access_token'];
+        }
+        return '';
     }
 
     public function getUid(): string
@@ -94,9 +149,19 @@ class Client
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
-    public function generateConnectURL($data, bool $isRewriteModeActive, string $redirectUrl, string $originUrl, string $psuType, string $state = '')
-    {
+    public function generateConnectURL(
+        array $data,
+        bool $isRewriteModeActive,
+        string $redirectUrl,
+        string $originUrl,
+        string $psuType,
+        string $state = ''
+    ): array {
         $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return [];
+        }
+
         $xRequestId = $this->getUid();
         $date = (new DateTime('now'))->format('r');
 
@@ -126,13 +191,17 @@ class Client
 
         $this->client->setHeaders($headers);
         $this->client->setOptions($this->curlOptions);
-        $this->client->post($url, json_encode($data));
+        $this->post($url, json_encode($data));
         $response = $this->client->getBody();
 
-        return json_decode($response, true) ?? [];
+        $responseObject = $this->fintectureHelper->decodeJson($response);
+        return $responseObject ?? [];
     }
 
-    public function getAccessToken(): string
+    /**
+     * @return string|false
+     */
+    public function getAccessToken()
     {
         $data = [
             'grant_type' => 'client_credentials',
@@ -163,16 +232,26 @@ class Client
 
         $this->client->setHeaders($headers);
         $this->client->setOptions($this->curlOptions);
-        $this->client->post($this->fintectureApiUrl . '/oauth/accesstoken', http_build_query($data));
+        $this->post($this->fintectureApiUrl . '/oauth/accesstoken', http_build_query($data));
         $response = $this->client->getBody();
 
-        $responseObject = json_decode($response, true);
-        return $responseObject['access_token'] ?? '';
+        $responseObject = $this->fintectureHelper->decodeJson($response);
+        if ($responseObject && isset($responseObject['access_token'])) {
+            return $responseObject['access_token'];
+        }
+
+        $this->fintectureLogger->error('Error', [
+            'message' => "Can't generate an access token"
+        ]);
+        return false;
     }
 
-    public function getPayment($sessionId)
+    public function getPayment($sessionId): array
     {
         $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return [];
+        }
 
         $data = [];
         $xRequestId = $this->getUid();
@@ -200,6 +279,7 @@ class Client
         $this->client->get($this->fintectureApiUrl . '/pis/v2/payments/' . $sessionId);
         $response = $this->client->getBody();
 
-        return json_decode($response, true) ?? [];
+        $responseObject = $this->fintectureHelper->decodeJson($response);
+        return $responseObject ?? [];
     }
 }
