@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
 
 use Fintecture\Payment\Gateway\Client;
+use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Environment;
 use Fintecture\Payment\Model\Fintecture;
@@ -23,7 +24,10 @@ class Ajax extends Action
     protected $scopeConfig;
     protected $environment = Environment::ENVIRONMENT_PRODUCTION;
 
-    /** @var FintectureLogger $fintectureLogger */
+    /** @var FintectureHelper */
+    protected $fintectureHelper;
+
+    /** @var FintectureLogger */
     protected $fintectureLogger;
 
     public function __construct(
@@ -31,12 +35,14 @@ class Ajax extends Action
         Fintecture $fintectureModel,
         JsonFactory $jsonResultFactory,
         ScopeConfigInterface $scopeConfig,
+        FintectureHelper $fintectureHelper,
         FintectureLogger $fintectureLogger
     ) {
         parent::__construct($context);
         $this->fintectureModel = $fintectureModel;
         $this->jsonResultFactory = $jsonResultFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->fintectureHelper = $fintectureHelper;
         $this->fintectureLogger = $fintectureLogger;
     }
 
@@ -62,6 +68,8 @@ class Ajax extends Action
         }
 
         $clientGateway = new Client(
+            $this->fintectureHelper,
+            $this->fintectureLogger,
             [
                 'fintectureApiUrl' => $this->fintectureModel->getFintectureApiUrl(),
                 'fintecturePrivateKey' => $fintecturePrivateKey,
