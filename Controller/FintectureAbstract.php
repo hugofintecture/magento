@@ -13,6 +13,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\QuoteFactory;
 
@@ -48,6 +49,9 @@ abstract class FintectureAbstract implements ActionInterface
     /** @var MaskedQuoteIdToQuoteIdInterface */
     protected $maskedQuoteIdToQuoteId;
 
+    /** @var SessionManagerInterface */
+    protected $coreSession;
+
     public function __construct(
         CheckoutSession $checkoutSession,
         Logger $fintectureLogger,
@@ -58,7 +62,8 @@ abstract class FintectureAbstract implements ActionInterface
         RedirectFactory $resultRedirect,
         ManagerInterface $messageManager,
         QuoteFactory $quoteFactory,
-        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        SessionManagerInterface $coreSession
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->paymentMethod = $paymentMethod;
@@ -70,6 +75,7 @@ abstract class FintectureAbstract implements ActionInterface
         $this->messageManager = $messageManager;
         $this->quoteFactory = $quoteFactory;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
+        $this->coreSession = $coreSession;
     }
 
     protected function getOrder()
