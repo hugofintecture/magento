@@ -14,6 +14,7 @@ class Response extends FintectureAbstract
     public function execute()
     {
         try {
+            /** @phpstan-ignore-next-line : dynamic session var set */
             $lastPaymentSessionId = $this->coreSession->getPaymentSessionId();
             if (!$lastPaymentSessionId) {
                 $this->fintectureLogger->error("Can't find last payment session id");

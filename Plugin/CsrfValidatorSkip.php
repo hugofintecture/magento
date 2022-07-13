@@ -18,7 +18,7 @@ class CsrfValidatorSkip
         RequestInterface $request,
         ActionInterface $action
     ) {
-        if ($request->getModuleName() === Fintecture::PAYMENT_FINTECTURE_CODE) {
+        if ($request->getModuleName() === Fintecture::CODE) {
             return;
         }
 

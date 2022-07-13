@@ -10,9 +10,9 @@ use Magento\Payment\Helper\Data;
 class ConfigProvider implements ConfigProviderInterface
 {
     /** @var string */
-    protected $methodCode = Fintecture::PAYMENT_FINTECTURE_CODE;
+    protected $methodCode = Fintecture::CODE;
 
-    /** @var \Magento\Payment\Model\MethodInterface */
+    /** @var Fintecture */
     protected $method;
 
     public function __construct(Data $paymenthelper)
