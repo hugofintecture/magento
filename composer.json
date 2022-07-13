@@ -15,8 +15,8 @@
         "php": ">=7.3",
         "ext-json": "*",
         "ext-openssl": "*",
-        "magento/framework": "*",
-        "magento/module-developer": "*"
+        "magento/framework": ">=100.0",
+        "magento/module-developer": ">=100.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^1",
