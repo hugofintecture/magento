@@ -9,13 +9,13 @@ use Fintecture\Payment\Logger\Logger;
 use Fintecture\Payment\Model\Fintecture as FintectureModel;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\ActionInterface;
-use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\Quote\Model\QuoteFactory;
 
 abstract class FintectureAbstract implements ActionInterface
 {
@@ -34,14 +34,14 @@ abstract class FintectureAbstract implements ActionInterface
     /** @var JsonFactory */
     protected $resultJsonFactory;
 
-    /** @var RequestInterface */
+    /** @var Http */
     protected $request;
 
     /** @var RedirectFactory */
     protected $resultRedirect;
 
-    /** @var QuoteFactory */
-    protected $quoteFactory;
+    /** @var CartRepositoryInterface */
+    protected $quoteRepository;
 
     /** @var ManagerInterface */
     protected $messageManager;
@@ -58,10 +58,10 @@ abstract class FintectureAbstract implements ActionInterface
         FintectureModel $paymentMethod,
         FintectureHelper $fintectureHelper,
         JsonFactory $resultJsonFactory,
-        RequestInterface $request,
+        Http $request,
         RedirectFactory $resultRedirect,
         ManagerInterface $messageManager,
-        QuoteFactory $quoteFactory,
+        CartRepositoryInterface $quoteRepository,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         SessionManagerInterface $coreSession
     ) {
@@ -73,7 +73,7 @@ abstract class FintectureAbstract implements ActionInterface
         $this->request = $request;
         $this->resultRedirect = $resultRedirect;
         $this->messageManager = $messageManager;
-        $this->quoteFactory = $quoteFactory;
+        $this->quoteRepository = $quoteRepository;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->coreSession = $coreSession;
     }

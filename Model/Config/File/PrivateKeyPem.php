@@ -8,6 +8,7 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
 {
     protected $encryptor;
 
+    /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,

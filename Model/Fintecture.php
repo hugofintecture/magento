@@ -24,20 +24,24 @@ use Magento\Payment\Model\Config as PaymentConfig;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Fintecture extends AbstractMethod
 {
-    private const MODULE_VERSION = '1.2.15';
-    public const PAYMENT_FINTECTURE_CODE = 'fintecture';
+    public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
+
+    private const MODULE_VERSION = '1.3.0';
+    private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
 
     public $_code = 'fintecture';
 
@@ -82,9 +86,13 @@ class Fintecture extends AbstractMethod
     /** @var OrderManagementInterface $orderManagement */
     protected $orderManagement;
 
-    /** @var HistoryFactory orderStatusHistoryFactory */
-    private $orderStatusHistoryFactory;
+    /** @var OrderRepositoryInterface */
+    private $orderRepository;
 
+    /** @var InvoiceRepositoryInterface */
+    private $invoiceRepository;
+
+    /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -106,7 +114,8 @@ class Fintecture extends AbstractMethod
         PaymentConfig $paymentConfig,
         Transaction $transaction,
         OrderManagementInterface $orderManagement,
-        HistoryFactory $orderStatusHistoryFactory
+        OrderRepositoryInterface $orderRepository,
+        InvoiceRepositoryInterface $invoiceRepository
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
@@ -120,7 +129,8 @@ class Fintecture extends AbstractMethod
         $this->paymentConfig = $paymentConfig;
         $this->transaction = $transaction;
         $this->orderManagement = $orderManagement;
-        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->orderRepository = $orderRepository;
+        $this->invoiceRepository = $invoiceRepository;
 
         parent::__construct(
             $context,
@@ -155,28 +165,32 @@ class Fintecture extends AbstractMethod
             return;
         }
 
-        $order->getPayment()->setTransactionId($sessionId);
-        $order->getPayment()->setLastTransId($sessionId);
-        $order->getPayment()->addTransaction(TransactionInterface::TYPE_ORDER);
-        $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
-        $order->getPayment()->place();
+        /** @var Payment $payment */
+        $payment = $order->getPayment();
+
+        $payment->setTransactionId($sessionId);
+        $payment->setLastTransId($sessionId);
+        $payment->addTransaction(TransactionInterface::TYPE_ORDER);
+        $payment->setIsTransactionClosed(0);
+        $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
+        $payment->place();
 
         $order->setState($statuses['state']);
         $order->setStatus($statuses['status']);
 
-        $order->save();
+        $this->orderRepository->save($order);
 
         $this->orderSender->send($order);
 
         if ($order->canInvoice()) {
             // Re-enable email sending
             $order->setCanSendNewEmailFlag(true);
-            $order->save();
+            $this->orderRepository->save($order);
 
             $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setTransactionId($sessionId);
             $invoice->register();
-            $invoice->save();
+            $this->invoiceRepository->save($invoice);
             $transactionSave = $this->transaction
                 ->addObject(
                     $invoice
@@ -190,9 +204,9 @@ class Fintecture extends AbstractMethod
             $note = $this->fintectureHelper->getStatusHistoryComment($status);
             $note = $webhook ? 'webhook: ' . $note : $note;
 
-            $order->addStatusHistoryComment($note)
-                ->setIsCustomerNotified(true)
-                ->save();
+            $order->addCommentToStatusHistory($note);
+            $order->setIsCustomerNotified(true);
+            $this->orderRepository->save($order);
         }
     }
 
@@ -207,19 +221,17 @@ class Fintecture extends AbstractMethod
         try {
             if ($order->canCancel()) {
                 if ($this->orderManagement->cancel($order->getEntityId())) {
-                    $order->getPayment()->setTransactionId($sessionId);
-                    $order->getPayment()->setLastTransId($sessionId);
-                    $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
+                    /** @var Payment $payment */
+                    $payment = $order->getPayment();
+                    $payment->setTransactionId($sessionId);
+                    $payment->setLastTransId($sessionId);
+                    $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
                     $note = $this->fintectureHelper->getStatusHistoryComment($status);
                     $note = $webhook ? 'webhook: ' . $note : $note;
 
-                    $orderStatusHistory = $this->orderStatusHistoryFactory->create()
-                            ->setParentId($order->getEntityId())
-                            ->setEntityName('order')
-                            ->setStatus(Order::STATE_CANCELED)
-                            ->setComment($note);
-                    $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                    $order->addCommentToStatusHistory($note, Order::STATE_CANCELED);
+                    $this->orderRepository->save($order);
                 }
             }
         } catch (Exception $e) {
@@ -255,19 +267,21 @@ class Fintecture extends AbstractMethod
         }
 
         try {
-            $order->getPayment()->setTransactionId($sessionId);
-            $order->getPayment()->setLastTransId($sessionId);
-            $order->getPayment()->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
+            /** @var Payment $payment */
+            $payment = $order->getPayment();
+            $payment->setTransactionId($sessionId);
+            $payment->setLastTransId($sessionId);
+            $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
             $note = $this->fintectureHelper->getStatusHistoryComment($status);
             $note = $webhook ? 'webhook: ' . $note : $note;
-            $order->addStatusHistoryComment($note);
+            $order->addCommentToStatusHistory($note);
 
             $order->setState($statuses['state']);
             $order->setStatus($statuses['status']);
 
             $order->setCustomerNoteNotify(false);
-            $order->save();
+            $this->orderRepository->save($order);
         } catch (Exception $e) {
             $this->fintectureLogger->error('Error', ['exception' => $e]);
         }
@@ -346,6 +360,7 @@ class Fintecture extends AbstractMethod
             throw new LocalizedException(__('No order found in session, please try again'));
         }
 
+        /** @var \Magento\Sales\Model\Order\Address $billingAddress */
         $billingAddress = $lastRealOrder->getBillingAddress();
         if (!$billingAddress) {
             $this->fintectureLogger->error('Error', [
@@ -376,7 +391,7 @@ class Fintecture extends AbstractMethod
                 'attributes' => [
                     'amount' => number_format($lastRealOrder->getBaseTotalDue(), 2, '.', ''),
                     'currency' => $lastRealOrder->getOrderCurrencyCode(),
-                    'communication' => 'FINTECTURE-' . $lastRealOrder->getIncrementId()
+                    'communication' => self::PAYMENT_COMMUNICATION . $lastRealOrder->getIncrementId()
                 ],
             ],
         ];
@@ -406,7 +421,7 @@ class Fintecture extends AbstractMethod
 
                 $lastRealOrder->setFintecturePaymentSessionId($sessionId);
                 try {
-                    $lastRealOrder->save();
+                    $this->orderRepository->save($lastRealOrder);
                 } catch (Exception $e) {
                     $this->fintectureLogger->error('Error', [
                         'exception' => $e,
@@ -414,6 +429,7 @@ class Fintecture extends AbstractMethod
                     ]);
                 }
 
+                /** @phpstan-ignore-next-line : dynamic session var get */
                 $this->coreSession->setPaymentSessionId($sessionId);
                 return $apiResponse['meta']['url'] ?? '';
             }

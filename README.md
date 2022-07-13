@@ -17,7 +17,7 @@ More information on [Magento documentation](https://devdocs.magento.com/guides/v
 - Connect to your server (FTP/SSH...)
 - Browse to /var/www/html (depending on which path you have installed Magento 2)
 - Browse to app/code
-- Create folder Fintecture
+- Create folders Fintecture/Payment
 - Upload the code in there (final file structure : app/code/Fintecture/Payment/*)
 - Don't forget to set the correct permission for files and folder specially /etc/lib/* should be writable
 - Come back to Magento main installation path

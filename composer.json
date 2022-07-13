@@ -7,26 +7,41 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "1.2.15",
+    "version": "1.3.0",
     "license": [
         "GPL-3.0"
     ],
     "require": {
         "php": ">=7.1",
         "ext-json": "*",
-        "ext-openssl": "*"
+        "ext-openssl": "*",
+        "magento/framework": "*",
+        "magento/module-developer": "*"
     },
     "require-dev": {
-        "magento/community-edition": "^2.3",
         "phpstan/phpstan": "^1",
-        "bitexpert/phpstan-magento": "^0.11.0"
+        "bitexpert/phpstan-magento": "^0.23.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/extension-installer": "^1.1"
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    ],
     "autoload": {
         "files": [
             "registration.php"
         ],
         "psr-4": {
             "Fintecture\\Payment\\": "."
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "magento/composer-dependency-version-audit-plugin": true,
+            "phpstan/extension-installer": true
         }
     }
 }

@@ -6,7 +6,6 @@ namespace Fintecture\Payment\Block;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Data\FormFactory;
 use Magento\Framework\Module\Dir\Reader;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
@@ -33,7 +32,6 @@ class CustomLogo extends Template
      * CustomLogo constructor.
      *
      * @param Context               $context
-     * @param FormFactory           $formFactory
      * @param ScopeConfigInterface  $scopeConfig
      * @param StoreManagerInterface $storeManager
      * @param UrlInterface          $urlInterface
@@ -42,7 +40,6 @@ class CustomLogo extends Template
      */
     public function __construct(
         Context $context,
-        FormFactory $formFactory,
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
         UrlInterface $urlInterface,
