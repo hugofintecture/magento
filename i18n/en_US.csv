@@ -52,3 +52,6 @@
 "Enable expiration of pending orders", "Enable expiration of pending orders"
 "Expiration of pending orders after (in minutes)", "Expiration of pending orders after (in minutes)"
 "Minimum value: 1", "Minimum value: 1"
+"Refund pending", "Refund pending"
+"Refund completed", "Refund completed"
+"Refund failed", "Refund failed"

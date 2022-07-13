@@ -13,7 +13,7 @@ class SubmitObserver
         $order = $observer->getEvent()->getOrder();
 
         $paymentMethod = $order->getPayment()->getData('method');
-        if ($paymentMethod === Fintecture::PAYMENT_FINTECTURE_CODE) {
+        if ($paymentMethod === Fintecture::CODE) {
             // Disable email sending
             $order->setCanSendNewEmailFlag(false);
         }

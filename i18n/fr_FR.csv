@@ -52,3 +52,6 @@
 "Enable expiration of pending orders", "Activer l'expiration des commandes en attente"
 "Expiration of pending orders after (in minutes)", "Expiration des commandes en attente après (en minutes)"
 "Minimum value: 1", "Valeur minimum : 1"
+"Refund pending", "Remboursement en attente"
+"Refund completed", "Remboursement complété"
+"Refund failed", "Remboursement échoué"

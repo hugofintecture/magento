@@ -195,7 +195,7 @@ class Client
         $response = $this->client->getBody();
 
         $responseObject = $this->fintectureHelper->decodeJson($response);
-        return $responseObject ?? [];
+        return $responseObject ?: [];
     }
 
     /**
@@ -246,6 +246,43 @@ class Client
         return false;
     }
 
+    public function generateRefund(array $data, string $state): array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return [];
+        }
+
+        $xRequestId = $this->getUid();
+        $date = (new DateTime('now'))->format('r');
+
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true));
+        $signingString = 'date: ' . $date . PHP_EOL . 'digest: ' . $digest . PHP_EOL . 'x-request-id: ' . $xRequestId;
+        openssl_sign($signingString, $cryptedString, $this->fintecturePrivateKey, OPENSSL_ALGO_SHA256);
+        $signature = 'keyId="' . $this->fintectureAppId . '",algorithm="rsa-sha256",headers="date digest x-request-id",signature="' . base64_encode($cryptedString) . '"';
+
+        $url = $this->fintectureApiUrl . 'pis/v2/refund?state=' . $state;
+
+        $headers = [
+            'accept' => ' application/json',
+            'authorization' => 'Bearer ' . $accessToken,
+            'cache-control' => 'no-cache',
+            'content-type' => 'application/json',
+            'digest' => $digest,
+            'date' => $date,
+            'x-request-id' => $xRequestId,
+            'signature' => $signature,
+        ];
+
+        $this->client->setHeaders($headers);
+        $this->client->setOptions($this->curlOptions);
+        $this->post($url, json_encode($data));
+        $response = $this->client->getBody();
+
+        $responseObject = $this->fintectureHelper->decodeJson($response);
+        return $responseObject ?: [];
+    }
+
     public function getPayment($sessionId): array
     {
         $accessToken = $this->getAccessToken();
@@ -280,6 +317,6 @@ class Client
         $response = $this->client->getBody();
 
         $responseObject = $this->fintectureHelper->decodeJson($response);
-        return $responseObject ?? [];
+        return $responseObject ?: [];
     }
 }

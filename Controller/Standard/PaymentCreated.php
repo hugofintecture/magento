@@ -6,7 +6,9 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use Exception;
 use Fintecture\Payment\Controller\WebhookAbstract;
+use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 
 class PaymentCreated extends WebhookAbstract
@@ -24,58 +26,96 @@ class PaymentCreated extends WebhookAbstract
 
                 if (isset($data['session_id']) && isset($data['status'])
                     && !empty($data['session_id']) && !empty($data['status'])) {
-                    $sessionId = $data['session_id'];
+                    $isRefund = isset($data['refunded_session_id']);
+                    if ($isRefund) {
+                        $sessionId = $data['refunded_session_id']; // Original session id to find order
+                    } else {
+                        $sessionId = $data['session_id'];
+                    }
                     $status = $data['status'];
-
-                    $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+                    $state = $data['state'];
 
                     $orderCollection = $this->orderCollectionFactory->create();
                     $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
-
+                    /** @var OrderInterface $order */
                     $order = $orderCollection->getFirstItem();
-                    if ($order && $order->getId()) {
-                        $this->fintectureLogger->debug('Webhook', [
-                            'orderIncrementId' => $order->getIncrementId(),
-                            'fintectureStatus' => $status,
-                            'status' => $statuses['status']
-                        ]);
-
-                        if ($statuses['status'] === Order::STATE_PROCESSING) {
-                            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
-                        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
-                            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+                    if ($order && $order->getEntityId()) {
+                        if ($isRefund) {
+                            return $this->refund($order, $status, $state);
                         } else {
-                            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
+                            return $this->payment($order, $status, $sessionId);
                         }
-
-                        $result->setHttpResponseCode(200);
                     } else {
                         $this->fintectureLogger->error('Webhook error', [
                             'message' => 'No order found',
                             'sessionId' => $sessionId,
                             'status' => $status
                         ]);
-                        $result->setHttpResponseCode(401);
-                        $result->setContents('Webhook error: no order found');
+                        $result->setHttpResponseCode(400);
+                        $result->setContents('Error: no order found');
                     }
                 }
             } else {
                 $this->fintectureLogger->error('Webhook error', [
                     'message' => $webhookError,
-                    'sessionId' => $data['session_id'] ?? '',
-                    'status' => $data['status'] ?? ''
                 ]);
                 $result->setHttpResponseCode(401);
-                $result->setContents('Webhook error: ' . $webhookError);
+                $result->setContents('Error: ' . $webhookError);
             }
         } catch (LocalizedException $e) {
             $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Webhook error: ' . $e->getMessage());
+            $result->setContents('Error: ' . $e->getMessage());
         } catch (Exception $e) {
             $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Webhook error: ' . $e->getMessage());
+            $result->setContents('Error: ' . $e->getMessage());
+        }
+
+        return $result;
+    }
+
+    private function payment(OrderInterface $order, string $status, string $sessionId): Raw
+    {
+        $result = $this->resultRawFactory->create();
+        $result->setHeader('Content-Type', 'text/plain');
+
+        $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+
+        $this->fintectureLogger->debug('Webhook', [
+            'orderIncrementId' => $order->getIncrementId(),
+            'fintectureStatus' => $status,
+            'status' => $statuses['status']
+        ]);
+
+        if ($statuses['status'] === Order::STATE_PROCESSING) {
+            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
+        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+        } else {
+            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
+        }
+
+        $result->setHttpResponseCode(200);
+        return $result;
+    }
+
+    private function refund(OrderInterface $order, string $status, string $state): Raw
+    {
+        $result = $this->resultRawFactory->create();
+        $result->setHeader('Content-Type', 'text/plain');
+
+        if ($status === 'payment_created') {
+            $appliedRefund = $this->paymentMethod->applyRefund($order, $state);
+            if ($appliedRefund) {
+                $result->setHttpResponseCode(200);
+            } else {
+                $result->setHttpResponseCode(400);
+                $result->setContents('Error: refund not applied');
+            }
+        } else {
+            $result->setHttpResponseCode(400);
+            $result->setContents('Error: refund status is not payment_created: ' . $status);
         }
 
         return $result;

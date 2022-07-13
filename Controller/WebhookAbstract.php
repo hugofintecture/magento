@@ -26,6 +26,9 @@ abstract class WebhookAbstract implements ActionInterface
     /** @var JsonFactory */
     protected $resultJsonFactory;
 
+    /** @var RawFactory */
+    protected $resultRawFactory;
+
     /** @var ResultFactory */
     protected $resultFactory;
 
@@ -59,7 +62,7 @@ abstract class WebhookAbstract implements ActionInterface
      */
     public function validateWebhook($body): array
     {
-        if (!$body || empty($body)) {
+        if (!$body) {
             return [false, 'Empty hook data'];
         }
 
