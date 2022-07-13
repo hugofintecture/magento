@@ -31,7 +31,7 @@ class Redirect extends FintectureAbstract
                 }
             }
 
-            $quote = $this->quoteFactory->create()->load($quoteId);
+            $quote = $this->quoteRepository->get($quoteId);
             if (!$quote) {
                 $message = "Can't find a quote with this id";
                 $this->fintectureLogger->error('Redirection error', [

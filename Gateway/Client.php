@@ -195,7 +195,7 @@ class Client
         $response = $this->client->getBody();
 
         $responseObject = $this->fintectureHelper->decodeJson($response);
-        return $responseObject ?? [];
+        return $responseObject ?: [];
     }
 
     /**
@@ -280,6 +280,6 @@ class Client
         $response = $this->client->getBody();
 
         $responseObject = $this->fintectureHelper->decodeJson($response);
-        return $responseObject ?? [];
+        return $responseObject ?: [];
     }
 }

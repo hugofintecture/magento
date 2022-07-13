@@ -11,12 +11,12 @@ class PemFile extends \Magento\Config\Block\System\Config\Form\Field\File
         $value = $this->getValue();
         if ($value) {
             if (substr_compare($value, '.pem', -strlen('.pem')) === 0) {
-                return '<div><br>'.__('Please re-upload Private Key file').'</div>';
+                return '<div><br>' . __('Please re-upload Private Key file') . '</div>';
             } else {
-                return '<div><br>'.__('Private Key file already saved').'</div>';
+                return '<div><br>' . __('Private Key file already saved') . '</div>';
             }
         } else {
-            return '<div><br>'.__('Please upload Private Key file').'</div>';
+            return '<div><br>' . __('Please upload Private Key file') . '</div>';
         }
     }
 }

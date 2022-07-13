@@ -6,7 +6,9 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use Exception;
 use Fintecture\Payment\Controller\WebhookAbstract;
+use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 
 class PaymentCreated extends WebhookAbstract
@@ -27,57 +29,64 @@ class PaymentCreated extends WebhookAbstract
                     $sessionId = $data['session_id'];
                     $status = $data['status'];
 
-                    $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
-
                     $orderCollection = $this->orderCollectionFactory->create();
                     $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
-
+                    /** @var OrderInterface $order */
                     $order = $orderCollection->getFirstItem();
-                    if ($order && $order->getId()) {
-                        $this->fintectureLogger->debug('Webhook', [
-                            'orderIncrementId' => $order->getIncrementId(),
-                            'fintectureStatus' => $status,
-                            'status' => $statuses['status']
-                        ]);
-
-                        if ($statuses['status'] === Order::STATE_PROCESSING) {
-                            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
-                        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
-                            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
-                        } else {
-                            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
-                        }
-
-                        $result->setHttpResponseCode(200);
+                    if ($order && $order->getEntityId()) {
+                        return $this->payment($order, $status, $sessionId);
                     } else {
                         $this->fintectureLogger->error('Webhook error', [
                             'message' => 'No order found',
                             'sessionId' => $sessionId,
                             'status' => $status
                         ]);
-                        $result->setHttpResponseCode(401);
-                        $result->setContents('Webhook error: no order found');
+                        $result->setHttpResponseCode(400);
+                        $result->setContents('Error: no order found');
                     }
                 }
             } else {
                 $this->fintectureLogger->error('Webhook error', [
                     'message' => $webhookError,
-                    'sessionId' => $data['session_id'] ?? '',
-                    'status' => $data['status'] ?? ''
                 ]);
                 $result->setHttpResponseCode(401);
-                $result->setContents('Webhook error: ' . $webhookError);
+                $result->setContents('Error: ' . $webhookError);
             }
         } catch (LocalizedException $e) {
             $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Webhook error: ' . $e->getMessage());
+            $result->setContents('Error: ' . $e->getMessage());
         } catch (Exception $e) {
             $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Webhook error: ' . $e->getMessage());
+            $result->setContents('Error: ' . $e->getMessage());
         }
 
+        return $result;
+    }
+
+    private function payment(OrderInterface $order, string $status, string $sessionId): Raw
+    {
+        $result = $this->resultRawFactory->create();
+        $result->setHeader('Content-Type', 'text/plain');
+
+        $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+
+        $this->fintectureLogger->debug('Webhook', [
+            'orderIncrementId' => $order->getIncrementId(),
+            'fintectureStatus' => $status,
+            'status' => $statuses['status']
+        ]);
+
+        if ($statuses['status'] === Order::STATE_PROCESSING) {
+            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
+        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+        } else {
+            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
+        }
+
+        $result->setHttpResponseCode(200);
         return $result;
     }
 }
