@@ -48,7 +48,7 @@ abstract class AbstractRefundAction
      * @return void
      * @throws LocalizedException
      */
-    final public function process(CreditmemoInterface $creditmemo)
+    public function process(CreditmemoInterface $creditmemo)
     {
         $order = $creditmemo instanceof Creditmemo
             ? $creditmemo->getOrder()
@@ -70,7 +70,7 @@ abstract class AbstractRefundAction
         CreditmemoInterface $creditmemo
     );
 
-    final protected function persist(OrderInterface $order, CreditmemoInterface $creditmemo)
+    protected function persist(OrderInterface $order, CreditmemoInterface $creditmemo)
     {
         $this->creditmemoRepository->save($creditmemo);
         $this->orderRepository->save($order);
