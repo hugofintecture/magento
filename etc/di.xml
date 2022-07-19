@@ -22,4 +22,14 @@
     <type name="Magento\Quote\Observer\SubmitObserver">
         <plugin name="order_stop_email" type="Fintecture\Payment\Observer\Quote\SubmitObserver" />
     </type>
+
+    <!-- Refund -->
+    <type name="Fintecture\Payment\Plugin\Magento\Sales\Model\Service\CreditmemoService">
+        <arguments>
+            <argument name="create_refund_action" xsi:type="object">Fintecture\Payment\Model\Fintecture\Action\Refund\CreateRefund</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Sales\Api\CreditmemoManagementInterface">
+        <plugin name="allow_pending_refunds" type="Fintecture\Payment\Plugin\Magento\Sales\Model\Service\CreditmemoService"/>
+    </type>
 </config>

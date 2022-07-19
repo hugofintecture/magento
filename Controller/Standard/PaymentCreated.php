@@ -26,15 +26,25 @@ class PaymentCreated extends WebhookAbstract
 
                 if (isset($data['session_id']) && isset($data['status'])
                     && !empty($data['session_id']) && !empty($data['status'])) {
-                    $sessionId = $data['session_id'];
+                    $isRefund = isset($data['refunded_session_id']);
+                    if ($isRefund) {
+                        $sessionId = $data['refunded_session_id']; // Original session id to find order
+                    } else {
+                        $sessionId = $data['session_id'];
+                    }
                     $status = $data['status'];
+                    $state = $data['state'];
 
                     $orderCollection = $this->orderCollectionFactory->create();
                     $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
                     /** @var OrderInterface $order */
                     $order = $orderCollection->getFirstItem();
                     if ($order && $order->getEntityId()) {
-                        return $this->payment($order, $status, $sessionId);
+                        if ($isRefund) {
+                            return $this->refund($order, $status, $state);
+                        } else {
+                            return $this->payment($order, $status, $sessionId);
+                        }
                     } else {
                         $this->fintectureLogger->error('Webhook error', [
                             'message' => 'No order found',
@@ -87,6 +97,27 @@ class PaymentCreated extends WebhookAbstract
         }
 
         $result->setHttpResponseCode(200);
+        return $result;
+    }
+
+    private function refund(OrderInterface $order, string $status, string $state): Raw
+    {
+        $result = $this->resultRawFactory->create();
+        $result->setHeader('Content-Type', 'text/plain');
+
+        if ($status === 'payment_created') {
+            $appliedRefund = $this->paymentMethod->applyRefund($order, $state);
+            if ($appliedRefund) {
+                $result->setHttpResponseCode(200);
+            } else {
+                $result->setHttpResponseCode(400);
+                $result->setContents('Error: refund not applied');
+            }
+        } else {
+            $result->setHttpResponseCode(400);
+            $result->setContents('Error: refund status is not payment_created: ' . $status);
+        }
+
         return $result;
     }
 }

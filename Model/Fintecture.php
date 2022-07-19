@@ -23,14 +23,19 @@ use Magento\Payment\Helper\Data as PaymentData;
 use Magento\Payment\Model\Config as PaymentConfig;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
+use Magento\Sales\Api\CreditmemoRepositoryInterface;
+use Magento\Sales\Api\Data\CreditmemoInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\RefundAdapterInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -40,10 +45,14 @@ class Fintecture extends AbstractMethod
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
 
-    private const MODULE_VERSION = '1.3.0';
+    private const MODULE_VERSION = '1.3.1';
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
+    private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
 
     public $_code = 'fintecture';
+
+    protected $_canRefund = true;
+    protected $_canRefundInvoicePartial = true;
 
     /** @var EncryptorInterface */
     protected $encryptor;
@@ -86,11 +95,17 @@ class Fintecture extends AbstractMethod
     /** @var OrderManagementInterface $orderManagement */
     protected $orderManagement;
 
+    /** @var RefundAdapterInterface */
+    private $refundAdapter;
+
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
     /** @var InvoiceRepositoryInterface */
     private $invoiceRepository;
+
+    /** @var CreditmemoRepositoryInterface */
+    private $creditmemoRepository;
 
     /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
@@ -114,8 +129,10 @@ class Fintecture extends AbstractMethod
         PaymentConfig $paymentConfig,
         Transaction $transaction,
         OrderManagementInterface $orderManagement,
+        RefundAdapterInterface $refundAdapter,
         OrderRepositoryInterface $orderRepository,
-        InvoiceRepositoryInterface $invoiceRepository
+        InvoiceRepositoryInterface $invoiceRepository,
+        CreditmemoRepositoryInterface $creditmemoRepository
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
@@ -129,8 +146,10 @@ class Fintecture extends AbstractMethod
         $this->paymentConfig = $paymentConfig;
         $this->transaction = $transaction;
         $this->orderManagement = $orderManagement;
+        $this->refundAdapter = $refundAdapter;
         $this->orderRepository = $orderRepository;
         $this->invoiceRepository = $invoiceRepository;
+        $this->creditmemoRepository = $creditmemoRepository;
 
         parent::__construct(
             $context,
@@ -287,6 +306,132 @@ class Fintecture extends AbstractMethod
         }
     }
 
+    public function createRefund(OrderInterface $order, CreditmemoInterface $creditmemo)
+    {
+        /** @var Order $order */
+
+        $amount = $creditmemo->getBaseGrandTotal();
+        $sessionId = $order->getFintecturePaymentSessionId();
+
+        $incrementOrderId = $order->getIncrementId();
+
+        $this->fintectureLogger->info('Refund started', [
+            'incrementOrderId' => $incrementOrderId,
+            'amount' => $amount,
+            'sessionId' => $sessionId,
+        ]);
+
+        $data = [
+            'meta' => [
+                'session_id' => $sessionId,
+            ],
+            'data' => [
+                'attributes' => [
+                    'amount' => number_format((float) $amount, 2, '.', ''),
+                    'communication' => self::REFUND_COMMUNICATION . $incrementOrderId,
+                ],
+            ],
+        ];
+
+        try {
+            $state = $creditmemo->getTransactionId();
+
+            if ($state) {
+                $gatewayClient = $this->getGatewayClient();
+                $apiResponse = $gatewayClient->generateRefund($data, $state);
+
+                if (!isset($apiResponse['meta'])) {
+                    $this->fintectureLogger->error('Refund error', [
+                        'message' => 'Invalid API response',
+                        'incrementOrderId' => $incrementOrderId,
+                        'response' => json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE)
+                    ]);
+                    throw new LocalizedException(
+                        __('Sorry, something went wrong. Please try again later.')
+                    );
+                } else {
+                    if ($order->canHold()) {
+                        $order->hold();
+                    }
+                    $order->addCommentToStatusHistory(__('Refund pending'));
+                    $this->orderRepository->save($order);
+
+                    $this->fintectureLogger->info('Refund pending', [
+                        'incrementOrderId' => $incrementOrderId
+                    ]);
+                }
+            } else {
+                $this->fintectureLogger->error('Refund error', [
+                    'message' => "State of creditmemo if empty",
+                    'incrementOrderId' => $incrementOrderId,
+                ]);
+            }
+        } catch (Exception $e) {
+            $this->fintectureLogger->error('Refund error', [
+                'exception' => $e,
+                'incrementOrderId' => $incrementOrderId,
+            ]);
+            throw new LocalizedException(
+                __('Sorry, something went wrong. Please try again later.')
+            );
+        }
+    }
+
+    public function applyRefund(OrderInterface $order, string $state): bool
+    {
+        /** @var Order $order */
+
+        try {
+            /** @var Creditmemo $creditmemo */
+            $creditmemo = $order
+                ->getCreditmemosCollection()
+                ->addFieldToFilter('transaction_id', $state)
+                ->getFirstItem();
+        } catch (Exception $e) {
+            $order->addCommentToStatusHistory(__('Refund failed'));
+            $this->orderRepository->save($order);
+
+            $this->fintectureLogger->error('Apply refund error', [
+                'message' => "Can't find credit memo associated to order",
+                'creditmemoId' => $state,
+                'incrementOrderId' => $order->getIncrementId(),
+                'exception' => $e
+            ]);
+
+            return false;
+        }
+
+        try {
+            $creditmemo->setState(Creditmemo::STATE_REFUNDED);
+
+            /** @var Order $order */
+            $order = $this->refundAdapter->refund($creditmemo, $creditmemo->getOrder(), true);
+            $order->addCommentToStatusHistory(__('Refund completed'), Order::STATE_CLOSED);
+
+            $this->orderRepository->save($order);
+            $this->creditmemoRepository->save($creditmemo);
+
+            $this->fintectureLogger->info('Refund completed', [
+                'creditmemoId' => $state,
+                'incrementOrderId' => $order->getIncrementId()
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            $order->addCommentToStatusHistory(__('Refund failed'));
+            $this->orderRepository->save($order);
+
+            $this->fintectureLogger->error('Apply refund error', [
+                'message' => "Can't apply refund",
+                'creditmemoId' => $state,
+                'incrementOrderId' => $order->getIncrementId(),
+                'exception' => $e,
+            ]);
+        }
+
+        return false;
+    }
+
     public function getGatewayClient()
     {
         $gatewayClient = new Client(
@@ -350,6 +495,16 @@ class Fintecture extends AbstractMethod
         return (int) $this->_scopeConfig->isSetFlag('payment/fintecture/general/show_logo', ScopeInterface::SCOPE_STORE);
     }
 
+    public function getExpirationActive(): ?bool
+    {
+        return $this->_scopeConfig->isSetFlag('payment/fintecture/expiration_active', ScopeInterface::SCOPE_STORE);
+    }
+
+    public function getExpirationAfter(): ?int
+    {
+        return (int) $this->_scopeConfig->getValue('payment/fintecture/expiration_after', ScopeInterface::SCOPE_STORE);
+    }
+
     public function getPaymentGatewayRedirectUrl(): string
     {
         $this->validateConfigValue();
@@ -395,6 +550,14 @@ class Fintecture extends AbstractMethod
                 ],
             ],
         ];
+
+        // Handle order expiration if enabled
+        if ($this->getExpirationActive()) {
+            $minutes = $this->getExpirationAfter();
+            if (is_int($minutes) && $minutes >= 1) {
+                $data['meta']['expiry'] = $minutes * 60;
+            }
+        }
 
         try {
             $gatewayClient = $this->getGatewayClient();
