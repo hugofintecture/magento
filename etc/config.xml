@@ -12,6 +12,10 @@
                 <environment>sandbox</environment>
                 <fintecture_app_secret_sandbox backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <fintecture_app_secret_production backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                <new_order_status>pending</new_order_status>
+                <payment_created_status>processing</payment_created_status>
+                <payment_pending_status>pending_payment</payment_pending_status>
+                <payment_failed_status>canceled</payment_failed_status>
                 <expiration_active>0</expiration_active>
                 <expiration_after>10</expiration_after>
                 <payment_us_fintecture_general_specificcountry>FR</payment_us_fintecture_general_specificcountry>

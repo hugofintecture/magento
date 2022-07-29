@@ -9,7 +9,6 @@ use Fintecture\Payment\Controller\WebhookAbstract;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order;
 
 class PaymentCreated extends WebhookAbstract
 {
@@ -88,12 +87,14 @@ class PaymentCreated extends WebhookAbstract
             'status' => $statuses['status']
         ]);
 
-        if ($statuses['status'] === Order::STATE_PROCESSING) {
+        if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
             $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
-        } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+        } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
             $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+        } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
+            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
         } else {
-            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, true);
+            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
         }
 
         $result->setHttpResponseCode(200);

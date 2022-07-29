@@ -7,7 +7,6 @@ namespace Fintecture\Payment\Controller\Standard;
 use Exception;
 use Fintecture\Payment\Controller\FintectureAbstract;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order;
 
 class Response extends FintectureAbstract
 {
@@ -48,7 +47,7 @@ class Response extends FintectureAbstract
                     'status' => $statuses['status']
                 ]);
 
-                if ($statuses['status'] === Order::STATE_PROCESSING) {
+                if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
                     $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses);
 
                     try {
@@ -68,14 +67,18 @@ class Response extends FintectureAbstract
                             'status' => $order->getStatus()
                         ]);
                     }
-                } elseif ($statuses['status'] === Order::STATE_PENDING_PAYMENT) {
+                } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
                     $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses);
                     $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.'));
                     return $this->resultRedirect->create()->setPath(
                         $this->fintectureHelper->getUrl('checkout/onepage/success')
                     );
+                } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
+                    $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
+                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
+                    return $this->redirectToCart();
                 } else {
-                    $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId);
+                    $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
                     $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
                     return $this->redirectToCart();
                 }

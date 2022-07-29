@@ -44,8 +44,8 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
+    public const MODULE_VERSION = '1.4.0';
 
-    private const MODULE_VERSION = '1.3.1';
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
 
@@ -174,12 +174,12 @@ class Fintecture extends AbstractMethod
         }
 
         // Don't update order if state has already been set
-        if ($order->getState() === $statuses['state']) {
+        if ($order->getStatus() === $statuses['status']) {
             $this->fintectureLogger->info('Error', [
-                'message' => 'State is already set',
+                'message' => 'Status is already set',
                 'incrementOrderId' => $order->getIncrementId(),
-                'currentState' => $order->getState(),
-                'state' => $statuses['state']
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
             ]);
             return;
         }
@@ -196,6 +196,10 @@ class Fintecture extends AbstractMethod
 
         $order->setState($statuses['state']);
         $order->setStatus($statuses['status']);
+
+        $note = $this->fintectureHelper->getStatusHistoryComment($status);
+        $note = $webhook ? 'webhook: ' . $note : $note;
+        $order->addCommentToStatusHistory($note);
 
         $this->orderRepository->save($order);
 
@@ -220,16 +224,12 @@ class Fintecture extends AbstractMethod
             // Send Invoice mail to customer
             $this->invoiceSender->send($invoice);
 
-            $note = $this->fintectureHelper->getStatusHistoryComment($status);
-            $note = $webhook ? 'webhook: ' . $note : $note;
-
-            $order->addCommentToStatusHistory($note);
             $order->setIsCustomerNotified(true);
             $this->orderRepository->save($order);
         }
     }
 
-    public function handleFailedTransaction($order, $status, $sessionId, $webhook = false)
+    public function handleFailedTransaction($order, $status, $sessionId, $statuses, $webhook = false)
     {
         /** @var Order $order */
         if (!$order->getId()) {
@@ -246,10 +246,12 @@ class Fintecture extends AbstractMethod
                     $payment->setLastTransId($sessionId);
                     $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
+                    $order->setStatus($statuses['status']);
+
                     $note = $this->fintectureHelper->getStatusHistoryComment($status);
                     $note = $webhook ? 'webhook: ' . $note : $note;
+                    $order->addCommentToStatusHistory($note);
 
-                    $order->addCommentToStatusHistory($note, Order::STATE_CANCELED);
                     $this->orderRepository->save($order);
                 }
             }
@@ -266,21 +268,21 @@ class Fintecture extends AbstractMethod
             return;
         }
 
-        // Don't update order if state has already been set
-        if ($order->getState() === $statuses['state']) {
+        // Don't update order if status has already been set
+        if ($order->getStatus() === $statuses['status']) {
             $this->fintectureLogger->info('Error', [
-                'message' => 'State is already set',
+                'message' => 'Status is already set',
                 'incrementOrderId' => $order->getIncrementId(),
-                'currentState' => $order->getState(),
-                'state' => $statuses['state']
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
             ]);
             return;
-        } elseif ($order->getState() === 'processing') {
+        } elseif ($order->getStatus() === $this->fintectureHelper->getPaymentCreatedStatus()) {
             $this->fintectureLogger->info('Error', [
                 'message' => 'State is already set to processing',
                 'incrementOrderId' => $order->getIncrementId(),
-                'currentState' => $order->getState(),
-                'state' => $statuses['state']
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
             ]);
             return;
         }
@@ -292,14 +294,15 @@ class Fintecture extends AbstractMethod
             $payment->setLastTransId($sessionId);
             $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
 
+            $order->setState($statuses['state']);
+            $order->setStatus($statuses['status']);
+
             $note = $this->fintectureHelper->getStatusHistoryComment($status);
             $note = $webhook ? 'webhook: ' . $note : $note;
             $order->addCommentToStatusHistory($note);
 
-            $order->setState($statuses['state']);
-            $order->setStatus($statuses['status']);
-
             $order->setCustomerNoteNotify(false);
+
             $this->orderRepository->save($order);
         } catch (Exception $e) {
             $this->fintectureLogger->error('Error', ['exception' => $e]);
@@ -353,10 +356,10 @@ class Fintecture extends AbstractMethod
                     if ($order->canHold()) {
                         $order->hold();
                     }
-                    $order->addCommentToStatusHistory(__('Refund pending'));
+                    $order->addCommentToStatusHistory(__('The refund link has been send.'));
                     $this->orderRepository->save($order);
 
-                    $this->fintectureLogger->info('Refund pending', [
+                    $this->fintectureLogger->info('The refund link has been send', [
                         'incrementOrderId' => $incrementOrderId
                     ]);
                 }
@@ -388,7 +391,7 @@ class Fintecture extends AbstractMethod
                 ->addFieldToFilter('transaction_id', $state)
                 ->getFirstItem();
         } catch (Exception $e) {
-            $order->addCommentToStatusHistory(__('Refund failed'));
+            $order->addCommentToStatusHistory(__('The refund has failed.'));
             $this->orderRepository->save($order);
 
             $this->fintectureLogger->error('Apply refund error', [
@@ -406,7 +409,7 @@ class Fintecture extends AbstractMethod
 
             /** @var Order $order */
             $order = $this->refundAdapter->refund($creditmemo, $creditmemo->getOrder(), true);
-            $order->addCommentToStatusHistory(__('Refund completed'), Order::STATE_CLOSED);
+            $order->addCommentToStatusHistory(__('The refund has been made.'), Order::STATE_CLOSED);
 
             $this->orderRepository->save($order);
             $this->creditmemoRepository->save($creditmemo);
@@ -418,7 +421,7 @@ class Fintecture extends AbstractMethod
 
             return true;
         } catch (Exception $e) {
-            $order->addCommentToStatusHistory(__('Refund failed'));
+            $order->addCommentToStatusHistory(__('The refund has failed.'));
             $this->orderRepository->save($order);
 
             $this->fintectureLogger->error('Apply refund error', [
