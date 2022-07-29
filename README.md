@@ -1,6 +1,6 @@
 # Fintecture Payment module for Magento 2.4
 
-[![Latest Stable Version](http://poser.pugx.org/fintecture/payment/v)](https://packagist.org/packages/fintecture/payment) [![Total Downloads](http://poser.pugx.org/fintecture/payment/downloads)](https://packagist.org/packages/fintecture/payment) [![Monthly Downloads](http://poser.pugx.org/fintecture/fintecture-sdk-php/d/monthly)](https://packagist.org/packages/fintecture/fintecture-sdk-php) [![License](http://poser.pugx.org/fintecture/payment/license)](https://packagist.org/packages/fintecture/payment) [![PHP Version Require](http://poser.pugx.org/fintecture/payment/require/php)](https://packagist.org/packages/fintecture/payment)
+[![Latest Stable Version](http://poser.pugx.org/fintecture/payment/v)](https://packagist.org/packages/fintecture/payment) [![Total Downloads](http://poser.pugx.org/fintecture/payment/downloads)](https://packagist.org/packages/fintecture/payment) [![Monthly Downloads](http://poser.pugx.org/fintecture/payment/d/monthly)](https://packagist.org/packages/fintecture/payment) [![License](http://poser.pugx.org/fintecture/payment/license)](https://packagist.org/packages/fintecture/payment) [![PHP Version Require](http://poser.pugx.org/fintecture/payment/require/php)](https://packagist.org/packages/fintecture/payment)
 
 Fintecture is a Fintech that has a payment solution via bank transfer available at https://www.fintecture.com.
 

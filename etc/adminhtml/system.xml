@@ -113,19 +113,54 @@
                 <!-- Start Advanced Options -->
                 <group id="fintecture_advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Advanced Fintecture Settings</label>
-
-                    <field id="expiration_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Enable expiration of pending orders</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/fintecture/expiration_active</config_path>
+                    <field id="version" type="text" translate="label comment" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
                     </field>
 
-                    <field id="title" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Expiration of pending orders after (in minutes)</label>
-                        <comment>Minimum value: 1</comment>
-                        <config_path>payment/fintecture/expiration_after</config_path>
-                        <validate>validate-number validate-greater-than-zero</validate>
-                    </field>
+                    <group id="fintecture_advanced_mapping" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Payment status mapping between Fintecture and Magento</label>
+                        
+                        <field id="new_order_status" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>New order status</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/new_order_status</config_path>
+                        </field>
+
+                        <field id="payment_created_status" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Accepted payment</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/payment_created_status</config_path>
+                        </field>
+
+                        <field id="payment_pending_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Pending payment</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/payment_pending_status</config_path>
+                        </field>
+
+                        <field id="payment_failed_status" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Failed payment</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/payment_failed_status</config_path>
+                        </field>
+                    </group>
+
+                    <group id="fintecture_advanced_expiration" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Automatic expiration of pending orders</label>
+                        
+                        <field id="expiration_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable automatic expiration of pending orders</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/fintecture/expiration_active</config_path>
+                        </field>
+    
+                        <field id="expiration_after" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Automatic expiration of pending orders after</label>
+                            <comment>In minutes. Minimum value: 1</comment>
+                            <config_path>payment/fintecture/expiration_after</config_path>
+                            <validate>validate-number validate-greater-than-zero</validate>
+                        </field>
+                    </group>
                 </group>
                 <!-- End Advanced Options -->
 
