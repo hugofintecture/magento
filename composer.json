@@ -7,7 +7,7 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "license": [
         "GPL-3.0"
     ],
@@ -15,8 +15,8 @@
         "php": ">=7.3",
         "ext-json": "*",
         "ext-openssl": "*",
-        "magento/framework": ">=100.0",
-        "magento/module-developer": ">=100.0"
+        "magento/framework": ">=100",
+        "magento/module-developer": ">=100"
     },
     "require-dev": {
         "phpstan/phpstan": "^1",
