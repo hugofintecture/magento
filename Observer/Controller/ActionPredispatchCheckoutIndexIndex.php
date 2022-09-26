@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Observer\Controller;
 
+use Fintecture\Config\Telemetry;
 use Fintecture\Payment\Helper\Cookie as CookieHelper;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Checkout\Model\Session;
@@ -44,7 +45,7 @@ class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
 
         if ($storedQuoteId && $quoteId !== (int) $storedQuoteId) {
             $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
-            $this->_paymentMethod->getGatewayClient()->logAction('checkout', $configurationSummary);
+            Telemetry::logAction('checkout', $configurationSummary);
 
             $this->_cookieHelper->setCookie('fintecture-cartId', $quoteId, 3600 * 24 * 7);
         }

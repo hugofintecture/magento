@@ -82,7 +82,7 @@ abstract class AbstractRefundAction
      */
     private function validatePaymentMethod(OrderInterface $order)
     {
-        if (!$order->getPayment()->getMethod() === Fintecture::CODE) {
+        if ($order->getPayment()->getMethod() !== Fintecture::CODE) {
             throw new LocalizedException(__('Order is not paid with Fintecture'));
         }
     }

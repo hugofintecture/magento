@@ -17,7 +17,9 @@ class ConfigProvider implements ConfigProviderInterface
 
     public function __construct(Data $paymenthelper)
     {
-        $this->method = $paymenthelper->getMethodInstance($this->methodCode);
+        /** @var Fintecture $methodInstance */
+        $methodInstance = $paymenthelper->getMethodInstance($this->methodCode);
+        $this->method = $methodInstance;
     }
 
     public function getConfig()

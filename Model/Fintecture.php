@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Model;
 
 use Exception;
-use Fintecture\Payment\Gateway\Client;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
+use Fintecture\PisClient;
+use Fintecture\Util\Crypto;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
@@ -39,13 +40,14 @@ use Magento\Sales\Model\Order\RefundAdapterInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Symfony\Component\HttpClient\Psr18Client;
 
 /** @phpstan-ignore-next-line : we will refactor the plugin without AbstractMethod */
 class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '1.5.0';
+    public const MODULE_VERSION = '2.0.0';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -55,13 +57,14 @@ class Fintecture extends AbstractMethod
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
 
+    /** @var PisClient $pisClient */
+    public $pisClient;
+
     /** @var EncryptorInterface */
     protected $encryptor;
 
     /** @var FintectureHelper */
     protected $fintectureHelper;
-
-    protected $environment = Environment::ENVIRONMENT_PRODUCTION;
 
     /** @var Session $checkoutSession */
     protected $checkoutSession;
@@ -164,7 +167,20 @@ class Fintecture extends AbstractMethod
         );
 
         $this->encryptor = $encryptor;
-        $this->environment = $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'environment', ScopeInterface::SCOPE_STORE);
+
+        try {
+            $this->pisClient = new PisClient([
+                'appId' => $this->getAppId(),
+                'appSecret' => $this->getAppSecret(),
+                'privateKey' => $this->getAppPrivateKey(),
+                'environment' => $this->getAppEnvironment(),
+            ], new Psr18Client());
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Connection error', [
+                'exception' => $e,
+                'message' => "Can't create PISClient"
+            ]);
+        }
     }
 
     public function handleSuccessTransaction($order, $status, $sessionId, $statuses, $webhook = false)
@@ -192,7 +208,7 @@ class Fintecture extends AbstractMethod
         $payment->setTransactionId($sessionId);
         $payment->setLastTransId($sessionId);
         $payment->addTransaction(TransactionInterface::TYPE_ORDER);
-        $payment->setIsTransactionClosed(0);
+        $payment->setIsTransactionClosed(false);
         $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
         $payment->place();
 
@@ -303,7 +319,7 @@ class Fintecture extends AbstractMethod
             $note = $webhook ? 'webhook: ' . $note : $note;
             $order->addCommentToStatusHistory($note);
 
-            $order->setCustomerNoteNotify(false);
+            $order->setCustomerNoteNotify(0);
 
             $this->orderRepository->save($order);
         } catch (Exception $e) {
@@ -320,6 +336,8 @@ class Fintecture extends AbstractMethod
 
         $incrementOrderId = $order->getIncrementId();
 
+        $nbCreditmemos = count($order->getCreditmemosCollection()) + 1;
+
         $this->fintectureLogger->info('Refund started', [
             'incrementOrderId' => $incrementOrderId,
             'amount' => $amount,
@@ -333,7 +351,7 @@ class Fintecture extends AbstractMethod
             'data' => [
                 'attributes' => [
                     'amount' => number_format((float) $amount, 2, '.', ''),
-                    'communication' => self::REFUND_COMMUNICATION . $incrementOrderId,
+                    'communication' => self::REFUND_COMMUNICATION . $incrementOrderId . '-' . $nbCreditmemos,
                 ],
             ],
         ];
@@ -342,28 +360,33 @@ class Fintecture extends AbstractMethod
             $state = $creditmemo->getTransactionId();
 
             if ($state) {
-                $gatewayClient = $this->getGatewayClient();
-                $apiResponse = $gatewayClient->generateRefund($data, $state);
-
-                if (!isset($apiResponse['meta'])) {
-                    $this->fintectureLogger->error('Refund error', [
-                        'message' => 'Invalid API response',
-                        'incrementOrderId' => $incrementOrderId,
-                        'response' => json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE)
-                    ]);
-                    throw new LocalizedException(
-                        __('Sorry, something went wrong. Please try again later.')
-                    );
+                /** @phpstan-ignore-next-line */
+                $pisToken = $this->pisClient->token->generate();
+                if (!$pisToken->error) {
+                    $this->pisClient->setAccessToken($pisToken); // set token of PIS client
                 } else {
+                    throw new Exception($pisToken->errorMsg);
+                }
+
+                /** @phpstan-ignore-next-line */
+                $apiResponse = $this->pisClient->refund->generate($data, $state);
+                if (!$apiResponse->error) {
                     if ($order->canHold()) {
                         $order->hold();
                     }
-                    $order->addCommentToStatusHistory(__('The refund link has been send.'));
+                    $order->addCommentToStatusHistory(__('The refund link has been send.')->render());
                     $this->orderRepository->save($order);
 
                     $this->fintectureLogger->info('The refund link has been send', [
                         'incrementOrderId' => $incrementOrderId
                     ]);
+                } else {
+                    $this->fintectureLogger->error('Refund error', [
+                        'message' => 'Invalid API response',
+                        'incrementOrderId' => $incrementOrderId,
+                        'response' => $apiResponse->errorMsg
+                    ]);
+                    throw new Exception($apiResponse->errorMsg);
                 }
             } else {
                 $this->fintectureLogger->error('Refund error', [
@@ -391,9 +414,9 @@ class Fintecture extends AbstractMethod
             $creditmemo = $order
                 ->getCreditmemosCollection()
                 ->addFieldToFilter('transaction_id', $state)
-                ->getFirstItem();
+                ->getLastItem();
         } catch (Exception $e) {
-            $order->addCommentToStatusHistory(__('The refund has failed.'));
+            $order->addCommentToStatusHistory(__('The refund has failed.')->render());
             $this->orderRepository->save($order);
 
             $this->fintectureLogger->error('Apply refund error', [
@@ -411,7 +434,11 @@ class Fintecture extends AbstractMethod
 
             /** @var Order $order */
             $order = $this->refundAdapter->refund($creditmemo, $creditmemo->getOrder(), true);
-            $order->addCommentToStatusHistory(__('The refund has been made.'), Order::STATE_CLOSED);
+
+            if ($order->canUnhold()) {
+                $order->unhold();
+            }
+            $order->addCommentToStatusHistory(__('The refund has been made.')->render());
 
             $this->orderRepository->save($order);
             $this->creditmemoRepository->save($creditmemo);
@@ -423,7 +450,7 @@ class Fintecture extends AbstractMethod
 
             return true;
         } catch (Exception $e) {
-            $order->addCommentToStatusHistory(__('The refund has failed.'));
+            $order->addCommentToStatusHistory(__('The refund has failed.')->render());
             $this->orderRepository->save($order);
 
             $this->fintectureLogger->error('Apply refund error', [
@@ -437,27 +464,6 @@ class Fintecture extends AbstractMethod
         return false;
     }
 
-    public function getGatewayClient()
-    {
-        $gatewayClient = new Client(
-            $this->fintectureHelper,
-            $this->fintectureLogger,
-            [
-                'fintectureApiUrl' => $this->getFintectureApiUrl(),
-                'fintecturePrivateKey' => $this->getAppPrivateKey(),
-                'fintectureAppId' => $this->getAppId(),
-                'fintectureAppSecret' => $this->getAppSecret(),
-            ]
-        );
-        return $gatewayClient;
-    }
-
-    public function getFintectureApiUrl(): string
-    {
-        return $this->environment === 'sandbox'
-            ? 'https://api-sandbox.fintecture.com/' : 'https://api.fintecture.com/';
-    }
-
     public function getShopName(): ?string
     {
         return $this->_scopeConfig->getValue('general/store_information/name', ScopeInterface::SCOPE_STORE);
@@ -465,26 +471,26 @@ class Fintecture extends AbstractMethod
 
     public function getAppId(string $environment = null): ?string
     {
-        $environment = $environment ?: $this->environment;
+        $environment = $environment ?: $this->getAppEnvironment();
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_id_' . $environment, ScopeInterface::SCOPE_STORE);
     }
 
     public function getAppSecret(string $environment = null, string $scope = ScopeInterface::SCOPE_STORE, int $scopeId = null): ?string
     {
-        $environment = $environment ?: $this->environment;
+        $environment = $environment ?: $this->getAppEnvironment();
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_secret_' . $environment, $scope, $scopeId);
     }
 
     public function getAppPrivateKey(string $environment = null, string $scope = ScopeInterface::SCOPE_STORE, int $scopeId = null): ?string
     {
-        $environment = $environment ?: $this->environment;
+        $environment = $environment ?: $this->getAppEnvironment();
         $privateKey = $this->_scopeConfig->getValue(self::CONFIG_PREFIX . 'custom_file_upload_' . $environment, $scope, $scopeId);
         return $privateKey ? $this->encryptor->decrypt($privateKey) : null;
     }
 
-    public function isRewriteModeActive(): bool
+    public function getAppEnvironment(): ?string
     {
-        return $this->_scopeConfig->getValue('web/seo/use_rewrites', ScopeInterface::SCOPE_STORE) === "1";
+        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'environment', ScopeInterface::SCOPE_STORE);
     }
 
     public function getBankType(): ?string
@@ -521,13 +527,14 @@ class Fintecture extends AbstractMethod
     {
         $this->validateConfigValue();
 
+        /** @var \Magento\Sales\Model\Order|null $lastRealOrder */
         $lastRealOrder = $this->checkoutSession->getLastRealOrder();
         if (!$lastRealOrder) {
             $this->fintectureLogger->error('Error', ['message' => 'No order found in session, please try again']);
             throw new LocalizedException(__('No order found in session, please try again'));
         }
 
-        /** @var \Magento\Sales\Model\Order\Address $billingAddress */
+        /** @var \Magento\Sales\Model\Order\Address|null $billingAddress */
         $billingAddress = $lastRealOrder->getBillingAddress();
         if (!$billingAddress) {
             $this->fintectureLogger->error('Error', [
@@ -572,27 +579,32 @@ class Fintecture extends AbstractMethod
         }
 
         try {
-            $gatewayClient = $this->getGatewayClient();
-            $state = $gatewayClient->getUid();
-            $isRewriteModeActive = $this->isRewriteModeActive();
+            $state = Crypto::uuid4();
             $redirectUrl = $this->getResponseUrl();
             $originUrl = $this->getOriginUrl();
             $psuType = $this->getBankType();
 
-            $apiResponse = $gatewayClient->generateConnectURL($data, $isRewriteModeActive, $redirectUrl, $originUrl, $psuType, $state);
-
-            if (!isset($apiResponse['meta'])) {
-                $this->fintectureLogger->error('Error', [
-                    'message' => 'Error building connect URL',
-                    'incrementOrderId' => $lastRealOrder->getIncrementId(),
-                    'response' => json_encode($apiResponse['meta']['errors'] ?? '', JSON_UNESCAPED_UNICODE)
-                ]);
-                $this->checkoutSession->restoreQuote();
-                throw new LocalizedException(
-                    __('Sorry, something went wrong. Please try again later.')
-                );
+            /** @phpstan-ignore-next-line */
+            $pisToken = $this->pisClient->token->generate();
+            if (!$pisToken->error) {
+                $this->pisClient->setAccessToken($pisToken); // set token of PIS client
             } else {
-                $sessionId = $apiResponse['meta']['session_id'] ?? '';
+                throw new Exception($pisToken->errorMsg);
+            }
+
+            /** @phpstan-ignore-next-line */
+            $apiResponse = $this->pisClient->connect->generate(
+                $data,
+                $state,
+                $redirectUrl,
+                $originUrl,
+                null,
+                [
+                    'x-psu-type' => $psuType
+                ]
+            );
+            if (!$apiResponse->error) {
+                $sessionId = $apiResponse->meta->session_id ?? '';
 
                 $lastRealOrder->setFintecturePaymentSessionId($sessionId);
                 try {
@@ -606,7 +618,16 @@ class Fintecture extends AbstractMethod
 
                 /** @phpstan-ignore-next-line : dynamic session var get */
                 $this->coreSession->setPaymentSessionId($sessionId);
-                return $apiResponse['meta']['url'] ?? '';
+
+                return $apiResponse->meta->url ?? '';
+            } else {
+                $this->fintectureLogger->error('Error', [
+                    'message' => 'Error building connect URL',
+                    'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                    'response' => $apiResponse->errorMsg
+                ]);
+                $this->checkoutSession->restoreQuote();
+                throw new LocalizedException($apiResponse->errorMsg);
             }
         } catch (Exception $e) {
             $this->fintectureLogger->error('Error', [
@@ -623,7 +644,7 @@ class Fintecture extends AbstractMethod
 
     public function validateConfigValue(): void
     {
-        if (!$this->getFintectureApiUrl()
+        if (!$this->getAppEnvironment()
             || !$this->getAppPrivateKey()
             || !$this->getAppId()
             || !$this->getAppSecret()
@@ -649,51 +670,6 @@ class Fintecture extends AbstractMethod
         return $this->fintectureHelper->getUrl('fintecture/standard/redirect');
     }
 
-    public function getBeneficiaryName(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_name', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryStreet(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_street', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryNumber(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_number', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryCity(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_city', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryZip(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_zip', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryCountry(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_country', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryIban(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_iban', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiarySwiftBic(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_swift_bic', ScopeInterface::SCOPE_STORE);
-    }
-
-    public function getBeneficiaryBankName(): ?string
-    {
-        return $this->_scopeConfig->getValue('beneficiary_bank_name', ScopeInterface::SCOPE_STORE);
-    }
-
     public function getNumberOfActivePaymentMethods(): int
     {
         return count($this->paymentConfig->getActiveMethods());
@@ -712,7 +688,7 @@ class Fintecture extends AbstractMethod
             'module_position' => '', // TODO: find way to get to find position
             'shop_payment_methods' => $this->getNumberOfActivePaymentMethods(),
             'module_enabled' => $this->getActive(),
-            'module_production' => $this->environment === Environment::ENVIRONMENT_PRODUCTION ? 1 : 0,
+            'module_production' => $this->getAppEnvironment() === Environment::ENVIRONMENT_PRODUCTION ? 1 : 0,
             'module_sandbox_app_id' => $this->getAppId(Environment::ENVIRONMENT_SANDBOX),
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->getShowLogo()
@@ -723,8 +699,8 @@ class Fintecture extends AbstractMethod
     {
         $version = $this->productMetadata->getVersion();
         if ($version === 'UNKNOWN') {
-            $this->fintectureLogger->debug("Can't detect Magento version. It may cause some errors.");
-            return '2.4.0'; // assume that the version is the lowest possible
+            $this->fintectureLogger->debug("Can't detect Magento version.");
+            return 'UNKNOWN';
         }
         return $version;
     }

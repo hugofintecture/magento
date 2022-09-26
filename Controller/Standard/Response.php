@@ -32,12 +32,19 @@ class Response extends FintectureAbstract
                 return $this->redirectToCart();
             }
 
-            $gatewayClient = $this->paymentMethod->getGatewayClient();
-            $apiResponse = $gatewayClient->getPayment($lastPaymentSessionId);
+            /** @phpstan-ignore-next-line */
+            $pisToken = $this->paymentMethod->pisClient->token->generate();
+            if (!$pisToken->error) {
+                $this->paymentMethod->pisClient->setAccessToken($pisToken); // set token of PIS client
+            } else {
+                throw new Exception($pisToken->errorMsg);
+            }
 
-            if (isset($apiResponse['meta']['status']) && isset($apiResponse['meta']['session_id'])) {
-                $status = $apiResponse['meta']['status'];
-                $sessionId = $apiResponse['meta']['session_id'];
+            /** @phpstan-ignore-next-line */
+            $apiResponse = $this->paymentMethod->pisClient->payment->get($lastPaymentSessionId);
+            if (!$apiResponse->error) {
+                $status = $apiResponse->meta->status;
+                $sessionId = $apiResponse->meta->session_id;
 
                 $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
 
@@ -69,32 +76,32 @@ class Response extends FintectureAbstract
                     }
                 } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
                     $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses);
-                    $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.'));
+                    $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.')->render());
                     return $this->resultRedirect->create()->setPath(
                         $this->fintectureHelper->getUrl('checkout/onepage/success')
                     );
                 } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
                     $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
-                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
+                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
                     return $this->redirectToCart();
                 } else {
                     $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
-                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.'));
+                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
                     return $this->redirectToCart();
                 }
             } else {
                 $this->fintectureLogger->error('Error', [
                     'message' => 'Invalid payment API response',
-                    'response' => json_encode($apiResponse),
+                    'response' => $apiResponse->errorMsg,
                 ]);
-                $this->messageManager->addErrorMessage(__("We can't place the order."));
+                $this->messageManager->addErrorMessage(__("We can't place the order.")->render());
             }
         } catch (LocalizedException $e) {
             $this->fintectureLogger->error('Response error', ['exception' => $e]);
-            $this->messageManager->addExceptionMessage($e, __($e->getMessage()));
+            $this->messageManager->addExceptionMessage($e, $e->getMessage());
         } catch (Exception $e) {
             $this->fintectureLogger->error('Response error', ['exception' => $e]);
-            $this->messageManager->addExceptionMessage($e, __("We can't place the order."));
+            $this->messageManager->addExceptionMessage($e, __("We can't place the order.")->render());
         }
 
         return $this->redirectToCart();

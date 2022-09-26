@@ -2,6 +2,7 @@
 
 namespace Fintecture\Payment\Observer;
 
+use Exception;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\Event\Observer;
@@ -33,15 +34,17 @@ class NewOrderStatus implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        /** @var Order $order */
-        $order = $observer->getEvent()->getOrder();
+        try {
+            /** @var Order $order */
+            $order = $observer->getEvent()->getOrder();
+        } catch (Exception $e) {
+            return;
+        }
 
-        if ($order) {
-            if ($order->getPayment()->getMethod() === Fintecture::CODE) {
-                $order->setState(Order::STATE_NEW);
-                $order->setStatus($this->fintectureHelper->getNewOrderStatus());
-                $this->orderRepository->save($order);
-            }
+        if ($order->getPayment()->getMethod() === Fintecture::CODE) {
+            $order->setState(Order::STATE_NEW);
+            $order->setStatus($this->fintectureHelper->getNewOrderStatus());
+            $this->orderRepository->save($order);
         }
     }
 }
