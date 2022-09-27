@@ -29,7 +29,6 @@ class Cookie
 
     public function setCookie(string $name, $value, int $duration = 3600)
     {
-        /** @phpstan-ignore-next-line : phpstan says undefined method createPublicCookieMetadata while it's valid */
         $publicCookieMetadata = $this->cookieMetadataFactory->createPublicCookieMetadata();
         $publicCookieMetadata->setDuration($duration);
         $publicCookieMetadata->setPath('/');

@@ -7,6 +7,7 @@ namespace Fintecture\Payment\Controller\Standard;
 use Exception;
 use Fintecture\Payment\Controller\FintectureAbstract;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class Redirect extends FintectureAbstract
 {
@@ -31,8 +32,9 @@ class Redirect extends FintectureAbstract
                 }
             }
 
-            $quote = $this->quoteRepository->get($quoteId);
-            if (!$quote) {
+            try {
+                $quote = $this->quoteRepository->get($quoteId);
+            } catch (NoSuchEntityException $e) {
                 $message = "Can't find a quote with this id";
                 $this->fintectureLogger->error('Redirection error', [
                     'message' => $message,

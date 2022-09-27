@@ -5,14 +5,14 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
         const failMessage = $t('Connection did not succeed. Make sure you have entered the right parameters.');
         const successMessage = $t('Connection succeeded');
         const fields = 'groups[fintecture][groups][general][fields]';
-        const fintectureEnv = $('select[name="' + fields + '[environment][value]"]').val() ?? '';
-
+        
         $('input[name="' + fields + '[title][value]"]').attr('disabled', 'disabled');
         $('input[name="' + fields + '[title][value]"]').val($t('Instant bank payment'));
 
         $(document).on('click', '#connection-test', function (e) {
             e.preventDefault();
             hideMessage();
+            const fintectureEnv = $('select[name="' + fields + '[environment][value]"]').val() ?? '';
             const fintectureAppId = $('input[name="' + fields + '[fintecture_app_id_' + fintectureEnv + '][value]"]').val() ?? '';
             const fintectureAppSecret = $('input[name="' + fields + '[fintecture_app_secret_' + fintectureEnv + '][value]"]').val() ?? '';
             const fintecturePrivateKey = $('input[name="' + fields + '[custom_file_upload_' + fintectureEnv + '][value]')?.get(0)?.files[0] ?? '';
@@ -58,10 +58,10 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    fintectureEnv: fintectureEnv,
-                    fintectureAppId: fintectureAppId,
-                    fintectureAppSecret: fintectureAppSecret,
-                    fintecturePrivateKey: fintecturePrivateKey,
+                    environment: fintectureEnv,
+                    appId: fintectureAppId,
+                    appSecret: fintectureAppSecret,
+                    privateKey: fintecturePrivateKey,
                 },
                 beforeSend: function () {
                     loader.show();

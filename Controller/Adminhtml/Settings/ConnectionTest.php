@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
 
-use Fintecture\Payment\Gateway\Client;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Environment;
 use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Util\Validation;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -20,10 +20,15 @@ use Magento\Framework\Exception\LocalizedException;
 class ConnectionTest extends Action
 {
     public const CONFIG_PREFIX = 'payment/fintecture/';
+
+    /** @var Fintecture */
     protected $fintectureModel;
+
+    /** @var JsonFactory */
     protected $jsonResultFactory;
+
+    /** @var ScopeConfigInterface */
     protected $scopeConfig;
-    protected $environment = Environment::ENVIRONMENT_PRODUCTION;
 
     /** @var FintectureHelper */
     protected $fintectureHelper;
@@ -33,6 +38,9 @@ class ConnectionTest extends Action
 
     /** @var Validator*/
     protected $formKeyValidator;
+
+    /** @var string */
+    protected $environment = Environment::ENVIRONMENT_PRODUCTION;
 
     public function __construct(
         Context $context,
@@ -62,38 +70,35 @@ class ConnectionTest extends Action
 
         $scope = $request->getParam('scope');
         $scopeId = (int) $request->getParam('scopeId');
-        $fintectureConnectParameters = $request->getParams();
-        $environment = $fintectureConnectParameters['fintectureEnv'] ?? Environment::ENVIRONMENT_PRODUCTION;
+        $jsParams = $request->getParams();
 
-        $fintectureAppId = $fintectureConnectParameters['fintectureAppId'] ?? '';
-        $fintectureAppSecret = $fintectureConnectParameters['fintectureAppSecret'] ?? '';
-        $fintecturePrivateKey = $fintectureConnectParameters['fintecturePrivateKey'] ?? '';
+        // Check infos
+        if (empty($jsParams['appId']) || empty($jsParams['appSecret']) || empty($jsParams['environment'])) {
+            throw new LocalizedException(__('Some fields are empty'));
+        }
 
         // Handle already saved app secret
-        if ($fintectureAppSecret === '******') {
-            $fintectureAppSecret = $this->fintectureModel->getAppSecret($environment, $scope, $scopeId);
+        if ($jsParams['appSecret'] === '******') {
+            $jsParams['appSecret'] = $this->fintectureModel->getAppSecret($jsParams['environment'], $scope, $scopeId);
         }
 
         // Handle already saved private key
-        if ($fintecturePrivateKey === '') {
-            $fintecturePrivateKey = $this->fintectureModel->getAppPrivateKey($environment, $scope, $scopeId);
-            if (!$fintecturePrivateKey) {
+        if (empty($jsParams['privateKey'])) {
+            $jsParams['privateKey'] = $this->fintectureModel->getAppPrivateKey($jsParams['environment'], $scope, $scopeId);
+            if (!$jsParams['privateKey']) {
                 throw new LocalizedException(__('No private key file found'));
             }
         }
 
-        $clientGateway = new Client(
-            $this->fintectureHelper,
-            $this->fintectureLogger,
+        $response = Validation::validCredentials(
+            'pis',
             [
-                'fintectureApiUrl' => $this->fintectureModel->getFintectureApiUrl(),
-                'fintecturePrivateKey' => $fintecturePrivateKey,
-                'fintectureAppId' => $fintectureAppId,
-                'fintectureAppSecret' => $fintectureAppSecret,
-            ]
+                'appId' => $jsParams['appId'],
+                'appSecret' => $jsParams['appSecret'],
+                'privateKey' => $jsParams['privateKey']
+            ],
+            $jsParams['environment']
         );
-
-        $response = $clientGateway->testConnection();
 
         $resultJson = $this->jsonResultFactory->create();
 

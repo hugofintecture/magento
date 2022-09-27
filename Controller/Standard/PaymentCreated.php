@@ -36,9 +36,9 @@ class PaymentCreated extends WebhookAbstract
 
                     $orderCollection = $this->orderCollectionFactory->create();
                     $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
-                    /** @var OrderInterface $order */
-                    $order = $orderCollection->getFirstItem();
-                    if ($order && $order->getEntityId()) {
+                    if ($orderCollection->count() > 0) {
+                        /** @var OrderInterface $order */
+                        $order = $orderCollection->getFirstItem();
                         if ($isRefund) {
                             return $this->refund($order, $status, $state);
                         } else {

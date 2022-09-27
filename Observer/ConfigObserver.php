@@ -2,6 +2,7 @@
 
 namespace Fintecture\Payment\Observer;
 
+use Fintecture\Config\Telemetry;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -25,6 +26,6 @@ class ConfigObserver implements ObserverInterface
     public function execute(Observer $observer)
     {
         $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
-        $this->_paymentMethod->getGatewayClient()->logAction('save', $configurationSummary);
+        Telemetry::logAction('save', $configurationSummary);
     }
 }
