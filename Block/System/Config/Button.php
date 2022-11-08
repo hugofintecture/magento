@@ -47,7 +47,7 @@ class Button extends Field
         ]);
     }
 
-    public function getButtonHtml()
+    public function getButtonHtml(): string
     {
         /** @var WidgetButton $button */
         $button = $this->getLayout()->createBlock(WidgetButton::class);

@@ -27,7 +27,10 @@ class Cookie
         $this->cookieMetadataFactory = $cookieMetadataFactory;
     }
 
-    public function setCookie(string $name, $value, int $duration = 3600)
+    /**
+     * @param mixed $value Value
+     */
+    public function setCookie(string $name, $value, int $duration = 3600): void
     {
         $publicCookieMetadata = $this->cookieMetadataFactory->createPublicCookieMetadata();
         $publicCookieMetadata->setDuration($duration);
@@ -37,7 +40,7 @@ class Cookie
         $this->cookieManager->setPublicCookie($name, $value, $publicCookieMetadata);
     }
 
-    public function getCookie(string $name)
+    public function getCookie(string $name): ?string
     {
         return $this->cookieManager->getCookie($name);
     }

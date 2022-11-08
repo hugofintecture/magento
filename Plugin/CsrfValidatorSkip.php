@@ -17,7 +17,7 @@ class CsrfValidatorSkip
         Closure $proceed,
         RequestInterface $request,
         ActionInterface $action
-    ) {
+    ): void {
         if ($request->getModuleName() === Fintecture::CODE) {
             return;
         }

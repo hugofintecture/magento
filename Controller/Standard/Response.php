@@ -6,6 +6,7 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use Exception;
 use Fintecture\Payment\Controller\FintectureAbstract;
+use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
 
 class Response extends FintectureAbstract
@@ -110,7 +111,7 @@ class Response extends FintectureAbstract
     /**
      * In case of error, restore cart and redirect user to it
      */
-    private function redirectToCart(string $returnUrl = null)
+    private function redirectToCart(string $returnUrl = null): Redirect
     {
         if (!$returnUrl) {
             $returnUrl = $this->fintectureHelper->getUrl('checkout') . "#payment";

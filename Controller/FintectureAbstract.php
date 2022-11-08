@@ -14,8 +14,11 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use Magento\Sales\Model\Order;
 
 abstract class FintectureAbstract implements ActionInterface
 {
@@ -52,6 +55,12 @@ abstract class FintectureAbstract implements ActionInterface
     /** @var SessionManagerInterface */
     protected $coreSession;
 
+    /** @var PageFactory */
+    protected $pageFactory;
+
+    /** @var UrlInterface */
+    protected $urlInterface;
+
     public function __construct(
         CheckoutSession $checkoutSession,
         Logger $fintectureLogger,
@@ -63,7 +72,9 @@ abstract class FintectureAbstract implements ActionInterface
         ManagerInterface $messageManager,
         CartRepositoryInterface $quoteRepository,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        SessionManagerInterface $coreSession
+        SessionManagerInterface $coreSession,
+        PageFactory $pageFactory,
+        UrlInterface $urlInterface
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->paymentMethod = $paymentMethod;
@@ -76,9 +87,11 @@ abstract class FintectureAbstract implements ActionInterface
         $this->quoteRepository = $quoteRepository;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->coreSession = $coreSession;
+        $this->pageFactory = $pageFactory;
+        $this->urlInterface = $urlInterface;
     }
 
-    protected function getOrder()
+    protected function getOrder(): ?Order
     {
         return $this->checkoutSession->getLastRealOrder();
     }

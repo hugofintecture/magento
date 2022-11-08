@@ -70,7 +70,7 @@ abstract class AbstractRefundAction
         CreditmemoInterface $creditmemo
     );
 
-    protected function persist(OrderInterface $order, CreditmemoInterface $creditmemo)
+    protected function persist(OrderInterface $order, CreditmemoInterface $creditmemo): void
     {
         $this->creditmemoRepository->save($creditmemo);
         $this->orderRepository->save($order);
@@ -80,7 +80,7 @@ abstract class AbstractRefundAction
      * @param OrderInterface $order
      * @throws LocalizedException
      */
-    private function validatePaymentMethod(OrderInterface $order)
+    private function validatePaymentMethod(OrderInterface $order): void
     {
         if ($order->getPayment()->getMethod() !== Fintecture::CODE) {
             throw new LocalizedException(__('Order is not paid with Fintecture'));

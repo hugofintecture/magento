@@ -1,0 +1,40 @@
+<div style="text-align: center;">
+    <?php
+    if ($block->getData('confirm')) {
+    ?>
+        <h2><?php echo __('Order validated'); ?></h2>
+
+        <p><?php echo __('If the payment has been made, then the order will be validated in a few moments.'); ?></p>
+
+        <p><b><?php echo $block->getData('amount'); ?> <?php echo $block->getData('currency'); ?></b></p>
+        <p><?php echo $block->getData('reference'); ?></p>
+        <p><?php echo $block->getData('session_id'); ?></p>
+
+        <a href="<?php echo $block->getData('baseUrl'); ?>" title="<?php echo __('Return to the homepage'); ?>" class="action primary" style="margin-top: 20px;">
+            <?php echo __('Return to the homepage'); ?>
+        </a>
+    <?php
+    } else {
+    ?>
+        <h2><?php echo __('Scan this QR Code to pay with Fintecture'); ?></h2>
+
+        <img src="<?php echo $block->getData('qrcode'); ?>">
+
+        <p><b><?php echo $block->getData('amount'); ?> <?php echo $block->getData('currency'); ?></b></p>
+        <p><?php echo $block->getData('reference'); ?></p>
+        <p><?php echo $block->getData('session_id'); ?></p>
+
+        <a href="<?php echo $block->getData('confirmUrl'); ?>" title="<?php echo __('Continue'); ?>" class="action primary" style="margin-top: 20px;">
+            <?php echo __('Continue'); ?>
+        </a>
+    <?php
+    }
+    ?>
+
+    <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+        <span style="text-transform: uppercase; color: #0B1643; font-weight: bold; font-size: 0.8em;">
+            <?php echo __('Secured connection to your bank by'); ?>
+        </span>
+        <img src="<?php echo $block->getViewFileUrl('Fintecture_Payment::images/fintecture.svg'); ?>" alt="Fintecture" style="height: 25px;">
+    </div>
+</div>

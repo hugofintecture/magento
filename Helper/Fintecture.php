@@ -30,27 +30,12 @@ class Fintecture extends AbstractHelper
         parent::__construct($context);
     }
 
-    public function restoreQuote()
+    public function restoreQuote(): void
     {
         $this->session->restoreQuote();
     }
 
-    /**
-     * @return array|false
-     */
-    public function decodeJson($json)
-    {
-        if ($json && is_string($json)) {
-            $decodedJson = json_decode($json, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $decodedJson;
-            }
-            return false;
-        }
-        return false;
-    }
-
-    public function getUrl($route, $params = []): string
+    public function getUrl(string $route, array $params = []): string
     {
         return rtrim($this->_getUrl($route, $params), '/');
     }
@@ -82,26 +67,36 @@ class Fintecture extends AbstractHelper
         }
     }
 
-    public function getStatusHistoryComment(string $status)
+    public function getStatusHistoryComment(string $status): string
     {
+        $note = '';
         switch ($status) {
             case 'payment_created':
-                return __('The payment has been validated by the bank.');
+                $note = __('The payment has been validated by the bank.');
+                break;
             case 'payment_pending':
-                return __('The bank is validating the payment.');
+                $note = __('The bank is validating the payment.');
+                break;
             case 'payment_unsuccessful':
-                return __('The payment was rejected by either the payer or the bank.');
+                $note = __('The payment was rejected by either the payer or the bank.');
+                break;
             case 'payment_error':
-                return __('The payment has failed for technical reasons.');
+                $note = __('The payment has failed for technical reasons.');
+                break;
             case 'sca_required':
-                return __('The payer got redirected to their bank and needs to authenticate.');
+                $note = __('The payer got redirected to their bank and needs to authenticate.');
+                break;
             case 'provider_required':
-                return __('The payment has been dropped by the payer.');
+                $note = __('The payment has been dropped by the payer.');
+                break;
             case 'payment_expired':
-                return __('The payment link has expired.');
+                $note = __('The payment link has expired.');
+                break;
             default:
-                return __('Unknown status.');
+                $note = __('Unknown status.');
         }
+
+        return $note->render();
     }
 
     public function getNewOrderStatus(): string

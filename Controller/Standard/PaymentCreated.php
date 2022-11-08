@@ -8,7 +8,7 @@ use Exception;
 use Fintecture\Payment\Controller\WebhookAbstract;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 
 class PaymentCreated extends WebhookAbstract
 {
@@ -37,7 +37,7 @@ class PaymentCreated extends WebhookAbstract
                     $orderCollection = $this->orderCollectionFactory->create();
                     $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
                     if ($orderCollection->count() > 0) {
-                        /** @var OrderInterface $order */
+                        /** @var Order $order */
                         $order = $orderCollection->getFirstItem();
                         if ($isRefund) {
                             return $this->refund($order, $status, $state);
@@ -74,7 +74,7 @@ class PaymentCreated extends WebhookAbstract
         return $result;
     }
 
-    private function payment(OrderInterface $order, string $status, string $sessionId): Raw
+    private function payment(Order $order, string $status, string $sessionId): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
@@ -101,7 +101,7 @@ class PaymentCreated extends WebhookAbstract
         return $result;
     }
 
-    private function refund(OrderInterface $order, string $status, string $state): Raw
+    private function refund(Order $order, string $status, string $state): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
