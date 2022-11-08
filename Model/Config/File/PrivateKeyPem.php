@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Model\Config\File;
 
+use Magento\Framework\Encryption\EncryptorInterface;
+
 class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
 {
-    protected $encryptor;
+    protected EncryptorInterface $encryptor;
 
     /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
@@ -17,7 +19,7 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
         \Magento\MediaStorage\Model\File\UploaderFactory $uploaderFactory,
         \Magento\Config\Model\Config\Backend\File\RequestData\RequestDataInterface $requestData,
         \Magento\Framework\Filesystem $filesystem,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        EncryptorInterface $encryptor,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []

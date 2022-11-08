@@ -19,6 +19,16 @@ You can install our plugin with Composer:
 
 `composer require fintecture/payment`
 
+### Optional dependencies
+
+#### Payment by QR Code when using "Login as Customer" feature
+
+*Reserved to a Magento 2.4.1+ instance with the magento/module-login-as-customer module already installed*
+
+To enable it, you must install this dependency:
+
+`composer require chillerlan/php-qrcoder`
+
 ## Activation
 
 - Enable Fintecture Payment module: `php bin/magento module:enable Fintecture_Payment`

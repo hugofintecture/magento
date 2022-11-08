@@ -43,7 +43,8 @@ class Redirect extends FintectureAbstract
                 throw new LocalizedException(__($message));
             }
 
-            $redirectUrl = $this->paymentMethod->getPaymentGatewayRedirectUrl();
+            $redirectUrl = $this->paymentMethod->getPaymentRedirectUrl();
+
             $this->fintectureLogger->debug('Redirection', [
                 'quoteId' => $quote->getId(),
                 'reservedIncrementOrderId' => $quote->getReservedOrderId(), // it's the incrementId, not the orderId

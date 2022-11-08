@@ -171,6 +171,17 @@
                             <config_path>payment/fintecture/invoicing_active</config_path>
                         </field>
                     </group>
+
+                    <group id="fintecture_advanced_qrcode" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Payment by QR Code when using 'Login as Customer' feature</label>
+                        
+                        <field id="qrcode_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable payment by QR Code when using 'Login as Customer' feature</label>
+                            <comment>Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.</comment>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/fintecture/qrcode_active</config_path>
+                        </field>
+                    </group>
                 </group>
                 <!-- End Advanced Options -->
 
@@ -178,13 +189,19 @@
                 <group id="payment_options" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Payment Options</label>
 
-                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/fintecture/sort_order</config_path>
+                    </field>
+
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                         <label>Payment from Applicable Countries</label>
                         <config_path>payment/fintecture/allowspecific</config_path>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                     </field>
 
-                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Payment from Specific Countries</label>
                         <config_path>payment/fintecture/specificcountry</config_path>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>

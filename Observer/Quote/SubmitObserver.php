@@ -10,8 +10,13 @@ use Magento\Sales\Model\Order;
 
 class SubmitObserver
 {
-    public function beforeExecute($subject, $observer)
-    {
+    /**
+     * @return array|void
+     */
+    public function beforeExecute(
+        \Magento\Quote\Observer\SubmitObserver $subject,
+        \Magento\Framework\Event\Observer $observer
+    ) {
         try {
             /** @var Order $order */
             $order = $observer->getEvent()->getOrder();
