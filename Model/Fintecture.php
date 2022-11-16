@@ -683,7 +683,7 @@ class Fintecture extends AbstractMethod
                     'response' => $apiResponse->errorMsg
                 ]);
                 $this->checkoutSession->restoreQuote();
-                throw new LocalizedException($apiResponse->errorMsg);
+                throw new Exception($apiResponse->errorMsg);
             }
         } catch (Exception $e) {
             $this->fintectureLogger->error('Error', [
