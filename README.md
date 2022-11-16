@@ -27,7 +27,7 @@ You can install our plugin with Composer:
 
 To enable it, you must install this dependency:
 
-`composer require chillerlan/php-qrcoder`
+`composer require chillerlan/php-qrcode`
 
 ## Activation
 
