@@ -87,14 +87,43 @@ class PaymentCreated extends WebhookAbstract
             'status' => $statuses['status']
         ]);
 
-        if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
-            $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
-        } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
-            $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
-        } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
-            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+        if ($order->getStatus() === $statuses['status']) {
+            // Check if the state to set is the same as the current one
+            // If yes don't re-set it
+            $this->fintectureLogger->info('Info', [
+                'message' => 'Status is already set',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
+            ]);
+        } elseif ($this->fintectureHelper->isStatusInHistory($order, $this->fintectureHelper->getPaymentCreatedStatus())) {
+            // Check if the order has already been in the final status
+            // If yes don't re-set it
+            $this->fintectureLogger->info('Info', [
+                'message' => 'Status is already final',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
+            ]);
+        } elseif ($this->fintectureHelper->isStatusInHistory($order, $statuses['status'])) {
+            // Check if the order has already been in this state
+            // If yes don't re-set it
+            $this->fintectureLogger->info('Info', [
+                'message' => 'Status is already in history',
+                'incrementOrderId' => $order->getIncrementId(),
+                'currentStatus' => $order->getStatus(),
+                'status' => $statuses['status']
+            ]);
         } else {
-            $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+            if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
+                $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
+            } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
+                $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
+            } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
+                $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+            } else {
+                $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+            }
         }
 
         $result->setHttpResponseCode(200);

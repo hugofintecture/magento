@@ -9,6 +9,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Status\History;
+use Magento\Sales\Model\ResourceModel\Order\Status\History\CollectionFactory;
 use Magento\Store\Model\ScopeInterface;
 
 class Fintecture extends AbstractHelper
@@ -19,13 +21,18 @@ class Fintecture extends AbstractHelper
     /** @var ScopeConfigInterface $scopeConfig */
     protected $scopeConfig;
 
+    /** @var CollectionFactory */
+    protected $historyCollectionFactory;
+
     public function __construct(
         Context $context,
         Session $session,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        CollectionFactory $historyCollectionFactory
     ) {
         $this->session = $session;
         $this->scopeConfig = $scopeConfig;
+        $this->historyCollectionFactory = $historyCollectionFactory;
 
         parent::__construct($context);
     }
@@ -97,6 +104,22 @@ class Fintecture extends AbstractHelper
         }
 
         return $note->render();
+    }
+
+    public function isStatusInHistory(Order $order, string $status): bool
+    {
+        $historyCollection = $this->historyCollectionFactory->create();
+        $historyCollection->addFieldToFilter('parent_id', $order->getEntityId());
+        if ($historyCollection->count() > 0) {
+            /** @var History $history */
+            foreach ($historyCollection->getItems() as $history) {
+                if ($status === $history->getStatus()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function getNewOrderStatus(): string

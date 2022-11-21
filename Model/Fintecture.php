@@ -49,7 +49,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.1.0';
+    public const MODULE_VERSION = '2.1.1';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -197,17 +197,6 @@ class Fintecture extends AbstractMethod
             return;
         }
 
-        // Don't update order if state has already been set
-        if ($order->getStatus() === $statuses['status']) {
-            $this->fintectureLogger->info('Error', [
-                'message' => 'Status is already set',
-                'incrementOrderId' => $order->getIncrementId(),
-                'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
-            ]);
-            return;
-        }
-
         /** @var Payment $payment */
         $payment = $order->getPayment();
 
@@ -298,25 +287,6 @@ class Fintecture extends AbstractMethod
     ): void {
         if (!$order->getId()) {
             $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
-            return;
-        }
-
-        // Don't update order if status has already been set
-        if ($order->getStatus() === $statuses['status']) {
-            $this->fintectureLogger->info('Error', [
-                'message' => 'Status is already set',
-                'incrementOrderId' => $order->getIncrementId(),
-                'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
-            ]);
-            return;
-        } elseif ($order->getStatus() === $this->fintectureHelper->getPaymentCreatedStatus()) {
-            $this->fintectureLogger->info('Error', [
-                'message' => 'State is already set to processing',
-                'incrementOrderId' => $order->getIncrementId(),
-                'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
-            ]);
             return;
         }
 
@@ -692,9 +662,7 @@ class Fintecture extends AbstractMethod
             ]);
 
             $this->checkoutSession->restoreQuote();
-            throw new LocalizedException(
-                __($e->getMessage())
-            );
+            throw new Exception($e->getMessage());
         }
     }
 
