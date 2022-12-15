@@ -49,7 +49,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.1.1';
+    public const MODULE_VERSION = '2.1.2';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';

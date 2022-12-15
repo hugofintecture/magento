@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="img-src">
+            <values>
+                <value id="assets_fintecture" type="host">https://assets.fintecture.com</value>
+            </values>
+        </policy>
+        <policy id="form-action">
+            <values>
+                <value id="connect_prod_fintecture" type="host">https://connect-v2.fintecture.com</value>
+                <value id="connect_sandbox_fintecture" type="host">https://connect-v2-sbx.fintecture.com</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>
