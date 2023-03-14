@@ -21,6 +21,7 @@ class ConfigObserver implements ObserverInterface
      * Execute observer
      *
      * @param Observer $observer
+     *
      * @return void
      */
     public function execute(Observer $observer)

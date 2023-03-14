@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Observer\Quote;
 
-use Exception;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Sales\Model\Order;
 
@@ -20,11 +19,12 @@ class SubmitObserver
         try {
             /** @var Order $order */
             $order = $observer->getEvent()->getOrder();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return;
         }
 
-        if ($order->getPayment()->getMethod() === Fintecture::CODE) {
+        $payment = $order->getPayment();
+        if ($payment && $payment->getMethod() === Fintecture::CODE) {
             // Disable email sending
             $order->setCanSendNewEmailFlag(false);
         }

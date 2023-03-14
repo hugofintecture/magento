@@ -15,8 +15,6 @@ use Magento\Sales\Model\Order\Creditmemo;
 /**
  * Abstract class to handle creditmemo and order persistence for
  * refund actions
- *
- * @package Fintecture\Payment\Model\Action\Refund
  */
 abstract class AbstractRefundAction
 {
@@ -45,7 +43,9 @@ abstract class AbstractRefundAction
 
     /**
      * @param CreditmemoInterface $creditmemo
+     *
      * @return void
+     *
      * @throws LocalizedException
      */
     public function process(CreditmemoInterface $creditmemo)
@@ -62,7 +62,9 @@ abstract class AbstractRefundAction
     /**
      * @param OrderInterface $order
      * @param CreditmemoInterface $creditmemo
+     *
      * @return void
+     *
      * @throws LocalizedException
      */
     abstract protected function performRefundAction(
@@ -78,11 +80,13 @@ abstract class AbstractRefundAction
 
     /**
      * @param OrderInterface $order
+     *
      * @throws LocalizedException
      */
     private function validatePaymentMethod(OrderInterface $order): void
     {
-        if ($order->getPayment()->getMethod() !== Fintecture::CODE) {
+        $payment = $order->getPayment();
+        if ($payment && $payment->getMethod() !== Fintecture::CODE) {
             throw new LocalizedException(__('Order is not paid with Fintecture'));
         }
     }

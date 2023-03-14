@@ -9,8 +9,6 @@ use Magento\Sales\Api\Data\OrderInterface;
 
 /**
  * Class CreateRefund
- *
- * @package Fintecture\Payment\Model\Action\Refund
  */
 class CreateRefund extends AbstractRefundAction
 {

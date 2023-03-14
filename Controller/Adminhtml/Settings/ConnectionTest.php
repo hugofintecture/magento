@@ -36,7 +36,7 @@ class ConnectionTest extends Action
     /** @var FintectureLogger */
     protected $fintectureLogger;
 
-    /** @var Validator*/
+    /** @var Validator */
     protected $formKeyValidator;
 
     /** @var string */
@@ -95,7 +95,7 @@ class ConnectionTest extends Action
             [
                 'appId' => $jsParams['appId'],
                 'appSecret' => $jsParams['appSecret'],
-                'privateKey' => $jsParams['privateKey']
+                'privateKey' => $jsParams['privateKey'],
             ],
             $jsParams['environment']
         );

@@ -18,7 +18,6 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\Sales\Model\Order;
 
 abstract class FintectureAbstract implements ActionInterface
 {
@@ -89,10 +88,5 @@ abstract class FintectureAbstract implements ActionInterface
         $this->coreSession = $coreSession;
         $this->pageFactory = $pageFactory;
         $this->urlInterface = $urlInterface;
-    }
-
-    protected function getOrder(): ?Order
-    {
-        return $this->checkoutSession->getLastRealOrder();
     }
 }

@@ -9,13 +9,14 @@ use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Fintecture;
 use Fintecture\Util\Validation;
 use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 
 abstract class WebhookAbstract implements ActionInterface
 {
-    /** @var FintectureLogger $fintectureLogger */
+    /** @var FintectureLogger */
     protected $fintectureLogger;
 
     /** @var FintectureHelper */
@@ -36,13 +37,17 @@ abstract class WebhookAbstract implements ActionInterface
     /** @var CollectionFactory */
     protected $orderCollectionFactory;
 
+    /** @var Http */
+    protected $request;
+
     public function __construct(
         FintectureLogger $fintectureLogger,
         FintectureHelper $fintectureHelper,
         Fintecture $paymentMethod,
         JsonFactory $resultJsonFactory,
         RawFactory $resultRawFactory,
-        CollectionFactory $orderCollectionFactory
+        CollectionFactory $orderCollectionFactory,
+        Http $request,
     ) {
         $this->fintectureLogger = $fintectureLogger;
         $this->fintectureHelper = $fintectureHelper;
@@ -50,11 +55,11 @@ abstract class WebhookAbstract implements ActionInterface
         $this->resultJsonFactory = $resultJsonFactory;
         $this->resultRawFactory = $resultRawFactory;
         $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->request = $request;
     }
 
     /**
-     * @param string|false $body
-     * @return array{bool, string}
+     * @return bool
      *
      * session_id=b2bca2bcd3b64a32a7da0766df59a7d2
      * &status=payment_created
@@ -62,20 +67,20 @@ abstract class WebhookAbstract implements ActionInterface
      * &provider=provider
      * &state=thisisastate
      */
-    public function validateWebhook($body): array
+    public function validateWebhook(): bool
     {
+        $body = file_get_contents('php://input');
         if (!$body) {
-            return [false, 'Empty hook data'];
+            return false;
         }
 
         if (!isset($_SERVER['HTTP_DIGEST']) || !isset($_SERVER['HTTP_SIGNATURE'])) {
-            return [false, 'Missing HTTP_DIGEST or HTTP_SIGNATURE'];
+            return false;
         }
-
         $digest = $_SERVER['HTTP_DIGEST'];
         $signature = $_SERVER['HTTP_SIGNATURE'];
 
-        return [Validation::validSignature($body, $digest, $signature), ''];
+        return Validation::validSignature($body, $digest, $signature);
     }
 
     abstract public function execute();

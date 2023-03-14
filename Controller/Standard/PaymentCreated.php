@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
 
-use Exception;
 use Fintecture\Payment\Controller\WebhookAbstract;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Exception\LocalizedException;
@@ -17,135 +16,182 @@ class PaymentCreated extends WebhookAbstract
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
 
+        if (!$this->validateWebhook()) {
+            $this->fintectureLogger->error('Webhook', [
+                'message' => 'Invalid signature',
+            ]);
+            $result->setHttpResponseCode(401);
+            $result->setContents('invalid_signature');
+
+            return $result;
+        }
+
+        $params = [
+            'type' => $this->request->getParam('type', ''),
+            'state' => $this->request->getParam('state', ''),
+            'status' => $this->request->getParam('status', ''),
+            'transferState' => $this->request->getParam('transfer_state', ''),
+            'amount' => $this->request->getParam('amount', ''),
+            'receivedAmount' => $this->request->getParam('received_amount', ''),
+            'lastTransactionAmount' => $this->request->getParam('last_transaction_amount', ''),
+            'sessionId' => $this->request->getParam('session_id', ''),
+            'refundedSessionId' => $this->request->getParam('refunded_session_id', ''),
+        ];
+
+        $decodedState = json_decode(base64_decode($params['state']));
+        if (!is_object($decodedState) || !property_exists($decodedState, 'order_id')) {
+            $this->fintectureLogger->error('Webhook', [
+                'message' => "Can't find an order id in the state",
+            ]);
+            $result->setHttpResponseCode(400);
+            $result->setContents('invalid_order');
+
+            return $result;
+        }
+
+        $order = $this->fintectureHelper->getOrderByIncrementId($decodedState->order_id);
+        if (!$order) {
+            $this->fintectureLogger->error('Webhook', [
+                'message' => 'No order found',
+                'state' => $params['state'],
+                'status' => $params['status'],
+                'sessionId' => $params['sessionId'],
+            ]);
+            $result->setHttpResponseCode(400);
+            $result->setContents('invalid_order');
+
+            return $result;
+        }
+
         try {
-            $body = file_get_contents('php://input');
-            list($validWebhook, $webhookError) = $this->validateWebhook($body);
-            if ($validWebhook) {
-                parse_str($body, $data);
-
-                if (isset($data['session_id']) && isset($data['status'])
-                    && !empty($data['session_id']) && !empty($data['status'])) {
-                    $isRefund = isset($data['refunded_session_id']);
-                    if ($isRefund) {
-                        $sessionId = $data['refunded_session_id']; // Original session id to find order
-                    } else {
-                        $sessionId = $data['session_id'];
-                    }
-                    $status = $data['status'];
-                    $state = $data['state'];
-
-                    $orderCollection = $this->orderCollectionFactory->create();
-                    $orderCollection->addFieldToFilter('fintecture_payment_session_id', $sessionId);
-                    if ($orderCollection->count() > 0) {
-                        /** @var Order $order */
-                        $order = $orderCollection->getFirstItem();
-                        if ($isRefund) {
-                            return $this->refund($order, $status, $state);
-                        } else {
-                            return $this->payment($order, $status, $sessionId);
-                        }
-                    } else {
-                        $this->fintectureLogger->error('Webhook error', [
-                            'message' => 'No order found',
-                            'sessionId' => $sessionId,
-                            'status' => $status
-                        ]);
-                        $result->setHttpResponseCode(400);
-                        $result->setContents('Error: no order found');
-                    }
+            $isRefund = !empty($params['refundedSessionId']);
+            if ($isRefund) {
+                if (property_exists($decodedState, 'creditmemo_transaction_id')) {
+                    return $this->refund($order, $params['status'], $decodedState->creditmemo_transaction_id);
+                } else {
+                    $this->fintectureLogger->error('Webhook', [
+                        'message' => 'No order found',
+                        'state' => $params['state'],
+                        'status' => $params['status'],
+                        'sessionId' => $params['sessionId'],
+                    ]);
+                    $result->setHttpResponseCode(400);
+                    $result->setContents('invalid_refund');
                 }
             } else {
-                $this->fintectureLogger->error('Webhook error', [
-                    'message' => $webhookError,
-                ]);
-                $result->setHttpResponseCode(401);
-                $result->setContents('Error: ' . $webhookError);
+                return $this->payment($order, $params);
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
+            $this->fintectureLogger->error('Webhook', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Error: ' . $e->getMessage());
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Webhook error', ['exception' => $e]);
+            $result->setContents('unknown_error');
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Webhook', ['exception' => $e]);
             $result->setHttpResponseCode(500);
-            $result->setContents('Error: ' . $e->getMessage());
+            $result->setContents('unknown_error');
         }
 
         return $result;
     }
 
-    private function payment(Order $order, string $status, string $sessionId): Raw
+    private function payment(Order $order, array $params): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
+        $result->setHttpResponseCode(200);
 
-        $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+        $statuses = $this->fintectureHelper->getOrderStatus($params);
+        if (!$statuses) {
+            $this->fintectureLogger->debug('Webhook', [
+                'orderIncrementId' => $order->getIncrementId(),
+                'fintectureStatus' => $params['status'],
+                'status' => 'Unhandled status',
+            ]);
+
+            $result->setHttpResponseCode(400);
+            $result->setContents('invalid_status');
+
+            return $result;
+        }
 
         $this->fintectureLogger->debug('Webhook', [
             'orderIncrementId' => $order->getIncrementId(),
-            'fintectureStatus' => $status,
-            'status' => $statuses['status']
+            'fintectureStatus' => $params['status'],
+            'status' => $statuses['status'],
         ]);
 
-        if ($order->getStatus() === $statuses['status']) {
+        if ($params['type'] === 'ManualTransfer' && (
+            ($params['status'] === 'payment_partial' && $params['transferState'] === 'insufficient') ||
+            ($params['status'] === 'payment_created' && $params['transferState'] === 'overpaid') ||
+            ($params['status'] === 'payment_created' && $params['transferState'] === 'received')
+        )) {
+            $this->paymentMethod->createPayment($order, $params, $statuses, true, true);
+
+            return $result;
+        } elseif ($order->getStatus() === $statuses['status']) {
             // Check if the state to set is the same as the current one
             // If yes don't re-set it
-            $this->fintectureLogger->info('Info', [
+            $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already set',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
+                'status' => $statuses['status'],
             ]);
-        } elseif ($this->fintectureHelper->isStatusInHistory($order, $this->fintectureHelper->getPaymentCreatedStatus())) {
+
+            $result->setContents('status_already_set');
+        } elseif ($this->fintectureHelper->isStatusAlreadyFinal($order)) {
             // Check if the order has already been in the final status
             // If yes don't re-set it
-            $this->fintectureLogger->info('Info', [
+            $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already final',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
+                'status' => $statuses['status'],
             ]);
+
+            $result->setContents('status_already_final');
         } elseif ($this->fintectureHelper->isStatusInHistory($order, $statuses['status'])) {
             // Check if the order has already been in this state
             // If yes don't re-set it
-            $this->fintectureLogger->info('Info', [
+            $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already in history',
                 'incrementOrderId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
-                'status' => $statuses['status']
+                'status' => $statuses['status'],
             ]);
-        } else {
+            $result->setContents('status_already_in_history');
+        } elseif (in_array($statuses['status'], [
+            $this->fintectureHelper->getPaymentCreatedStatus(),
+            $this->fintectureHelper->getPaymentPendingStatus(),
+        ])) {
             if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
-                $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses, true);
-            } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
-                $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses, true);
-            } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
-                $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+                $this->paymentMethod->createPayment($order, $params, $statuses, true);
             } else {
-                $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses, true);
+                $this->paymentMethod->changeOrderState($order, $params, $statuses, true);
             }
+        } else {
+            $this->paymentMethod->handleFailedTransaction($order, $params, $statuses, true);
         }
 
-        $result->setHttpResponseCode(200);
         return $result;
     }
 
-    private function refund(Order $order, string $status, string $state): Raw
+    private function refund(Order $order, string $status, string $creditmemoTransactionId): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
 
         if ($status === 'payment_created') {
-            $appliedRefund = $this->paymentMethod->applyRefund($order, $state);
+            $appliedRefund = $this->paymentMethod->applyRefund($order, $creditmemoTransactionId);
             if ($appliedRefund) {
                 $result->setHttpResponseCode(200);
             } else {
                 $result->setHttpResponseCode(400);
-                $result->setContents('Error: refund not applied');
+                $result->setContents('refund_not_applied');
             }
         } else {
             $result->setHttpResponseCode(400);
-            $result->setContents('Error: refund status is not payment_created: ' . $status);
+            $result->setContents('invalid_refund_status');
         }
 
         return $result;

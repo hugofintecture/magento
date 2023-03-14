@@ -10,12 +10,12 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 class Cookie
 {
     /**
-     * @var CookieManagerInterface $cookieManager
+     * @var CookieManagerInterface
      */
     private $cookieManager;
 
     /**
-     * @var CookieMetadataFactory $cookieMetadataFactory
+     * @var CookieMetadataFactory
      */
     private $cookieMetadataFactory;
 

@@ -13,13 +13,13 @@ use Magento\Framework\Event\ObserverInterface;
 
 class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
 {
-    /** @var Fintecture $_paymentMethod */
+    /** @var Fintecture */
     protected $_paymentMethod;
 
-    /** @var Session $_checkoutSession */
+    /** @var Session */
     protected $_checkoutSession;
 
-    /** @var CookieHelper $_cookieHelper */
+    /** @var CookieHelper */
     protected $_cookieHelper;
 
     public function __construct(
@@ -36,18 +36,22 @@ class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
      * Execute observer
      *
      * @param Observer $observer
+     *
      * @return void
      */
     public function execute(Observer $observer)
     {
         $quoteId = (int) $this->_checkoutSession->getQuote()->getId();
-        $storedQuoteId = $this->_cookieHelper->getCookie('fintecture-cartId');
+        $storedQuoteId = (int) $this->_cookieHelper->getCookie('fintecture-cartId');
 
-        if ($storedQuoteId && $quoteId !== (int) $storedQuoteId) {
-            $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
-            Telemetry::logAction('checkout', $configurationSummary);
-
-            $this->_cookieHelper->setCookie('fintecture-cartId', $quoteId, 3600 * 24 * 7);
+        // Don't send the call several time for the same cart id
+        if ($storedQuoteId && $quoteId === $storedQuoteId) {
+            return;
         }
+
+        $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
+        Telemetry::logAction('checkout', $configurationSummary);
+
+        $this->_cookieHelper->setCookie('fintecture-cartId', $quoteId, 3600 * 24 * 7);
     }
 }

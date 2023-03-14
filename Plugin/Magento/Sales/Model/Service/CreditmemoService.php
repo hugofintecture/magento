@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Plugin\Magento\Sales\Model\Service;
 
-use Exception;
 use Fintecture\Payment\Model\Action\Refund\CreateRefund;
 use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\App\ResourceConnection;
@@ -47,9 +46,12 @@ class CreditmemoService
      * @param callable $proceed
      * @param CreditmemoInterface $creditmemo
      * @param bool $offlineRequested
+     *
      * @return CreditmemoInterface
+     *
      * @throws LocalizedException
-     * @link MagentoCreditmemoService::refund()
+     *
+     * @see MagentoCreditmemoService::refund()
      */
     public function aroundRefund(
         MagentoCreditmemoService $subject,
@@ -67,7 +69,7 @@ class CreditmemoService
         try {
             $this->createRefundAction->process($creditmemo);
             $connection->commit();
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $connection->rollBack();
             throw new LocalizedException(__($exception->getMessage()));
         }
@@ -78,6 +80,9 @@ class CreditmemoService
     private function isOrderPaidWithFintecture(int $orderId): bool
     {
         $order = $this->orderRepository->get($orderId);
-        return $order->getPayment()->getMethod() === Fintecture::CODE;
+
+        $payment = $order->getPayment();
+
+        return $payment && $payment->getMethod() === Fintecture::CODE;
     }
 }

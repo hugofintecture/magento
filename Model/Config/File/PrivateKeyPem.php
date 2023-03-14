@@ -52,7 +52,11 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
                 $uploader->addValidateCallback('size', $this, 'validateMaxSize');
                 if ($uploader->validateFile()) {
                     $privateKey = file_get_contents($value['tmp_name']);
-                    $this->setValue($this->encryptor->encrypt($privateKey));
+                    if ($privateKey) {
+                        $this->setValue($this->encryptor->encrypt($privateKey));
+                    } else {
+                        throw new \Exception("Can't read the private key file");
+                    }
                 }
             } catch (\Exception $e) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('%1', $e->getMessage()));

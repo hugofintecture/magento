@@ -16,27 +16,27 @@ class CustomLogo extends Template
 {
     public const CUSTOM_LOGO_SHOW = 'payment/fintecture/general/show_logo';
 
-    /** @var StoreManagerInterface $_storeManager */
+    /** @var StoreManagerInterface */
     protected $_storeManager;
 
-    /** @var UrlInterface $_urlInterface */
+    /** @var UrlInterface */
     protected $_urlInterface;
 
-    /** @var Reader $moduleReader */
+    /** @var Reader */
     protected $moduleReader;
 
-    /** @var ScopeConfigInterface $scopeConfig */
+    /** @var ScopeConfigInterface */
     protected $scopeConfig;
 
     /**
      * CustomLogo constructor.
      *
-     * @param Context               $context
-     * @param ScopeConfigInterface  $scopeConfig
+     * @param Context $context
+     * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
-     * @param UrlInterface          $urlInterface
-     * @param Reader                $moduleReader
-     * @param array                 $data
+     * @param UrlInterface $urlInterface
+     * @param Reader $moduleReader
+     * @param array $data
      */
     public function __construct(
         Context $context,

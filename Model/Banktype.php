@@ -17,16 +17,16 @@ class BankType implements OptionSourceInterface
         return [
             [
                 'value' => static::BANK_ALL,
-                'label' => __('All')
+                'label' => __('All'),
             ],
             [
                 'value' => static::BANK_RETAIL,
-                'label' => __('Retail')
+                'label' => __('Retail'),
             ],
             [
                 'value' => static::BANK_CORPORATE,
-                'label' => __('Corporate')
-            ]
+                'label' => __('Corporate'),
+            ],
         ];
     }
 }

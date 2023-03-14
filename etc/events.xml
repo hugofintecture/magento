@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="controller_action_predispatch_checkout_index_index">
-        <observer name="fintecture_payment_observer_controller_actionpredispatchcheckoutindexindex_controller_action_predispatch_checkout_index_index" instance="Fintecture\Payment\Observer\Controller\ActionPredispatchCheckoutIndexIndex" />
+        <observer name="fintecture_controller_action_predispatch_checkout_index_index" instance="Fintecture\Payment\Observer\Controller\ActionPredispatchCheckoutIndexIndex" />
     </event>
     <event name="admin_system_config_changed_section_payment">
         <observer name="fintecture_admin_system_config_changed_section_payment" instance="Fintecture\Payment\Observer\ConfigObserver" />
