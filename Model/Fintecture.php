@@ -53,7 +53,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.2.1';
+    public const MODULE_VERSION = '2.2.2';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -396,7 +396,7 @@ class Fintecture extends AbstractMethod
         }
         $nbCreditmemos = $creditmemos->count() + 1;
 
-        $amount = $creditmemo->getBaseGrandTotal();
+        $amount = (float) $creditmemo->getBaseGrandTotal();
         if (!$amount) {
             $this->fintectureLogger->error('Refund', [
                 'message' => 'No amount on creditmemo',
@@ -636,7 +636,7 @@ class Fintecture extends AbstractMethod
             'data' => [
                 'type' => $type,
                 'attributes' => [
-                    'amount' => (string) round($quote->getBaseGrandTotal(), 2),
+                    'amount' => (string) round((float) $quote->getBaseGrandTotal(), 2),
                     'currency' => $quote->getQuoteCurrencyCode(),
                     'communication' => self::PAYMENT_COMMUNICATION . $quote->getReservedOrderId(),
                 ],
