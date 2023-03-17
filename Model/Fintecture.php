@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Model;
 
-use Exception;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\PisClient;
@@ -18,6 +17,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\DB\Transaction;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -26,18 +26,22 @@ use Magento\Payment\Helper\Data as PaymentData;
 use Magento\Payment\Model\Config as PaymentConfig;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\CreditmemoRepositoryInterface;
 use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Model\Order\RefundAdapterInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
@@ -49,7 +53,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.1.2';
+    public const MODULE_VERSION = '2.2.0';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -59,7 +63,7 @@ class Fintecture extends AbstractMethod
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
 
-    /** @var PisClient $pisClient */
+    /** @var PisClient */
     public $pisClient;
 
     /** @var EncryptorInterface */
@@ -68,37 +72,37 @@ class Fintecture extends AbstractMethod
     /** @var FintectureHelper */
     protected $fintectureHelper;
 
-    /** @var Session $checkoutSession */
+    /** @var Session */
     protected $checkoutSession;
 
-    /**  @var FintectureLogger */
+    /** @var FintectureLogger */
     protected $fintectureLogger;
 
-    /** @var SessionManagerInterface $coreSession */
+    /** @var SessionManagerInterface */
     protected $coreSession;
 
-    /** @var OrderSender $orderSender */
+    /** @var OrderSender */
     protected $orderSender;
 
-    /** @var InvoiceSender $invoiceSender */
+    /** @var InvoiceSender */
     protected $invoiceSender;
 
-    /** @var InvoiceService $invoiceService */
+    /** @var InvoiceService */
     protected $invoiceService;
 
-    /** @var ProductMetadataInterface $productMetadata */
+    /** @var ProductMetadataInterface */
     protected $productMetadata;
 
-    /** @var StoreManagerInterface $storeManager */
+    /** @var StoreManagerInterface */
     protected $storeManager;
 
-    /** @var PaymentConfig $paymentConfig */
+    /** @var PaymentConfig */
     protected $paymentConfig;
 
-    /** @var Transaction $transaction */
+    /** @var Transaction */
     protected $transaction;
 
-    /** @var OrderManagementInterface $orderManagement */
+    /** @var OrderManagementInterface */
     protected $orderManagement;
 
     /** @var RefundAdapterInterface */
@@ -107,11 +111,23 @@ class Fintecture extends AbstractMethod
     /** @var OrderRepositoryInterface */
     private $orderRepository;
 
+    /** @var OrderPaymentRepositoryInterface */
+    private $paymentRepository;
+
     /** @var InvoiceRepositoryInterface */
     private $invoiceRepository;
 
     /** @var CreditmemoRepositoryInterface */
     private $creditmemoRepository;
+
+    /** @var BuilderInterface */
+    private $transactionBuilder;
+
+    /** @var TransactionRepositoryInterface */
+    private $transactionRepository;
+
+    /** @var RemoteAddress */
+    private $remoteAddress;
 
     /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
@@ -137,8 +153,12 @@ class Fintecture extends AbstractMethod
         OrderManagementInterface $orderManagement,
         RefundAdapterInterface $refundAdapter,
         OrderRepositoryInterface $orderRepository,
+        OrderPaymentRepositoryInterface $paymentRepository,
         InvoiceRepositoryInterface $invoiceRepository,
-        CreditmemoRepositoryInterface $creditmemoRepository
+        CreditmemoRepositoryInterface $creditmemoRepository,
+        BuilderInterface $transactionBuilder,
+        TransactionRepositoryInterface $transactionRepository,
+        RemoteAddress $remoteAddress
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->checkoutSession = $checkoutSession;
@@ -154,10 +174,15 @@ class Fintecture extends AbstractMethod
         $this->orderManagement = $orderManagement;
         $this->refundAdapter = $refundAdapter;
         $this->orderRepository = $orderRepository;
+        $this->paymentRepository = $paymentRepository;
         $this->invoiceRepository = $invoiceRepository;
         $this->creditmemoRepository = $creditmemoRepository;
+        $this->encryptor = $encryptor;
+        $this->transactionBuilder = $transactionBuilder;
+        $this->transactionRepository = $transactionRepository;
+        $this->remoteAddress = $remoteAddress;
 
-        /** @phpstan-ignore-next-line : we will refactor the plugin without AbstractMethod */
+        /* @phpstan-ignore-next-line : we will refactor the plugin without AbstractMethod */
         parent::__construct(
             $context,
             $registry,
@@ -168,71 +193,138 @@ class Fintecture extends AbstractMethod
             $logger
         );
 
-        $this->encryptor = $encryptor;
-
-        try {
-            $this->pisClient = new PisClient([
-                'appId' => $this->getAppId(),
-                'appSecret' => $this->getAppSecret(),
-                'privateKey' => $this->getAppPrivateKey(),
-                'environment' => $this->getAppEnvironment(),
-            ], new Psr18Client());
-        } catch (\Exception $e) {
-            $this->fintectureLogger->error('Connection error', [
-                'exception' => $e,
-                'message' => "Can't create PISClient"
-            ]);
+        if ($this->validateConfigValue()) {
+            try {
+                $this->pisClient = new PisClient([
+                    'appId' => $this->getAppId(),
+                    'appSecret' => $this->getAppSecret(),
+                    'privateKey' => $this->getAppPrivateKey(),
+                    'environment' => $this->getAppEnvironment(),
+                ], new Psr18Client());
+            } catch (\Exception $e) {
+                $this->fintectureLogger->error('Connection', [
+                    'exception' => $e,
+                    'message' => "Can't create PISClient",
+                ]);
+            }
         }
     }
 
-    public function handleSuccessTransaction(
+    public function createPayment(
         Order $order,
-        string $status,
-        string $sessionId,
+        array $params,
         array $statuses,
-        bool $webhook = false
+        bool $webhook = false,
+        bool $specificAmount = false
     ): void {
         if (!$order->getId()) {
-            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
+            $this->fintectureLogger->error('Payment', [
+                'message' => 'There is no order id found',
+                'webhook' => $webhook,
+            ]);
+
             return;
         }
 
         /** @var Payment $payment */
         $payment = $order->getPayment();
 
-        $payment->setTransactionId($sessionId);
-        $payment->setLastTransId($sessionId);
-        $payment->addTransaction(TransactionInterface::TYPE_ORDER);
-        $payment->setIsTransactionClosed(false);
-        $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
-        $payment->place();
+        if ($specificAmount) {
+            // Handle partial payments
 
-        $order->setState($statuses['state']);
-        $order->setStatus($statuses['status']);
+            $lastTransactionAmount = round((float) $params['lastTransactionAmount'], 2);
+            $receivedAmount = round((float) $params['receivedAmount'], 2);
+            $paidAmount = $basePaidAmount = $receivedAmount;
 
-        $note = $this->fintectureHelper->getStatusHistoryComment($status);
-        $note = $webhook ? 'webhook: ' . $note : $note;
-        $order->addCommentToStatusHistory($note);
+            if ($basePaidAmount > $order->getBaseGrandTotal()) {
+                // Overpaid payment
+                $order->addCommentToStatusHistory(__('Overpaid order. Amount received: ' . (string) $receivedAmount)->render());
+            }
+        } else {
+            if ($order->getTotalPaid() > 0) {
+                // Return as in this case this is a "replay" redirect
+                return;
+            }
+
+            $lastTransactionAmount = $order->getGrandTotal();
+            $paidAmount = $order->getGrandTotal();
+            $basePaidAmount = $order->getBaseGrandTotal();
+        }
+
+        $payment->setAmountPaid($paidAmount);
+        $payment->setBaseAmountPaid($basePaidAmount);
+
+        $this->paymentRepository->save($payment);
+
+        $transaction = $this->transactionBuilder->setPayment($payment)
+            ->setOrder($order)
+            ->setTransactionId($order->getIncrementId() . '-' . time())
+            ->setAdditionalInformation([
+                \Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => [
+                    'amount' => (string) $lastTransactionAmount . ' €',
+                    'status' => $params['status'],
+                    'sessionId' => $params['sessionId'],
+                ]])
+            ->setFailSafe(true)
+            ->build(TransactionInterface::TYPE_CAPTURE);
+
+        $this->transactionRepository->save($transaction);
+
+        $order->setTotalPaid($order->getTotalPaid() + $lastTransactionAmount);
+        $order->setBaseTotalPaid($order->getBaseTotalPaid() + $lastTransactionAmount);
+        $order->setTotalDue(max($order->getTotalDue() - $lastTransactionAmount, 0));
+        $order->setBaseTotalDue(max($order->getBaseTotalDue() - $lastTransactionAmount, 0));
 
         $this->orderRepository->save($order);
 
-        $this->orderSender->send($order);
+        $this->changeOrderState($order, $params, $statuses, $webhook);
 
-        if ($order->canInvoice() && $this->getInvoicingActive()) {
-            // Re-enable email sending
+        $this->sendInvoice($order, $params);
+    }
+
+    public function changeOrderState(
+        Order $order,
+        array $params,
+        array $statuses,
+        bool $webhook = false
+    ): void {
+        $update = false;
+        if ($order->getState() !== $statuses['state']) {
+            $order->setState($statuses['state']);
+            $update = true;
+        }
+
+        if ($order->getStatus() !== $statuses['status']) {
+            $order->setStatus($statuses['status']);
+            $update = true;
+        }
+
+        if ($update) {
+            $note = $this->fintectureHelper->getHistoryComment($params, $webhook);
+            $order->addCommentToStatusHistory($note);
+
+            $this->orderRepository->save($order);
+        }
+    }
+
+    public function sendInvoice(Order $order, array $params): void
+    {
+        // Send invoice if order paid
+        if ($this->fintectureHelper->isStatusAlreadyFinal($order)
+            && $order->canInvoice() && $this->getInvoicingActive()) {
+            $this->orderSender->send($order);
+
+            // Re-enable email sending (disabled in a SubmitObserver)
             $order->setCanSendNewEmailFlag(true);
             $this->orderRepository->save($order);
 
             $invoice = $this->invoiceService->prepareInvoice($order);
-            $invoice->setTransactionId($sessionId);
+            $invoice->setTransactionId($params['sessionId']);
             $invoice->register();
             $this->invoiceRepository->save($invoice);
             $transactionSave = $this->transaction
-                ->addObject(
-                    $invoice
-                )->addObject(
-                    $invoice->getOrder()
-                );
+                ->addObject($invoice)
+                ->addObject($invoice->getOrder());
             $transactionSave->save();
             // Send Invoice mail to customer
             $this->invoiceSender->send($invoice);
@@ -244,86 +336,78 @@ class Fintecture extends AbstractMethod
 
     public function handleFailedTransaction(
         Order $order,
-        string $status,
-        string $sessionId,
-        array $statuses,
+        array $params,
+        ?array $statuses,
         bool $webhook = false
     ): void {
         /** @var Order $order */
         if (!$order->getId()) {
-            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
+            $this->fintectureLogger->error('Failed transaction', ['message' => 'There is no order id found']);
+
             return;
+        }
+
+        if (!$statuses) {
+            $statuses = [
+                'status' => $this->fintectureHelper->getPaymentFailedStatus(),
+                'state' => Order::STATE_CANCELED,
+            ];
         }
 
         try {
             if ($order->canCancel()) {
                 if ($this->orderManagement->cancel($order->getEntityId())) {
-                    /** @var Payment $payment */
-                    $payment = $order->getPayment();
-                    $payment->setTransactionId($sessionId);
-                    $payment->setLastTransId($sessionId);
-                    $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
-
                     $order->setStatus($statuses['status']);
 
-                    $note = $this->fintectureHelper->getStatusHistoryComment($status);
-                    $note = $webhook ? 'webhook: ' . $note : $note;
+                    $note = $this->fintectureHelper->getHistoryComment($params, $webhook);
                     $order->addCommentToStatusHistory($note);
 
                     $this->orderRepository->save($order);
                 }
             }
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Error', ['exception' => $e]);
-        }
-    }
-
-    public function handleHoldedTransaction(
-        Order $order,
-        string $status,
-        string $sessionId,
-        array $statuses,
-        bool $webhook = false
-    ): void {
-        if (!$order->getId()) {
-            $this->fintectureLogger->error('Error', ['message' => 'There is no order id found']);
-            return;
-        }
-
-        try {
-            /** @var Payment $payment */
-            $payment = $order->getPayment();
-            $payment->setTransactionId($sessionId);
-            $payment->setLastTransId($sessionId);
-            $payment->setAdditionalInformation(['status' => $status, 'sessionId' => $sessionId]);
-
-            $order->setState($statuses['state']);
-            $order->setStatus($statuses['status']);
-
-            $note = $this->fintectureHelper->getStatusHistoryComment($status);
-            $note = $webhook ? 'webhook: ' . $note : $note;
-            $order->addCommentToStatusHistory($note);
-
-            $order->setCustomerNoteNotify(0);
-
-            $this->orderRepository->save($order);
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Error', ['exception' => $e]);
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Failed transaction', ['exception' => $e]);
         }
     }
 
     public function createRefund(OrderInterface $order, CreditmemoInterface $creditmemo): void
     {
         /** @var Order $order */
-
-        $amount = $creditmemo->getBaseGrandTotal();
-        $sessionId = $order->getFintecturePaymentSessionId();
-
         $incrementOrderId = $order->getIncrementId();
 
-        $nbCreditmemos = count($order->getCreditmemosCollection()) + 1;
+        $sessionId = $this->fintectureHelper->getSessionIdByOrderId($order->getId());
+        if (!$sessionId) {
+            $this->fintectureLogger->error('Refund', [
+                'message' => "Can't get session id of order",
+                'incrementOrderId' => $incrementOrderId,
+            ]);
 
-        $this->fintectureLogger->info('Refund started', [
+            throw new \Exception("Can't get session id of order");
+        }
+
+        $creditmemos = $order->getCreditmemosCollection();
+        if (!$creditmemos) {
+            $this->fintectureLogger->error('Refund', [
+                'message' => 'No creditmemos found',
+                'incrementOrderId' => $incrementOrderId,
+            ]);
+
+            throw new \Exception('No creditmemos found');
+        }
+        $nbCreditmemos = $creditmemos->count() + 1;
+
+        $amount = $creditmemo->getBaseGrandTotal();
+        if (!$amount) {
+            $this->fintectureLogger->error('Refund', [
+                'message' => 'No amount on creditmemo',
+                'incrementOrderId' => $incrementOrderId,
+            ]);
+
+            throw new \Exception('No amount on creditmemo');
+        }
+
+        $this->fintectureLogger->info('Refund', [
+            'message' => 'Refund started',
             'incrementOrderId' => $incrementOrderId,
             'amount' => $amount,
             'sessionId' => $sessionId,
@@ -335,22 +419,26 @@ class Fintecture extends AbstractMethod
             ],
             'data' => [
                 'attributes' => [
-                    'amount' => number_format((float) $amount, 2, '.', ''),
+                    'amount' => (string) round($amount, 2),
                     'communication' => self::REFUND_COMMUNICATION . $incrementOrderId . '-' . $nbCreditmemos,
                 ],
             ],
         ];
 
         try {
-            $state = $creditmemo->getTransactionId();
+            $creditmemoTransactionId = $creditmemo->getTransactionId();
+            if ($creditmemoTransactionId) {
+                $state = Crypto::encodeToBase64([
+                    'order_id' => $order->getIncrementId(),
+                    'creditmemo_transaction_id' => $creditmemoTransactionId,
+                ]);
 
-            if ($state) {
                 /** @phpstan-ignore-next-line */
                 $pisToken = $this->pisClient->token->generate();
                 if (!$pisToken->error) {
                     $this->pisClient->setAccessToken($pisToken); // set token of PIS client
                 } else {
-                    throw new Exception($pisToken->errorMsg);
+                    throw new \Exception($pisToken->errorMsg);
                 }
 
                 /** @phpstan-ignore-next-line */
@@ -362,25 +450,26 @@ class Fintecture extends AbstractMethod
                     $order->addCommentToStatusHistory(__('The refund link has been send.')->render());
                     $this->orderRepository->save($order);
 
-                    $this->fintectureLogger->info('The refund link has been send', [
-                        'incrementOrderId' => $incrementOrderId
+                    $this->fintectureLogger->info('Refund', [
+                        'message' => 'The refund link has been send',
+                        'incrementOrderId' => $incrementOrderId,
                     ]);
                 } else {
-                    $this->fintectureLogger->error('Refund error', [
+                    $this->fintectureLogger->error('Refund', [
                         'message' => 'Invalid API response',
                         'incrementOrderId' => $incrementOrderId,
-                        'response' => $apiResponse->errorMsg
+                        'response' => $apiResponse->errorMsg,
                     ]);
-                    throw new Exception($apiResponse->errorMsg);
+                    throw new \Exception($apiResponse->errorMsg);
                 }
             } else {
-                $this->fintectureLogger->error('Refund error', [
-                    'message' => "State of creditmemo if empty",
+                $this->fintectureLogger->error('Refund', [
+                    'message' => 'State of creditmemo if empty',
                     'incrementOrderId' => $incrementOrderId,
                 ]);
             }
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Refund error', [
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Refund', [
                 'exception' => $e,
                 'incrementOrderId' => $incrementOrderId,
             ]);
@@ -390,25 +479,28 @@ class Fintecture extends AbstractMethod
         }
     }
 
-    public function applyRefund(OrderInterface $order, string $state): bool
+    public function applyRefund(OrderInterface $order, string $creditmemoTransactionId): bool
     {
-        /** @var Order $order */
-
         try {
+            /** @var Order $order */
+            $creditmemos = $order->getCreditmemosCollection();
+            if (!$creditmemos) {
+                throw new \Exception("Can't find any creditmemo on the order");
+            }
+
             /** @var Creditmemo $creditmemo */
-            $creditmemo = $order
-                ->getCreditmemosCollection()
-                ->addFieldToFilter('transaction_id', $state)
+            $creditmemo = $creditmemos
+                ->addFieldToFilter('transaction_id', $creditmemoTransactionId)
                 ->getLastItem();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $order->addCommentToStatusHistory(__('The refund has failed.')->render());
             $this->orderRepository->save($order);
 
-            $this->fintectureLogger->error('Apply refund error', [
+            $this->fintectureLogger->error('Apply refund', [
                 'message' => "Can't find credit memo associated to order",
-                'creditmemoId' => $state,
+                'creditmemoId' => $creditmemoTransactionId,
                 'incrementOrderId' => $order->getIncrementId(),
-                'exception' => $e
+                'exception' => $e,
             ]);
 
             return false;
@@ -429,18 +521,18 @@ class Fintecture extends AbstractMethod
             $this->creditmemoRepository->save($creditmemo);
 
             $this->fintectureLogger->info('Refund completed', [
-                'creditmemoId' => $state,
-                'incrementOrderId' => $order->getIncrementId()
+                'creditmemoId' => $creditmemoTransactionId,
+                'incrementOrderId' => $order->getIncrementId(),
             ]);
 
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $order->addCommentToStatusHistory(__('The refund has failed.')->render());
             $this->orderRepository->save($order);
 
-            $this->fintectureLogger->error('Apply refund error', [
+            $this->fintectureLogger->error('Apply refund', [
                 'message' => "Can't apply refund",
-                'creditmemoId' => $state,
+                'creditmemoId' => $creditmemoTransactionId,
                 'incrementOrderId' => $order->getIncrementId(),
                 'exception' => $e,
             ]);
@@ -457,12 +549,14 @@ class Fintecture extends AbstractMethod
     public function getAppId(string $environment = null): ?string
     {
         $environment = $environment ?: $this->getAppEnvironment();
+
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_id_' . $environment, ScopeInterface::SCOPE_STORE);
     }
 
     public function getAppSecret(string $environment = null, string $scope = ScopeInterface::SCOPE_STORE, int $scopeId = null): ?string
     {
         $environment = $environment ?: $this->getAppEnvironment();
+
         return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'fintecture_app_secret_' . $environment, $scope, $scopeId);
     }
 
@@ -470,6 +564,7 @@ class Fintecture extends AbstractMethod
     {
         $environment = $environment ?: $this->getAppEnvironment();
         $privateKey = $this->_scopeConfig->getValue(self::CONFIG_PREFIX . 'custom_file_upload_' . $environment, $scope, $scopeId);
+
         return $privateKey ? $this->encryptor->decrypt($privateKey) : null;
     }
 
@@ -480,62 +575,59 @@ class Fintecture extends AbstractMethod
 
     public function getBankType(): ?string
     {
-        return $this->_scopeConfig->getValue('payment/fintecture/general/bank_type', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'general/bank_type', ScopeInterface::SCOPE_STORE);
     }
 
     public function getActive(): int
     {
-        return (int) $this->_scopeConfig->isSetFlag('payment/fintecture/active', ScopeInterface::SCOPE_STORE);
+        return (int) $this->_scopeConfig->isSetFlag(static::CONFIG_PREFIX . 'active', ScopeInterface::SCOPE_STORE);
     }
 
     public function getShowLogo(): int
     {
-        return (int) $this->_scopeConfig->isSetFlag('payment/fintecture/general/show_logo', ScopeInterface::SCOPE_STORE);
+        return (int) $this->_scopeConfig->isSetFlag(static::CONFIG_PREFIX . 'general/show_logo', ScopeInterface::SCOPE_STORE);
     }
 
     public function getExpirationActive(): bool
     {
-        return $this->_scopeConfig->isSetFlag('payment/fintecture/expiration_active', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(static::CONFIG_PREFIX . 'expiration_active', ScopeInterface::SCOPE_STORE);
     }
 
     public function getExpirationAfter(): ?int
     {
-        return (int) $this->_scopeConfig->getValue('payment/fintecture/expiration_after', ScopeInterface::SCOPE_STORE);
+        return (int) $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'expiration_after', ScopeInterface::SCOPE_STORE);
     }
 
     public function getInvoicingActive(): bool
     {
-        return $this->_scopeConfig->isSetFlag('payment/fintecture/invoicing_active', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(static::CONFIG_PREFIX . 'invoicing_active', ScopeInterface::SCOPE_STORE);
     }
 
-    public function getQrCodeActive(): bool
+    public function getAlternativeMethodActive(): bool
     {
-        return $this->_scopeConfig->isSetFlag('payment/fintecture/qrcode_active', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(static::CONFIG_PREFIX . 'alternative_method_active', ScopeInterface::SCOPE_STORE);
     }
 
-    public function generatePayload(Order $lastRealOrder, string $type): array
+    public function getAlternativeMethod(): ?string
     {
-        /** @var \Magento\Sales\Model\Order\Address|null $billingAddress */
-        $billingAddress = $lastRealOrder->getBillingAddress();
-        if (!$billingAddress) {
-            $this->fintectureLogger->error('Error', [
-                'message' => 'No billing address found in order, please try again',
-                'incrementOrderId' => $lastRealOrder->getIncrementId(),
-            ]);
-            throw new LocalizedException(__('No billing address found in order, please try again'));
-        }
+        return $this->_scopeConfig->getValue(static::CONFIG_PREFIX . 'alternative_method', ScopeInterface::SCOPE_STORE);
+    }
 
-        return [
+    public function generatePayload(Quote $quote, string $type, string $method = ''): array
+    {
+        $payload = [];
+        $billingAddress = $quote->getBillingAddress();
+
+        $payload = [
             'meta' => [
                 'psu_name' => $billingAddress->getName(),
                 'psu_email' => $billingAddress->getEmail(),
                 'psu_company' => $billingAddress->getCompany(),
                 'psu_phone' => $billingAddress->getTelephone(),
-                'psu_ip' => $lastRealOrder->getRemoteIp(),
+                'psu_phone_prefix' => '+33',
+                'psu_ip' => $this->remoteAddress->getRemoteAddress(),
                 'psu_address' => [
                     'street' => implode(' ', $billingAddress->getStreet()),
-                    'number' => '',
-                    'complement' => '',
                     'zip' => $billingAddress->getPostcode(),
                     'city' => $billingAddress->getCity(),
                     'country' => $billingAddress->getCountryId(),
@@ -544,139 +636,180 @@ class Fintecture extends AbstractMethod
             'data' => [
                 'type' => $type,
                 'attributes' => [
-                    'amount' => number_format($lastRealOrder->getBaseTotalDue(), 2, '.', ''),
-                    'currency' => $lastRealOrder->getOrderCurrencyCode(),
-                    'communication' => self::PAYMENT_COMMUNICATION . $lastRealOrder->getIncrementId()
+                    'amount' => (string) round($quote->getBaseGrandTotal(), 2),
+                    'currency' => $quote->getQuoteCurrencyCode(),
+                    'communication' => self::PAYMENT_COMMUNICATION . $quote->getReservedOrderId(),
                 ],
             ],
         ];
-    }
-
-    public function getPaymentRedirectUrl(): string
-    {
-        $this->validateConfigValue();
-
-        /** @var Order|null $lastRealOrder */
-        $lastRealOrder = $this->checkoutSession->getLastRealOrder();
-        if (!$lastRealOrder) {
-            $this->fintectureLogger->error('Error', ['message' => 'No order found in session, please try again']);
-            throw new LocalizedException(__('No order found in session, please try again'));
-        }
-
-        $qrCodeActive = false;
-        if (interface_exists(GetLoggedAsCustomerAdminIdInterface::class)) {
-            $getLoggedAsCustomerAdminId = ObjectManager::getInstance()->get(GetLoggedAsCustomerAdminIdInterface::class);
-            $qrCodeActive = (bool) $getLoggedAsCustomerAdminId->execute() && $this->getQrCodeActive();
-        }
-
-        $type = $qrCodeActive ? 'REQUEST_TO_PAY' : 'PIS';
-        $data = $this->generatePayload($lastRealOrder, $type);
 
         // Handle order expiration if enabled
         if ($this->getExpirationActive()) {
             $minutes = $this->getExpirationAfter();
-            if (is_int($minutes) && $minutes >= 1) {
-                $data['meta']['expiry'] = $minutes * 60;
+            if (is_int($minutes) && $minutes >= 3 && $minutes <= 9999) {
+                $payload['meta']['expiry'] = $minutes * 60;
+            } else {
+                $this->fintectureLogger->error('Payload', [
+                    'message' => 'Expiration time must be between 3 and 9999 minutes.',
+                    'minutes' => 'Current expiration time: ' . $minutes,
+                ]);
+            }
+        }
+
+        // Handle method for RTP
+        if ($type === 'REQUEST_TO_PAY' && !empty($method)) {
+            $payload['meta']['method'] = $method;
+        }
+
+        return $payload;
+    }
+
+    public function getPaymentRedirectUrl(Quote $quote): string
+    {
+        if (!$this->validateConfigValue()) {
+            throw new LocalizedException(
+                __('Something went wrong try another payment method!')
+            );
+        }
+
+        $alternativeMethodActive = false;
+        if (interface_exists(GetLoggedAsCustomerAdminIdInterface::class)) {
+            $getLoggedAsCustomerAdminId = ObjectManager::getInstance()->get(GetLoggedAsCustomerAdminIdInterface::class);
+            if ($getLoggedAsCustomerAdminId) {
+                $alternativeMethodActive = (bool) $getLoggedAsCustomerAdminId->execute() && $this->getAlternativeMethodActive();
             }
         }
 
         try {
-            $state = Crypto::uuid4();
-            $redirectUrl = $this->getResponseUrl();
-            $originUrl = $this->getOriginUrl();
-            $psuType = $this->getBankType();
-
-            /** @phpstan-ignore-next-line */
-            $pisToken = $this->pisClient->token->generate();
-            if (!$pisToken->error) {
-                $this->pisClient->setAccessToken($pisToken); // set token of PIS client
+            if (!$alternativeMethodActive) {
+                // Connect
+                $data = $this->generatePayload($quote, 'PIS');
+                $redirect = $this->getConnectRedirect($quote, $data);
             } else {
-                throw new Exception($pisToken->errorMsg);
-            }
-
-            if ($qrCodeActive) {
-                // QR Code -> RTP
-                /** @phpstan-ignore-next-line */
-                $apiResponse = $this->pisClient->requestToPay->generate($data, 'fr');
-            } else {
-                // Classic connect
-                /** @phpstan-ignore-next-line */
-                $apiResponse = $this->pisClient->connect->generate(
-                    $data,
-                    $state,
-                    $redirectUrl,
-                    $originUrl,
-                    null,
-                    [
-                        'x-psu-type' => $psuType
-                    ]
-                );
-            }
-
-            if (!$apiResponse->error) {
-                $sessionId = $apiResponse->meta->session_id ?? '';
-
-                $lastRealOrder->setFintecturePaymentSessionId($sessionId);
-                try {
-                    $this->orderRepository->save($lastRealOrder);
-                } catch (Exception $e) {
-                    $this->fintectureLogger->error('Error', [
-                        'exception' => $e,
-                        'incrementOrderId' => $lastRealOrder->getIncrementId(),
-                    ]);
-                }
-
-                /** @phpstan-ignore-next-line : dynamic session var get */
-                $this->coreSession->setPaymentSessionId($sessionId);
-
-                $connectUrl = $apiResponse->meta->url ?? '';
-
-                if ($qrCodeActive) {
-                    // QR Code page
-                    $params = [
-                        'url' => urlencode($connectUrl),
-                        'reference' => $data['data']['attributes']['communication'],
-                        'amount' => $data['data']['attributes']['amount'],
-                        'currency' => $data['data']['attributes']['currency'],
-                        'session_id' => $sessionId,
-                        'confirm' => 0
-                    ];
-                    return $this->getQrCodeUrl() . '?' . http_build_query($params);
+                // RTP
+                $alternativeMethod = $this->getAlternativeMethod();
+                if ($alternativeMethod === 'send') {
+                    // SMS/EMAIL
+                    $redirect = $this->getSendRedirect($quote);
                 } else {
-                    // Classic connect redirection
-                    return $connectUrl;
+                    // QR CODE
+                    $data = $this->generatePayload($quote, 'REQUEST_TO_PAY');
+                    $redirect = $this->getQRCodeRedirect($quote, $data);
                 }
-            } else {
-                $this->fintectureLogger->error('Error', [
-                    'message' => 'Error building connect URL',
-                    'incrementOrderId' => $lastRealOrder->getIncrementId(),
-                    'response' => $apiResponse->errorMsg
-                ]);
-                $this->checkoutSession->restoreQuote();
-                throw new Exception($apiResponse->errorMsg);
             }
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Error', [
+
+            return $redirect['url'];
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Connect session', [
                 'exception' => $e,
-                'incrementOrderId' => $lastRealOrder->getIncrementId(),
+                'reservedIncrementOrderId' => $quote->getReservedOrderId(),
             ]);
 
             $this->checkoutSession->restoreQuote();
-            throw new Exception($e->getMessage());
+            throw new \Exception($e->getMessage());
         }
     }
 
-    public function validateConfigValue(): void
+    private function getConnectRedirect(Quote $quote, array $data): array
+    {
+        $state = Crypto::encodeToBase64(['order_id' => $quote->getReservedOrderId()]);
+        $redirectUrl = $this->getResponseUrl();
+        $originUrl = $this->getOriginUrl();
+        $psuType = $this->getBankType();
+
+        /** @phpstan-ignore-next-line */
+        $pisToken = $this->pisClient->token->generate();
+        if (!$pisToken->error) {
+            $this->pisClient->setAccessToken($pisToken); // set token of PIS client
+        } else {
+            throw new \Exception($pisToken->errorMsg);
+        }
+
+        /** @phpstan-ignore-next-line */
+        $apiResponse = $this->pisClient->connect->generate(
+            $data,
+            $state,
+            $redirectUrl,
+            $originUrl,
+            null,
+            [
+                'x-psu-type' => $psuType,
+            ]
+        );
+
+        if ($apiResponse->error) {
+            $this->fintectureLogger->error('Connect session', [
+                'message' => 'Error building connect URL',
+                'reservedIncrementOrderId' => $quote->getReservedOrderId(),
+                'response' => $apiResponse->errorMsg,
+            ]);
+            $this->checkoutSession->restoreQuote();
+            throw new \Exception($apiResponse->errorMsg);
+        }
+
+        return [
+            'sessionId' => $apiResponse->meta->session_id ?? '',
+            'url' => $apiResponse->meta->url ?? '',
+        ];
+    }
+
+    private function getQRCodeRedirect(Quote $quote, array $data): array
+    {
+        /** @phpstan-ignore-next-line */
+        $pisToken = $this->pisClient->token->generate();
+        if (!$pisToken->error) {
+            $this->pisClient->setAccessToken($pisToken); // set token of PIS client
+        } else {
+            throw new \Exception($pisToken->errorMsg);
+        }
+
+        /** @phpstan-ignore-next-line */
+        $apiResponse = $this->pisClient->requestToPay->generate($data, 'fr');
+        if ($apiResponse->error) {
+            $this->fintectureLogger->error('Connect session', [
+                'message' => 'Error building connect URL',
+                'reservedIncrementOrderId' => $quote->getReservedOrderId(),
+                'response' => $apiResponse->errorMsg,
+            ]);
+            $this->checkoutSession->restoreQuote();
+            throw new \Exception($apiResponse->errorMsg);
+        }
+
+        $sessionId = $apiResponse->meta->session_id ?? '';
+
+        $params = [
+            'url' => urlencode($apiResponse->meta->url ?? ''),
+            'reference' => $data['data']['attributes']['communication'],
+            'amount' => $data['data']['attributes']['amount'],
+            'currency' => $data['data']['attributes']['currency'],
+            'session_id' => $sessionId,
+            'confirm' => 0,
+        ];
+
+        return [
+            'sessionId' => $sessionId,
+            'url' => $this->getQrCodeUrl() . '?' . http_build_query($params),
+        ];
+    }
+
+    private function getSendRedirect(Quote $quote): array
+    {
+        return [
+            'url' => $this->getSendUrl() . '?step=1&quoteId=' . $quote->getId(),
+        ];
+    }
+
+    public function validateConfigValue(): bool
     {
         if (!$this->getAppEnvironment()
             || !$this->getAppPrivateKey()
             || !$this->getAppId()
             || !$this->getAppSecret()
         ) {
-            throw new LocalizedException(
-                __('Something went wrong try another payment method!')
-            );
+            return false;
         }
+
+        return true;
     }
 
     public function getResponseUrl(): string
@@ -697,6 +830,11 @@ class Fintecture extends AbstractMethod
     public function getQrCodeUrl(): string
     {
         return $this->fintectureHelper->getUrl('fintecture/standard/qrcode');
+    }
+
+    public function getSendUrl(): string
+    {
+        return $this->fintectureHelper->getUrl('fintecture/standard/send');
     }
 
     public function getNumberOfActivePaymentMethods(): int
@@ -720,7 +858,7 @@ class Fintecture extends AbstractMethod
             'module_production' => $this->getAppEnvironment() === Environment::ENVIRONMENT_PRODUCTION ? 1 : 0,
             'module_sandbox_app_id' => $this->getAppId(Environment::ENVIRONMENT_SANDBOX),
             'module_production_app_id' => $this->getAppId(Environment::ENVIRONMENT_PRODUCTION),
-            'module_branding' => $this->getShowLogo()
+            'module_branding' => $this->getShowLogo(),
         ];
     }
 
@@ -729,8 +867,10 @@ class Fintecture extends AbstractMethod
         $version = $this->productMetadata->getVersion();
         if ($version === 'UNKNOWN') {
             $this->fintectureLogger->debug("Can't detect Magento version.");
+
             return 'UNKNOWN';
         }
+
         return $version;
     }
 }

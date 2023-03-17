@@ -138,7 +138,19 @@
                             <config_path>payment/fintecture/payment_pending_status</config_path>
                         </field>
 
-                        <field id="payment_failed_status" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <field id="payment_overpaid_status" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Overpaid payment</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/payment_overpaid_status</config_path>
+                        </field>
+
+                        <field id="payment_partial_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Partial payment</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/payment_partial_status</config_path>
+                        </field>
+
+                        <field id="payment_failed_status" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Failed payment</label>
                             <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
                             <config_path>payment/fintecture/payment_failed_status</config_path>
@@ -156,9 +168,9 @@
     
                         <field id="expiration_after" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Automatic expiration of pending orders after</label>
-                            <comment>In minutes. Minimum value: 1</comment>
+                            <comment>In minutes. Minimum value: 3</comment>
                             <config_path>payment/fintecture/expiration_after</config_path>
-                            <validate>validate-number validate-greater-than-zero</validate>
+                            <validate>validate-number validate-greater-than-zero validate-number-range number-range-3-9999</validate>
                         </field>
                     </group>
 
@@ -172,14 +184,20 @@
                         </field>
                     </group>
 
-                    <group id="fintecture_advanced_qrcode" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Payment by QR Code when using 'Login as Customer' feature</label>
+                    <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Alternative payment methods for 'Login as Customer' feature</label>
                         
-                        <field id="qrcode_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                            <label>Enable payment by QR Code when using 'Login as Customer' feature</label>
+                        <field id="alternative_method_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable alternative payment methods for 'Login as Customer' feature</label>
                             <comment>Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.</comment>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                            <config_path>payment/fintecture/qrcode_active</config_path>
+                            <config_path>payment/fintecture/alternative_method_active</config_path>
+                        </field>
+
+                        <field id="alternative_method" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Choose the alternative payment method for 'Login as Customer' feature</label>
+                            <source_model>Fintecture\Payment\Model\AlternativeMethod</source_model>
+                            <config_path>payment/fintecture/alternative_method</config_path>
                         </field>
                     </group>
                 </group>

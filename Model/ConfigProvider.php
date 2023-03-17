@@ -24,13 +24,13 @@ class ConfigProvider implements ConfigProviderInterface
 
     public function getConfig()
     {
-        /** @phpstan-ignore-next-line : we will refactor the plugin without AbstractMethod */
+        /* @phpstan-ignore-next-line : we will refactor the plugin without AbstractMethod */
         return $this->method->isAvailable() ? [
             'payment' => [
                 'fintecture' => [
-                    'redirectUrl' => $this->method->getRedirectUrl()
-                ]
-            ]
+                    'redirectUrl' => $this->method->getRedirectUrl(),
+                ],
+            ],
         ] : [];
     }
 }

@@ -1,0 +1,39 @@
+<div style="text-align: center;">
+    <?php
+    if ($block->getData('step') !== 2) {
+    ?>
+        <h2><?php echo __('Choose how to send your payment link'); ?></h2>
+
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
+            <a href="<?php echo $block->getData('sendByEmailUrl'); ?>" class="action primary">
+                <?php echo __('Send by Email'); ?>
+            </a>
+            <a href="<?php echo $block->getData('sendBySMSUrl'); ?>" class="action primary">
+                <?php echo __('Send by SMS'); ?>
+            </a>
+        </div>
+        <?php
+    } else {
+    ?>
+        <h2><?php echo __('Your payment link has been sent successfully'); ?></h2>
+
+        <img src="<?php echo $block->getData('qrCode'); ?>">
+
+        <p><b><?php echo $block->getData('amount'); ?> <?php echo $block->getData('currency'); ?></b></p>
+        <p><?php echo $block->getData('reference'); ?></p>
+        <p><?php echo $block->getData('sessionId'); ?></p>
+
+        <a href="<?php echo $block->getData('baseUrl'); ?>" class="action primary" style="margin-top: 20px;">
+            <?php echo __('Return to the homepage'); ?>
+        </a>
+    <?php
+    }
+    ?>
+
+    <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+        <span style="text-transform: uppercase; color: #0B1643; font-weight: bold; font-size: 0.8em;">
+            <?php echo __('Secured connection to your bank by'); ?>
+        </span>
+        <img src="<?php echo $block->getViewFileUrl('Fintecture_Payment::images/fintecture.svg'); ?>" alt="Fintecture" style="height: 25px;">
+    </div>
+</div>

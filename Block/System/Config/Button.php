@@ -43,7 +43,7 @@ class Button extends Field
             'isAjax' => true,
             'form_key' => $this->getFormKey(),
             'scope' => $scope['scope'],
-            'scopeId' => $scope['scopeId']
+            'scopeId' => $scope['scopeId'],
         ]);
     }
 
@@ -53,7 +53,7 @@ class Button extends Field
         $button = $this->getLayout()->createBlock(WidgetButton::class);
         $button->setData([
             'id' => 'connection-test',
-            'label' => __('Test Connection')
+            'label' => __('Test Connection'),
         ]);
 
         return $button->toHtml();
@@ -69,18 +69,18 @@ class Button extends Field
         if ($this->request->getParam('store')) {
             return [
                 'scope' => ScopeInterface::SCOPE_STORE,
-                'scopeId' => (int) $this->request->getParam('store')
+                'scopeId' => (int) $this->request->getParam('store'),
             ];
         } elseif ($this->request->getParam('website')) {
             return [
                 'scope' => ScopeInterface::SCOPE_WEBSITE,
-                'scopeId' => (int) $this->request->getParam('website')
+                'scopeId' => (int) $this->request->getParam('website'),
             ];
         }
 
         return [
             'scope' => ScopeInterface::SCOPE_STORE,
-            'scopeId' => 0
+            'scopeId' => 0,
         ];
     }
 }

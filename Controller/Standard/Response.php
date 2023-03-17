@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Standard;
 
-use Exception;
 use Fintecture\Payment\Controller\FintectureAbstract;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
@@ -14,22 +13,32 @@ class Response extends FintectureAbstract
     public function execute()
     {
         try {
-            /** @phpstan-ignore-next-line : dynamic session var set */
-            $lastPaymentSessionId = $this->coreSession->getPaymentSessionId();
-            if (!$lastPaymentSessionId) {
-                $this->fintectureLogger->error("Can't find last payment session id");
+            $state = $this->request->getParam('state');
+            $sessionId = $this->request->getParam('session_id');
+            if (!$state || !$sessionId) {
+                $this->fintectureLogger->error('Response', [
+                    'message' => 'Invalid params',
+                ]);
+
                 return $this->redirectToCart();
             }
 
-            $order = $this->getOrder();
-            $orderSessionId = $order->getFintecturePaymentSessionId();
-
-            if ($lastPaymentSessionId !== $orderSessionId) {
-                $this->fintectureLogger->error('Error', [
-                    'message' => 'Session id not matching',
-                    'lastPaymentSessionId' => $lastPaymentSessionId,
-                    'orderSessionId' => $orderSessionId
+            $decodedState = json_decode(base64_decode($state));
+            if (!is_object($decodedState) || !property_exists($decodedState, 'order_id')) {
+                $this->fintectureLogger->error('Response', [
+                    'message' => "Can't find an order id in the state",
                 ]);
+
+                return $this->redirectToCart();
+            }
+
+            $orderId = $decodedState->order_id;
+            $order = $this->fintectureHelper->getOrderByIncrementId($orderId);
+            if (!$order) {
+                $this->fintectureLogger->error('Response', [
+                    'message' => "Can't find an order associated with this state",
+                ]);
+
                 return $this->redirectToCart();
             }
 
@@ -38,25 +47,35 @@ class Response extends FintectureAbstract
             if (!$pisToken->error) {
                 $this->paymentMethod->pisClient->setAccessToken($pisToken); // set token of PIS client
             } else {
-                throw new Exception($pisToken->errorMsg);
+                throw new \Exception($pisToken->errorMsg);
             }
 
             /** @phpstan-ignore-next-line */
-            $apiResponse = $this->paymentMethod->pisClient->payment->get($lastPaymentSessionId);
+            $apiResponse = $this->paymentMethod->pisClient->payment->get($sessionId);
             if (!$apiResponse->error) {
-                $status = $apiResponse->meta->status;
-                $sessionId = $apiResponse->meta->session_id;
+                $params = [
+                    'status' => $apiResponse->meta->status ?? '',
+                    'sessionId' => $sessionId,
+                    'transferState' => $apiResponse->data->transfer_state ?? '',
+                ];
 
-                $statuses = $this->fintectureHelper->getOrderStatusBasedOnPaymentStatus($status);
+                $statuses = $this->fintectureHelper->getOrderStatus($params);
 
                 $this->fintectureLogger->debug('Response', [
                     'orderIncrementId' => $order->getIncrementId(),
-                    'fintectureStatus' => $status,
-                    'status' => $statuses['status']
+                    'fintectureStatus' => $params['status'],
+                    'status' => $statuses['status'] ?? 'Unhandled status',
                 ]);
 
-                if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
-                    $this->paymentMethod->handleSuccessTransaction($order, $status, $sessionId, $statuses);
+                if ($statuses && in_array($statuses['status'], [
+                    $this->fintectureHelper->getPaymentCreatedStatus(),
+                    $this->fintectureHelper->getPaymentPendingStatus(),
+                ])) {
+                    if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
+                        $this->paymentMethod->createPayment($order, $params, $statuses);
+                    } else {
+                        $this->paymentMethod->changeOrderState($order, $params, $statuses);
+                    }
 
                     try {
                         $this->checkoutSession->setLastQuoteId($order->getQuoteId());
@@ -65,43 +84,38 @@ class Response extends FintectureAbstract
                         $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
                         $this->checkoutSession->setLastOrderStatus($order->getStatus());
 
+                        if ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
+                            $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.')->render());
+                        }
+
                         return $this->resultRedirect->create()->setPath(
                             $this->fintectureHelper->getUrl('checkout/onepage/success')
                         );
-                    } catch (Exception $e) {
-                        $this->fintectureLogger->error('Error', [
+                    } catch (\Exception $e) {
+                        $this->fintectureLogger->error('Response', [
                             'exception' => $e,
                             'incrementOrderId' => $order->getIncrementId(),
-                            'status' => $order->getStatus()
+                            'status' => $order->getStatus(),
                         ]);
                     }
-                } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
-                    $this->paymentMethod->handleHoldedTransaction($order, $status, $sessionId, $statuses);
-                    $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.')->render());
-                    return $this->resultRedirect->create()->setPath(
-                        $this->fintectureHelper->getUrl('checkout/onepage/success')
-                    );
-                } elseif ($statuses['status'] === $this->fintectureHelper->getPaymentFailedStatus()) {
-                    $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
-                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
-                    return $this->redirectToCart();
                 } else {
-                    $this->paymentMethod->handleFailedTransaction($order, $status, $sessionId, $statuses);
+                    $this->paymentMethod->handleFailedTransaction($order, $params, $statuses);
                     $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
+
                     return $this->redirectToCart();
                 }
             } else {
-                $this->fintectureLogger->error('Error', [
+                $this->fintectureLogger->error('Response', [
                     'message' => 'Invalid payment API response',
                     'response' => $apiResponse->errorMsg,
                 ]);
                 $this->messageManager->addErrorMessage(__("We can't place the order.")->render());
             }
         } catch (LocalizedException $e) {
-            $this->fintectureLogger->error('Response error', ['exception' => $e]);
+            $this->fintectureLogger->error('Response', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, $e->getMessage());
-        } catch (Exception $e) {
-            $this->fintectureLogger->error('Response error', ['exception' => $e]);
+        } catch (\Exception $e) {
+            $this->fintectureLogger->error('Response', ['exception' => $e]);
             $this->messageManager->addExceptionMessage($e, __("We can't place the order.")->render());
         }
 
@@ -114,10 +128,11 @@ class Response extends FintectureAbstract
     private function redirectToCart(string $returnUrl = null): Redirect
     {
         if (!$returnUrl) {
-            $returnUrl = $this->fintectureHelper->getUrl('checkout') . "#payment";
+            $returnUrl = $this->fintectureHelper->getUrl('checkout') . '#payment';
         }
 
         $this->checkoutSession->restoreQuote();
+
         return $this->resultRedirect->create()->setPath($returnUrl);
     }
 }

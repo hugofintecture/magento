@@ -18,6 +18,7 @@ class Disable extends Field
                 });
             });
             </script>';
+
         return $html;
     }
 }

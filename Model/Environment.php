@@ -20,8 +20,8 @@ class Environment implements OptionSourceInterface
             ],
             [
                 'value' => static::ENVIRONMENT_PRODUCTION,
-                'label' => __('Production')
-            ]
+                'label' => __('Production'),
+            ],
         ];
     }
 }

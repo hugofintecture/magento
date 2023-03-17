@@ -8,9 +8,9 @@
 
         <p><b><?php echo $block->getData('amount'); ?> <?php echo $block->getData('currency'); ?></b></p>
         <p><?php echo $block->getData('reference'); ?></p>
-        <p><?php echo $block->getData('session_id'); ?></p>
+        <p><?php echo $block->getData('sessionId'); ?></p>
 
-        <a href="<?php echo $block->getData('baseUrl'); ?>" title="<?php echo __('Return to the homepage'); ?>" class="action primary" style="margin-top: 20px;">
+        <a href="<?php echo $block->getData('baseUrl'); ?>" class="action primary" style="margin-top: 20px;">
             <?php echo __('Return to the homepage'); ?>
         </a>
     <?php
@@ -18,11 +18,11 @@
     ?>
         <h2><?php echo __('Scan this QR Code to pay with Fintecture'); ?></h2>
 
-        <img src="<?php echo $block->getData('qrcode'); ?>">
+        <img src="<?php echo $block->getData('qrCode'); ?>">
 
         <p><b><?php echo $block->getData('amount'); ?> <?php echo $block->getData('currency'); ?></b></p>
         <p><?php echo $block->getData('reference'); ?></p>
-        <p><?php echo $block->getData('session_id'); ?></p>
+        <p><?php echo $block->getData('sessionId'); ?></p>
 
         <a href="<?php echo $block->getData('confirmUrl'); ?>" title="<?php echo __('Continue'); ?>" class="action primary" style="margin-top: 20px;">
             <?php echo __('Continue'); ?>

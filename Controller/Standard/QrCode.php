@@ -21,18 +21,22 @@ class QrCode extends FintectureAbstract
         $confirm = (int) $this->request->getParam('confirm');
 
         if (empty($encodedUrl)) {
-            $this->fintectureLogger->error('QR Code error', ['message' => 'no URL provided']);
+            $this->fintectureLogger->error('QR Code', ['message' => 'no URL provided']);
             throw new LocalizedException(__('QR Code error: no URL provided'));
         }
 
         $url = urldecode($encodedUrl);
 
+        $qrCode = '';
         // chillerlan/php-qrcode is an optional dependency
         if (class_exists(QRCodeGenerator::class)) {
-            $qrCode = (new QRCodeGenerator())->render($url);
+            if (!empty($url)) {
+                $qrCode = (new QRCodeGenerator())->render($url);
+            } else {
+                $this->fintectureLogger->error('QR Code', ['message' => 'URL is empty']);
+            }
         } else {
-            $qrCode = '';
-            $this->fintectureLogger->error('QR Code error', ['message' => 'chillerlan/php-qrcode dependency is not installed']);
+            $this->fintectureLogger->error('QR Code', ['message' => 'chillerlan/php-qrcode dependency is not installed']);
         }
 
         $params = [
@@ -41,7 +45,7 @@ class QrCode extends FintectureAbstract
             'amount' => $amount,
             'currency' => $currency,
             'session_id' => $sessionId,
-            'confirm' => 1
+            'confirm' => 1,
         ];
         $confirmUrl = $this->paymentMethod->getQrCodeUrl() . '?' . http_build_query($params);
 
@@ -49,11 +53,11 @@ class QrCode extends FintectureAbstract
 
         /** @var Template $block */
         $block = $page->getLayout()->getBlock('fintecture_standard_qrcode');
-        $block->setData('qrcode', $qrCode);
+        $block->setData('qrCode', $qrCode);
         $block->setData('reference', $reference);
         $block->setData('amount', $amount);
         $block->setData('currency', $currency);
-        $block->setData('session_id', $sessionId);
+        $block->setData('sessionId', $sessionId);
         $block->setData('baseUrl', $this->urlInterface->getBaseUrl());
         $block->setData('confirmUrl', $confirmUrl);
         $block->setData('confirm', $confirm);
