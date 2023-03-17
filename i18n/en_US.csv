@@ -81,6 +81,8 @@
 "Scan this QR Code to pay with Fintecture", "Scan this QR Code to pay with Fintecture"
 "Continue", "Continue"
 "Choose how to send your payment link", "Choose how to send your payment link"
+"Send by Email", "Send by Email"
+"Send by SMS", "Send by SMS"
 "Your payment link has been sent successfully", "Your payment link has been sent successfully"
 "Secured connection to your bank by", "Secured connection to your bank by"
 "Overpaid order. Amount received: ", "Overpaid order. Amount received: "
