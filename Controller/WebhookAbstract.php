@@ -47,7 +47,7 @@ abstract class WebhookAbstract implements ActionInterface
         JsonFactory $resultJsonFactory,
         RawFactory $resultRawFactory,
         CollectionFactory $orderCollectionFactory,
-        Http $request,
+        Http $request
     ) {
         $this->fintectureLogger = $fintectureLogger;
         $this->fintectureHelper = $fintectureHelper;
