@@ -7,7 +7,7 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "2.2.3",
+    "version": "2.2.4",
     "license": [
         "GPL-3.0"
     ],
@@ -17,7 +17,7 @@
         "ext-openssl": "*",
         "magento/framework": ">=100",
         "magento/module-developer": ">=100",
-        "fintecture/fintecture-sdk-php": "^2.2",
+        "fintecture/fintecture-sdk-php": "^2.3",
         "symfony/http-client": "*",
         "nyholm/psr7": "*"
     },
