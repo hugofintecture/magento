@@ -53,7 +53,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.2.4';
+    public const MODULE_VERSION = '2.2.5';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -208,6 +208,11 @@ class Fintecture extends AbstractMethod
                 ]);
             }
         }
+    }
+
+    public function isPisClientInstantiated(): bool
+    {
+        return $this->pisClient instanceof PisClient;
     }
 
     public function createPayment(
@@ -372,6 +377,10 @@ class Fintecture extends AbstractMethod
 
     public function createRefund(OrderInterface $order, CreditmemoInterface $creditmemo): void
     {
+        if (!$this->isPisClientInstantiated()) {
+            throw new \Exception('PISClient not instantiated');
+        }
+
         /** @var Order $order */
         $incrementOrderId = $order->getIncrementId();
 
@@ -618,12 +627,17 @@ class Fintecture extends AbstractMethod
         $payload = [];
         $billingAddress = $quote->getBillingAddress();
 
+        $phone = $billingAddress->getTelephone();
+        if (strlen($phone) > 1 && substr($phone, 0, 1) === '0') {
+            $phone = substr($phone, 1);
+        }
+
         $payload = [
             'meta' => [
                 'psu_name' => $billingAddress->getName(),
                 'psu_email' => $billingAddress->getEmail(),
                 'psu_company' => $billingAddress->getCompany(),
-                'psu_phone' => $billingAddress->getTelephone(),
+                'psu_phone' => $phone,
                 'psu_phone_prefix' => '+33',
                 'psu_ip' => $this->remoteAddress->getRemoteAddress(),
                 'psu_address' => [
@@ -712,6 +726,10 @@ class Fintecture extends AbstractMethod
 
     private function getConnectRedirect(Quote $quote, array $data): array
     {
+        if (!$this->isPisClientInstantiated()) {
+            throw new \Exception('PISClient not instantiated');
+        }
+
         $state = Crypto::encodeToBase64(['order_id' => $quote->getReservedOrderId()]);
         $redirectUrl = $this->getResponseUrl();
         $originUrl = $this->getOriginUrl();
@@ -758,6 +776,10 @@ class Fintecture extends AbstractMethod
 
     private function getQRCodeRedirect(Quote $quote, array $data): array
     {
+        if (!$this->isPisClientInstantiated()) {
+            throw new \Exception('PISClient not instantiated');
+        }
+
         /** @phpstan-ignore-next-line */
         $pisToken = $this->pisClient->token->generate();
         if (!$pisToken->error) {

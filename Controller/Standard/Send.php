@@ -12,6 +12,10 @@ class Send extends FintectureAbstract
 {
     public function execute()
     {
+        if (!$this->paymentMethod->isPisClientInstantiated()) {
+            throw new \Exception('PISClient not instantiated');
+        }
+
         $step = (int) $this->request->getParam('step');
         $method = $this->request->getParam('method');
         $quoteId = (int) $this->request->getParam('quoteId');
