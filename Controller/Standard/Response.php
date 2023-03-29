@@ -13,6 +13,10 @@ class Response extends FintectureAbstract
     public function execute()
     {
         try {
+            if (!$this->paymentMethod->isPisClientInstantiated()) {
+                throw new \Exception('PISClient not instantiated');
+            }
+
             $state = $this->request->getParam('state');
             $sessionId = $this->request->getParam('session_id');
             if (!$state || !$sessionId) {
