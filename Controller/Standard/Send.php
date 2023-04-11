@@ -6,6 +6,7 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use chillerlan\QRCode\QRCode as QRCodeGenerator;
 use Fintecture\Payment\Controller\FintectureAbstract;
+use Fintecture\Util\Crypto;
 use Magento\Framework\View\Element\Template;
 
 class Send extends FintectureAbstract
@@ -39,8 +40,9 @@ class Send extends FintectureAbstract
                 throw new \Exception($pisToken->errorMsg);
             }
 
+            $state = Crypto::encodeToBase64(['order_id' => $quote->getReservedOrderId()]);
             /** @phpstan-ignore-next-line */
-            $apiResponse = $this->paymentMethod->pisClient->requestToPay->generate($data, 'fr');
+            $apiResponse = $this->paymentMethod->pisClient->requestToPay->generate($data, 'fr', null, $state);
             if ($apiResponse->error) {
                 $this->fintectureLogger->error('Connect session', [
                     'message' => 'Error building connect URL',

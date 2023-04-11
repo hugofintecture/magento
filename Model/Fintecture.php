@@ -53,7 +53,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.2.5';
+    public const MODULE_VERSION = '2.2.6';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -788,8 +788,9 @@ class Fintecture extends AbstractMethod
             throw new \Exception($pisToken->errorMsg);
         }
 
+        $state = Crypto::encodeToBase64(['order_id' => $quote->getReservedOrderId()]);
         /** @phpstan-ignore-next-line */
-        $apiResponse = $this->pisClient->requestToPay->generate($data, 'fr');
+        $apiResponse = $this->pisClient->requestToPay->generate($data, 'fr', null, $state);
         if ($apiResponse->error) {
             $this->fintectureLogger->error('Connect session', [
                 'message' => 'Error building connect URL',
