@@ -53,7 +53,7 @@ class Fintecture extends AbstractMethod
 {
     public const CODE = 'fintecture';
     public const CONFIG_PREFIX = 'payment/fintecture/';
-    public const MODULE_VERSION = '2.2.6';
+    public const MODULE_VERSION = '2.2.7';
 
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
     private const REFUND_COMMUNICATION = 'REFUND FINTECTURE-';
@@ -752,6 +752,7 @@ class Fintecture extends AbstractMethod
             $state,
             $redirectUrl,
             $originUrl,
+            null,
             null,
             [
                 'x-psu-type' => $psuType,
