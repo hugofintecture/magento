@@ -9,9 +9,8 @@
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
         <div class="checkout_block payment-method-content">
-            <p id="f-description">
-                <span
-                    data-bind="i18n: 'You will be automatically redirected to your secured bank environment to confirm your payment.'"></span>
+            <p class="f-description">
+                <span data-bind="i18n: 'You will be automatically redirected to your secured bank environment to confirm your payment.'"></span>
                 <span><b data-bind="i18n: 'Pay for your purchases instantly and securely.'"></b></span>
             </p>
 
@@ -28,7 +27,7 @@
                     <div class="f-step-icon f-step-2-icon">
                         <div class="f-step-img f-step-2-img"></div>
                     </div>
-                    <p data-bind="i18n: 'Login with your usual banking ID’s'"></p>
+                    <p data-bind="i18n: 'Login with your usual banking ID\'s'"></p>
                 </div>
                 <div class="f-step-wrapper">
                     <div class="f-step-icon f-step-3-icon">
@@ -45,22 +44,6 @@
             </div>
         </div>
 
-        <!-- ko foreach: getRegion('messages') -->
-        <!-- ko template: getTemplate() -->
-        <!-- /ko -->
-        <!--/ko-->
-        <div class="payment-method-billing-address">
-            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
-            <!-- ko template: getTemplate() -->
-            <!-- /ko -->
-            <!--/ko-->
-        </div>
-        <div class="checkout-agreements-block">
-            <!-- ko foreach: $parent.getRegion('before-place-order') -->
-            <!-- ko template: getTemplate() -->
-            <!-- /ko -->
-            <!--/ko-->
-        </div>
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout" type="submit"

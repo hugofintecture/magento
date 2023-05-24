@@ -17,6 +17,6 @@ class CreateRefund extends AbstractRefundAction
         // Create a unique reference to identify the credit memo in webhooks
         $creditmemo->setTransactionId('fintecture-' . $order->getEntityId() . '-' . uniqid());
 
-        $this->paymentMethod->createRefund($order, $creditmemo);
+        $this->handleRefund->create($order, $creditmemo);
     }
 }

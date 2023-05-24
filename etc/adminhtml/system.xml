@@ -1,14 +1,14 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="fintecture" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="fintecture" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Instant bank payment</label>
                 <comment><![CDATA[Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!]]></comment>
                 <fieldset_css>fintecture-admin-section</fieldset_css>
                 <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
 
-                <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Fintecture Settings</label>
+                <group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Settings</label>
 
                     <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Enabled</label>
@@ -27,7 +27,7 @@
                         <config_path>payment/fintecture/environment</config_path>
                     </field>
 
-                    <field id="bank_type" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="bank_type" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Bank Type</label>
                         <source_model>Fintecture\Payment\Model\Banktype</source_model>
                         <comment>Filter the bank type</comment>
@@ -40,7 +40,7 @@
                     </field>
 
                     <!-- SANDBOX START -->
-                    <field id="fintecture_app_id_sandbox" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="fintecture_app_id_sandbox" translate="label comment" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture APP ID</label>
                         <depends>
                             <field id="environment">sandbox</field>
@@ -50,7 +50,7 @@
                         <config_path>payment/fintecture/fintecture_app_id_sandbox</config_path>
                     </field>
 
-                    <field id="fintecture_app_secret_sandbox" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="fintecture_app_secret_sandbox" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture APP Secret</label>
                         <depends>
                             <field id="environment">sandbox</field>
@@ -73,7 +73,7 @@
                     <!-- SANDBOX END -->
 
                     <!-- PRODUCTION START -->
-                    <field id="fintecture_app_id_production" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="fintecture_app_id_production" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture APP ID</label>
                         <depends>
                             <field id="environment">production</field>
@@ -83,7 +83,7 @@
                         <config_path>payment/fintecture/fintecture_app_id_production</config_path>
                     </field>
 
-                    <field id="fintecture_app_secret_production" translate="label" type="obscure" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="fintecture_app_secret_production" translate="label comment" type="obscure" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture APP Secret</label>
                         <depends>
                             <field id="environment">production</field>
@@ -112,7 +112,7 @@
                 
                 <!-- Start Advanced Options -->
                 <group id="fintecture_advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Advanced Fintecture Settings</label>
+                    <label>Advanced Settings</label>
                     <field id="version" type="text" translate="label comment" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                         <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
                     </field>
@@ -166,7 +166,7 @@
                             <config_path>payment/fintecture/expiration_active</config_path>
                         </field>
     
-                        <field id="expiration_after" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <field id="expiration_after" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Automatic expiration of pending orders after</label>
                             <comment>In minutes. Minimum value: 3</comment>
                             <config_path>payment/fintecture/expiration_after</config_path>
@@ -187,7 +187,7 @@
                     <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Alternative payment methods for 'Login as Customer' feature</label>
                         
-                        <field id="alternative_method_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <field id="alternative_method_active" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Enable alternative payment methods for 'Login as Customer' feature</label>
                             <comment>Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.</comment>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -224,6 +224,55 @@
                         <config_path>payment/fintecture/specificcountry</config_path>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <can_be_empty>1</can_be_empty>
+                    </field>
+                </group>
+                <!-- End Payment Options -->
+            </group>
+            
+            <group id="fintecture_bnpl" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Buy Now Pay Later</label>
+                <comment><![CDATA[Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.]]></comment>
+                <fieldset_css>fintecture-admin-section</fieldset_css>
+                <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+
+                <group id="general_bnpl" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Settings</label>
+
+                    <field id="active" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enabled</label>
+                        <comment>If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/fintecture_bnpl/active</config_path>
+                    </field>
+                </group>
+
+                <!-- Start Advanced Options -->
+                <group id="advanced_bnpl" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Advanced Settings</label>
+                    <field id="version" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
+                    </field>
+
+                    <group id="advanced_mapping_bnpl" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Payment status mapping between Fintecture and Magento</label>
+                        
+                        <field id="order_created_status" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Order created status</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/order_created_status</config_path>
+                        </field>
+                    </group>
+                </group>
+                <!-- End Advanced Options -->
+
+                <!-- Start Payment Options -->
+                <group id="payment_options_bnpl" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Payment Options</label>
+
+                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/fintecture_bnpl/sort_order</config_path>
                     </field>
                 </group>
                 <!-- End Payment Options -->

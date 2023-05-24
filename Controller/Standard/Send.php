@@ -6,20 +6,19 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use chillerlan\QRCode\QRCode as QRCodeGenerator;
 use Fintecture\Payment\Controller\FintectureAbstract;
-use Fintecture\Util\Crypto;
 use Magento\Framework\View\Element\Template;
 
 class Send extends FintectureAbstract
 {
     public function execute()
     {
-        if (!$this->paymentMethod->isPisClientInstantiated()) {
+        if (!$this->sdk->isPisClientInstantiated()) {
             throw new \Exception('PISClient not instantiated');
         }
 
         $step = (int) $this->request->getParam('step');
         $method = $this->request->getParam('method');
-        $quoteId = (int) $this->request->getParam('quoteId');
+        $orderId = $this->request->getParam('orderId');
 
         $qrCode = '';
         $reference = '';
@@ -28,30 +27,13 @@ class Send extends FintectureAbstract
         $sessionId = '';
         if ($step === 2) {
             // Call API RTP with method
-            /** @var \Magento\Quote\Model\Quote $quote */
-            $quote = $this->quoteRepository->get($quoteId);
-            $data = $this->paymentMethod->generatePayload($quote, 'REQUEST_TO_PAY', $method);
-
-            /** @phpstan-ignore-next-line */
-            $pisToken = $this->paymentMethod->pisClient->token->generate();
-            if (!$pisToken->error) {
-                $this->paymentMethod->pisClient->setAccessToken($pisToken); // set token of PIS client
-            } else {
-                throw new \Exception($pisToken->errorMsg);
+            $order = $this->fintectureHelper->getOrderByIncrementId($orderId);
+            if (!$order) {
+                throw new \Exception('No order found');
             }
 
-            $state = Crypto::encodeToBase64(['order_id' => $quote->getReservedOrderId()]);
-            /** @phpstan-ignore-next-line */
-            $apiResponse = $this->paymentMethod->pisClient->requestToPay->generate($data, 'fr', null, $state);
-            if ($apiResponse->error) {
-                $this->fintectureLogger->error('Connect session', [
-                    'message' => 'Error building connect URL',
-                    'reservedIncrementOrderId' => $quote->getReservedOrderId(),
-                    'response' => $apiResponse->errorMsg,
-                ]);
-                $this->checkoutSession->restoreQuote();
-                throw new \Exception($apiResponse->errorMsg);
-            }
+            $data = $this->fintectureHelper->generatePayload($order, self::RTP_TYPE, $method);
+            $apiResponse = $this->requestToPay->get($order, $data);
 
             $reference = $data['data']['attributes']['communication'];
             $amount = $data['data']['attributes']['amount'];
@@ -71,7 +53,7 @@ class Send extends FintectureAbstract
             }
         }
 
-        $sendUrl = $this->paymentMethod->getSendUrl() . '?step=2&method=%s&quoteId=' . $quoteId;
+        $sendUrl = $this->fintectureHelper->getSendUrl() . '?step=2&method=%s&orderId=' . $orderId;
 
         $sendByEmailUrl = sprintf($sendUrl, 'email');
         $sendBySMSUrl = sprintf($sendUrl, 'sms');

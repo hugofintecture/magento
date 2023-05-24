@@ -2,7 +2,7 @@
 
 namespace Fintecture\Payment\Block\Adminhtml\System\Config\Form;
 
-use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Payment\Gateway\Config\Config;
 
 class Version extends \Magento\Config\Block\System\Config\Form\Field
 {
@@ -14,7 +14,7 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
         $output = '<div>';
-        $output .= __('Module version:') . ' ' . Fintecture::MODULE_VERSION . '<br><br>';
+        $output .= __('Module version:') . ' ' . Config::VERSION . '<br><br>';
         $output .= __('This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.');
         $output .= '</div>';
 

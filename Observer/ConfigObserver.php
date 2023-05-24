@@ -3,18 +3,18 @@
 namespace Fintecture\Payment\Observer;
 
 use Fintecture\Config\Telemetry;
-use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Payment\Helper\Stats;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 
 class ConfigObserver implements ObserverInterface
 {
-    /** @var Fintecture */
-    protected $_paymentMethod;
+    /** @var Stats */
+    protected $stats;
 
-    public function __construct(Fintecture $paymentMethod)
+    public function __construct(Stats $stats)
     {
-        $this->_paymentMethod = $paymentMethod;
+        $this->stats = $stats;
     }
 
     /**
@@ -26,7 +26,11 @@ class ConfigObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
-        Telemetry::logAction('save', $configurationSummary);
+        $configurationSummary = $this->stats->getConfigurationSummary();
+        try {
+            Telemetry::logAction('save', $configurationSummary);
+        } catch (\Exception $e) {
+            // do nothing
+        }
     }
 }

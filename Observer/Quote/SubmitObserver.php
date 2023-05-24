@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Observer\Quote;
 
-use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Payment\Gateway\Config\Config;
 use Magento\Sales\Model\Order;
 
 class SubmitObserver
@@ -24,7 +24,7 @@ class SubmitObserver
         }
 
         $payment = $order->getPayment();
-        if ($payment && $payment->getMethod() === Fintecture::CODE) {
+        if ($payment && $payment->getMethod() === Config::CODE) {
             // Disable email sending
             $order->setCanSendNewEmailFlag(false);
         }

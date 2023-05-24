@@ -4,29 +4,26 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller;
 
+use Fintecture\Payment\Gateway\Config\Config;
+use Fintecture\Payment\Gateway\HandlePayment;
+use Fintecture\Payment\Gateway\HandleRefund;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
-use Fintecture\Payment\Model\Fintecture;
 use Fintecture\Util\Validation;
-use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 
-abstract class WebhookAbstract implements ActionInterface
+abstract class WebhookAbstract implements CsrfAwareActionInterface
 {
     /** @var FintectureLogger */
     protected $fintectureLogger;
 
     /** @var FintectureHelper */
     protected $fintectureHelper;
-
-    /** @var Fintecture */
-    protected $paymentMethod;
-
-    /** @var JsonFactory */
-    protected $resultJsonFactory;
 
     /** @var RawFactory */
     protected $resultRawFactory;
@@ -40,22 +37,43 @@ abstract class WebhookAbstract implements ActionInterface
     /** @var Http */
     protected $request;
 
+    /** @var HandlePayment */
+    protected $handlePayment;
+
+    /** @var HandleRefund */
+    protected $handleRefund;
+
+    /** @var Config */
+    protected $config;
+
     public function __construct(
         FintectureLogger $fintectureLogger,
         FintectureHelper $fintectureHelper,
-        Fintecture $paymentMethod,
-        JsonFactory $resultJsonFactory,
         RawFactory $resultRawFactory,
         CollectionFactory $orderCollectionFactory,
-        Http $request
+        Http $request,
+        HandlePayment $handlePayment,
+        HandleRefund $handleRefund,
+        Config $config
     ) {
         $this->fintectureLogger = $fintectureLogger;
         $this->fintectureHelper = $fintectureHelper;
-        $this->paymentMethod = $paymentMethod;
-        $this->resultJsonFactory = $resultJsonFactory;
         $this->resultRawFactory = $resultRawFactory;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->request = $request;
+        $this->handlePayment = $handlePayment;
+        $this->handleRefund = $handleRefund;
+        $this->config = $config;
+    }
+
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 
     /**
