@@ -4,26 +4,25 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Helper;
 
-use Magento\Checkout\Model\Session;
+use Fintecture\Payment\Gateway\Config\Config;
+use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Status\History;
 use Magento\Sales\Model\ResourceModel\Order\Status\History\CollectionFactory;
-use Magento\Store\Model\ScopeInterface;
 
 class Fintecture extends AbstractHelper
 {
-    /** @var Session */
-    protected $session;
+    private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
 
-    /** @var ScopeConfigInterface */
-    protected $scopeConfig;
+    /** @var Config */
+    protected $config;
 
     /** @var CollectionFactory */
     protected $historyCollectionFactory;
@@ -37,28 +36,51 @@ class Fintecture extends AbstractHelper
     /** @var TransactionRepositoryInterface */
     protected $transactionRepository;
 
+    /** @var RemoteAddress */
+    protected $remoteAddress;
+
+    /** @var FintectureLogger */
+    protected $fintectureLogger;
+
     public function __construct(
         Context $context,
-        Session $session,
-        ScopeConfigInterface $scopeConfig,
+        Config $config,
         CollectionFactory $historyCollectionFactory,
         OrderRepositoryInterface $orderRepository,
         TransactionRepositoryInterface $transactionRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        RemoteAddress $remoteAddress,
+        FintectureLogger $fintectureLogger
     ) {
-        $this->session = $session;
-        $this->scopeConfig = $scopeConfig;
+        $this->config = $config;
         $this->historyCollectionFactory = $historyCollectionFactory;
         $this->orderRepository = $orderRepository;
         $this->transactionRepository = $transactionRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->remoteAddress = $remoteAddress;
+        $this->fintectureLogger = $fintectureLogger;
 
         parent::__construct($context);
     }
 
-    public function restoreQuote(): void
+    public function getResponseUrl(): string
     {
-        $this->session->restoreQuote();
+        return $this->getUrl('fintecture/standard/response');
+    }
+
+    public function getOriginUrl(): string
+    {
+        return $this->getUrl('fintecture/standard/response');
+    }
+
+    public function getQrCodeUrl(): string
+    {
+        return $this->getUrl('fintecture/standard/qrcode');
+    }
+
+    public function getSendUrl(): string
+    {
+        return $this->getUrl('fintecture/standard/send');
     }
 
     public function getUrl(string $route, array $params = []): string
@@ -102,35 +124,39 @@ class Fintecture extends AbstractHelper
         // Mapping by payment_status
         $statusMapping = [
             'payment_created' => [
-                'status' => $this->getPaymentCreatedStatus(),
+                'status' => $this->config->getPaymentCreatedStatus(),
+                'state' => Order::STATE_PROCESSING,
+            ],
+            'order_created' => [
+                'status' => $this->config->getOrderCreatedStatus(),
                 'state' => Order::STATE_PROCESSING,
             ],
             'payment_pending' => [
-                'status' => $this->getPaymentPendingStatus(),
+                'status' => $this->config->getPaymentPendingStatus(),
                 'state' => Order::STATE_PENDING_PAYMENT,
             ],
             'payment_partial' => [
-                'status' => $this->getPaymentPartialStatus(),
+                'status' => $this->config->getPaymentPartialStatus(),
                 'state' => Order::STATE_NEW,
             ],
             'payment_unsuccessful' => [
-                'status' => $this->getPaymentFailedStatus(),
+                'status' => $this->config->getPaymentFailedStatus(),
                 'state' => Order::STATE_CANCELED,
             ],
             'payment_error' => [
-                'status' => $this->getPaymentFailedStatus(),
+                'status' => $this->config->getPaymentFailedStatus(),
                 'state' => Order::STATE_CANCELED,
             ],
             'payment_expired' => [
-                'status' => $this->getPaymentFailedStatus(),
+                'status' => $this->config->getPaymentFailedStatus(),
                 'state' => Order::STATE_CANCELED,
             ],
             'sca_required' => [
-                'status' => $this->getPaymentFailedStatus(),
+                'status' => $this->config->getPaymentFailedStatus(),
                 'state' => Order::STATE_CANCELED,
             ],
             'provider_required' => [
-                'status' => $this->getPaymentFailedStatus(),
+                'status' => $this->config->getPaymentFailedStatus(),
                 'state' => Order::STATE_CANCELED,
             ],
         ];
@@ -138,7 +164,7 @@ class Fintecture extends AbstractHelper
         // Mapping by transfer_state
         if ($params['transferState'] === 'overpaid') {
             $statusMapping['payment_created'] = [
-                'status' => $this->getPaymentOverpaidStatus(),
+                'status' => $this->config->getPaymentOverpaidStatus(),
                 'state' => Order::STATE_PROCESSING,
             ];
         }
@@ -158,6 +184,7 @@ class Fintecture extends AbstractHelper
         // Mapping by payment_status
         $notesMapping = [
             'payment_created' => __('The payment has been validated by the bank.'),
+            'order_created' => __('The order is confirmed, you will receive the funds under 30 days.'),
             'payment_pending' => __('The bank is validating the payment.'),
             'payment_partial' => __('A partial payment has been made.'),
             'payment_unsuccessful' => __('The payment was rejected by either the payer or the bank.'),
@@ -201,67 +228,80 @@ class Fintecture extends AbstractHelper
 
     public function isStatusAlreadyFinal(Order $order): bool
     {
-        return $this->isStatusInHistory($order, $this->getPaymentCreatedStatus()) ||
-            $this->isStatusInHistory($order, $this->getPaymentOverpaidStatus());
+        return $this->isStatusInHistory($order, $this->config->getPaymentCreatedStatus())
+            || $this->isStatusInHistory($order, $this->config->getPaymentOverpaidStatus());
     }
 
-    public function getNewOrderStatus(): string
+    public function generatePayload(Order $order, string $type, string $method = ''): array
     {
-        $status = $this->scopeConfig->getValue('payment/fintecture/new_order_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_NEW;
+        $payload = [];
+
+        $billingAddress = $order->getBillingAddress();
+        if (!$billingAddress) {
+            throw new \Exception('No billing address');
         }
 
-        return $status;
-    }
-
-    public function getPaymentCreatedStatus(): string
-    {
-        $status = $this->scopeConfig->getValue('payment/fintecture/payment_created_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_PROCESSING;
+        $phone = $billingAddress->getTelephone();
+        if (strlen($phone) > 1 && substr($phone, 0, 1) === '0') {
+            $phone = substr($phone, 1);
         }
 
-        return $status;
-    }
-
-    public function getPaymentPendingStatus(): string
-    {
-        $status = $this->scopeConfig->getValue('payment/fintecture/payment_pending_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_PENDING_PAYMENT;
+        $name = $billingAddress->getFirstname();
+        $lastName = $billingAddress->getLastname();
+        if ($lastName) {
+            $name .= ' ' . $lastName;
         }
 
-        return $status;
-    }
-
-    public function getPaymentOverpaidStatus(): string
-    {
-        $status = $this->scopeConfig->getValue('payment/fintecture/payment_overpaid_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_CANCELED;
+        $street = $billingAddress->getStreet();
+        if ($street) {
+            $street = implode(' ', $street);
         }
 
-        return $status;
-    }
+        $payload = [
+            'meta' => [
+                'type' => $type,
+                'psu_name' => $name,
+                'psu_email' => $billingAddress->getEmail(),
+                'psu_company' => $billingAddress->getCompany(),
+                // 'psu_vat' => $billingAddress->getVatId(),
+                'psu_phone' => $phone,
+                'psu_phone_prefix' => '+33',
+                'psu_ip' => $this->remoteAddress->getRemoteAddress(),
+                'psu_address' => [
+                    'street' => $street,
+                    'zip' => $billingAddress->getPostcode(),
+                    'city' => $billingAddress->getCity(),
+                    'country' => $billingAddress->getCountryId(),
+                ],
+            ],
+            'data' => [
+                'type' => 'payments',
+                'attributes' => [
+                    'amount' => (string) round((float) $order->getBaseGrandTotal(), 2),
+                    'currency' => $order->getOrderCurrencyCode(),
+                    'communication' => self::PAYMENT_COMMUNICATION . $order->getId(),
+                ],
+            ],
+        ];
 
-    public function getPaymentPartialStatus(): string
-    {
-        $status = $this->scopeConfig->getValue('payment/fintecture/payment_partial_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_CANCELED;
+        // Handle order expiration if enabled
+        if ($this->config->isExpirationActive()) {
+            $minutes = $this->config->getExpirationAfter();
+            if (is_int($minutes) && $minutes >= 3 && $minutes <= 9999) {
+                $payload['meta']['expiry'] = $minutes * 60;
+            } else {
+                $this->fintectureLogger->error('Payload', [
+                    'message' => 'Expiration time must be between 3 and 9999 minutes.',
+                    'minutes' => 'Current expiration time: ' . $minutes,
+                ]);
+            }
         }
 
-        return $status;
-    }
-
-    public function getPaymentFailedStatus(): string
-    {
-        $status = $this->scopeConfig->getValue('payment/fintecture/payment_failed_status', ScopeInterface::SCOPE_STORE);
-        if (!$status) {
-            $status = Order::STATE_CANCELED;
+        // Handle method for RTP
+        if ($type === 'REQUEST_TO_PAY' && !empty($method)) {
+            $payload['meta']['method'] = $method;
         }
 
-        return $status;
+        return $payload;
     }
 }

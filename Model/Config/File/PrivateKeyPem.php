@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Model\Config\File;
 
+use Fintecture\Payment\Logger\Logger;
 use Magento\Framework\Encryption\EncryptorInterface;
 
 class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
 {
-    protected EncryptorInterface $encryptor;
+    /** @var EncryptorInterface */
+    protected $encryptor;
+
+    /** @var Logger */
+    protected $fintectureLogger;
 
     /** @phpstan-ignore-next-line : ignore error for deprecated registry (Magento side) */
     public function __construct(
@@ -20,6 +25,7 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
         \Magento\Config\Model\Config\Backend\File\RequestData\RequestDataInterface $requestData,
         \Magento\Framework\Filesystem $filesystem,
         EncryptorInterface $encryptor,
+        Logger $fintectureLogger,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -38,6 +44,7 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
         );
 
         $this->encryptor = $encryptor;
+        $this->fintectureLogger = $fintectureLogger;
     }
 
     public function beforeSave()
@@ -55,11 +62,19 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
                     if ($privateKey) {
                         $this->setValue($this->encryptor->encrypt($privateKey));
                     } else {
+                        $this->fintectureLogger->error('Private Key', [
+                            'message' => "Can't read the private key file",
+                        ]);
                         throw new \Exception("Can't read the private key file");
                     }
                 }
             } catch (\Exception $e) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('%1', $e->getMessage()));
+                $this->fintectureLogger->error('Private Key', [
+                    'message' => "Can't save the private key",
+                    'exception' => $e,
+                ]);
+
+                throw new \Magento\Framework\Exception\LocalizedException(__("Can't save the private key"));
             }
         } else {
             $this->unsValue();

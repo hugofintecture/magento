@@ -7,7 +7,7 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "2.2.8",
+    "version": "3.0.0",
     "license": [
         "GPL-3.0"
     ],
@@ -17,13 +17,16 @@
         "ext-openssl": "*",
         "magento/framework": ">=100",
         "magento/module-developer": ">=100",
+        "magento/module-payment": ">=100",
+        "magento/module-checkout": ">=100",
+        "magento/module-sales": ">=100",
         "fintecture/fintecture-sdk-php": "^2.3",
         "symfony/http-client": "*",
         "nyholm/psr7": "*"
     },
     "require-dev": {
         "phpstan/phpstan": "^1",
-        "bitexpert/phpstan-magento": "^0.25.0",
+        "bitexpert/phpstan-magento": "^0.30.0",
         "phpstan/phpstan-deprecation-rules": "^1.0",
         "phpstan/extension-installer": "^1.1"
     },

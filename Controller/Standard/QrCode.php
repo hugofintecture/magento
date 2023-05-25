@@ -47,7 +47,7 @@ class QrCode extends FintectureAbstract
             'session_id' => $sessionId,
             'confirm' => 1,
         ];
-        $confirmUrl = $this->paymentMethod->getQrCodeUrl() . '?' . http_build_query($params);
+        $confirmUrl = $this->fintectureHelper->getQrCodeUrl() . '?' . http_build_query($params);
 
         $page = $this->pageFactory->create();
 

@@ -121,11 +121,11 @@ class PaymentCreated extends WebhookAbstract
         ]);
 
         if ($params['type'] === 'ManualTransfer' && (
-            ($params['status'] === 'payment_partial' && $params['transferState'] === 'insufficient') ||
-            ($params['status'] === 'payment_created' && $params['transferState'] === 'overpaid') ||
-            ($params['status'] === 'payment_created' && $params['transferState'] === 'received')
+            ($params['status'] === 'payment_partial' && $params['transferState'] === 'insufficient')
+            || ($params['status'] === 'payment_created' && $params['transferState'] === 'overpaid')
+            || ($params['status'] === 'payment_created' && $params['transferState'] === 'received')
         )) {
-            $this->paymentMethod->createPayment($order, $params, $statuses, true, true);
+            $this->handlePayment->create($order, $params, $statuses, true, true);
 
             return $result;
         } elseif ($order->getStatus() === $statuses['status']) {
@@ -133,7 +133,7 @@ class PaymentCreated extends WebhookAbstract
             // If yes don't re-set it
             $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already set',
-                'incrementOrderId' => $order->getIncrementId(),
+                'orderIncrementId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
                 'status' => $statuses['status'],
             ]);
@@ -144,7 +144,7 @@ class PaymentCreated extends WebhookAbstract
             // If yes don't re-set it
             $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already final',
-                'incrementOrderId' => $order->getIncrementId(),
+                'orderIncrementId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
                 'status' => $statuses['status'],
             ]);
@@ -155,22 +155,22 @@ class PaymentCreated extends WebhookAbstract
             // If yes don't re-set it
             $this->fintectureLogger->info('Webhook', [
                 'message' => 'Status is already in history',
-                'incrementOrderId' => $order->getIncrementId(),
+                'orderIncrementId' => $order->getIncrementId(),
                 'currentStatus' => $order->getStatus(),
                 'status' => $statuses['status'],
             ]);
             $result->setContents('status_already_in_history');
         } elseif (in_array($statuses['status'], [
-            $this->fintectureHelper->getPaymentCreatedStatus(),
-            $this->fintectureHelper->getPaymentPendingStatus(),
+            $this->config->getPaymentCreatedStatus(),
+            $this->config->getPaymentPendingStatus(),
         ])) {
-            if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
-                $this->paymentMethod->createPayment($order, $params, $statuses, true);
+            if ($statuses['status'] === $this->config->getPaymentCreatedStatus()) {
+                $this->handlePayment->create($order, $params, $statuses, true);
             } else {
-                $this->paymentMethod->changeOrderState($order, $params, $statuses, true);
+                $this->handlePayment->changeOrderState($order, $params, $statuses, true);
             }
         } else {
-            $this->paymentMethod->handleFailedTransaction($order, $params, $statuses, true);
+            $this->handlePayment->fail($order, $params, $statuses, true);
         }
 
         return $result;
@@ -182,7 +182,7 @@ class PaymentCreated extends WebhookAbstract
         $result->setHeader('Content-Type', 'text/plain');
 
         if ($status === 'payment_created') {
-            $appliedRefund = $this->paymentMethod->applyRefund($order, $creditmemoTransactionId);
+            $appliedRefund = $this->handleRefund->apply($order, $creditmemoTransactionId);
             if ($appliedRefund) {
                 $result->setHttpResponseCode(200);
             } else {

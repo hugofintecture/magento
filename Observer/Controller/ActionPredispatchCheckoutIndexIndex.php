@@ -6,15 +6,15 @@ namespace Fintecture\Payment\Observer\Controller;
 
 use Fintecture\Config\Telemetry;
 use Fintecture\Payment\Helper\Cookie as CookieHelper;
-use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Payment\Helper\Stats;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 
 class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
 {
-    /** @var Fintecture */
-    protected $_paymentMethod;
+    /** @var Stats */
+    protected $stats;
 
     /** @var Session */
     protected $_checkoutSession;
@@ -23,11 +23,11 @@ class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
     protected $_cookieHelper;
 
     public function __construct(
-        Fintecture $paymentMethod,
+        Stats $stats,
         Session $checkoutSession,
         CookieHelper $cookieHelper
     ) {
-        $this->_paymentMethod = $paymentMethod;
+        $this->stats = $stats;
         $this->_checkoutSession = $checkoutSession;
         $this->_cookieHelper = $cookieHelper;
     }
@@ -49,8 +49,12 @@ class ActionPredispatchCheckoutIndexIndex implements ObserverInterface
             return;
         }
 
-        $configurationSummary = $this->_paymentMethod->getConfigurationSummary();
-        Telemetry::logAction('checkout', $configurationSummary);
+        $configurationSummary = $this->stats->getConfigurationSummary();
+        try {
+            Telemetry::logAction('checkout', $configurationSummary);
+        } catch (\Exception $e) {
+            // do nothing
+        }
 
         $this->_cookieHelper->setCookie('fintecture-cartId', $quoteId, 3600 * 24 * 7);
     }

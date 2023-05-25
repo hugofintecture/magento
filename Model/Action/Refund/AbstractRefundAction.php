@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Model\Action\Refund;
 
-use Fintecture\Payment\Model\Fintecture;
+use Fintecture\Payment\Gateway\Config\Config;
+use Fintecture\Payment\Gateway\HandleRefund;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\CreditmemoRepositoryInterface;
 use Magento\Sales\Api\Data\CreditmemoInterface;
@@ -18,27 +19,23 @@ use Magento\Sales\Model\Order\Creditmemo;
  */
 abstract class AbstractRefundAction
 {
-    /**
-     * @var CreditmemoRepositoryInterface
-     */
+    /** @var CreditmemoRepositoryInterface */
     private $creditmemoRepository;
 
-    /**
-     * @var OrderRepositoryInterface
-     */
+    /** @var OrderRepositoryInterface */
     private $orderRepository;
 
-    /** @var Fintecture */
-    protected $paymentMethod;
+    /** @var HandleRefund */
+    protected $handleRefund;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         CreditmemoRepositoryInterface $creditmemoRepository,
-        Fintecture $paymentMethod
+        HandleRefund $handleRefund
     ) {
         $this->orderRepository = $orderRepository;
         $this->creditmemoRepository = $creditmemoRepository;
-        $this->paymentMethod = $paymentMethod;
+        $this->handleRefund = $handleRefund;
     }
 
     /**
@@ -86,7 +83,7 @@ abstract class AbstractRefundAction
     private function validatePaymentMethod(OrderInterface $order): void
     {
         $payment = $order->getPayment();
-        if ($payment && $payment->getMethod() !== Fintecture::CODE) {
+        if ($payment && $payment->getMethod() !== Config::CODE) {
             throw new LocalizedException(__('Order is not paid with Fintecture'));
         }
     }

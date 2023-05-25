@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Controller\Adminhtml\Settings;
 
+use Fintecture\Payment\Gateway\Config\Config;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Environment;
-use Fintecture\Payment\Model\Fintecture;
 use Fintecture\Util\Validation;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -15,14 +15,12 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 class ConnectionTest extends Action
 {
     public const CONFIG_PREFIX = 'payment/fintecture/';
-
-    /** @var Fintecture */
-    protected $fintectureModel;
 
     /** @var JsonFactory */
     protected $jsonResultFactory;
@@ -39,25 +37,33 @@ class ConnectionTest extends Action
     /** @var Validator */
     protected $formKeyValidator;
 
+    /** @var Config */
+    protected $config;
+
+    /** @var EncryptorInterface */
+    protected $encryptor;
+
     /** @var string */
     protected $environment = Environment::ENVIRONMENT_PRODUCTION;
 
     public function __construct(
         Context $context,
-        Fintecture $fintectureModel,
         JsonFactory $jsonResultFactory,
         ScopeConfigInterface $scopeConfig,
         FintectureHelper $fintectureHelper,
         FintectureLogger $fintectureLogger,
-        Validator $formKeyValidator
+        Validator $formKeyValidator,
+        Config $config,
+        EncryptorInterface $encryptor
     ) {
         parent::__construct($context);
-        $this->fintectureModel = $fintectureModel;
         $this->jsonResultFactory = $jsonResultFactory;
         $this->scopeConfig = $scopeConfig;
         $this->fintectureHelper = $fintectureHelper;
         $this->fintectureLogger = $fintectureLogger;
         $this->formKeyValidator = $formKeyValidator;
+        $this->config = $config;
+        $this->encryptor = $encryptor;
     }
 
     public function execute()
@@ -68,7 +74,6 @@ class ConnectionTest extends Action
             throw new LocalizedException(__('Invalid request'));
         }
 
-        $scope = $request->getParam('scope');
         $scopeId = (int) $request->getParam('scopeId');
         $jsParams = $request->getParams();
 
@@ -79,12 +84,16 @@ class ConnectionTest extends Action
 
         // Handle already saved app secret
         if ($jsParams['appSecret'] === '******') {
-            $jsParams['appSecret'] = $this->fintectureModel->getAppSecret($jsParams['environment'], $scope, $scopeId);
+            $jsParams['appSecret'] = $this->config->getAppSecret($jsParams['environment'], $scopeId);
         }
 
         // Handle already saved private key
         if (empty($jsParams['privateKey'])) {
-            $jsParams['privateKey'] = $this->fintectureModel->getAppPrivateKey($jsParams['environment'], $scope, $scopeId);
+            $privateKey = $this->config->getAppPrivateKey($jsParams['environment'], $scopeId);
+            if ($privateKey) {
+                $jsParams['privateKey'] = $this->encryptor->decrypt($privateKey);
+            }
+
             if (!$jsParams['privateKey']) {
                 throw new LocalizedException(__('No private key file found'));
             }

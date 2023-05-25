@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Plugin\Magento\Sales\Model\Service;
 
+use Fintecture\Payment\Gateway\Config\Config;
 use Fintecture\Payment\Model\Action\Refund\CreateRefund;
-use Fintecture\Payment\Model\Fintecture;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\CreditmemoInterface;
@@ -83,6 +83,6 @@ class CreditmemoService
 
         $payment = $order->getPayment();
 
-        return $payment && $payment->getMethod() === Fintecture::CODE;
+        return $payment && $payment->getMethod() === Config::CODE;
     }
 }

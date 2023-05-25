@@ -4,11 +4,20 @@
     <default>
         <payment>
             <fintecture>
-                <model>Fintecture\Payment\Model\Fintecture</model>
+                <debug>0</debug>
                 <active>0</active>
+                <model>FintectureFacade</model>
+                <payment_action>initialize</payment_action>
+                <can_use_internal>1</can_use_internal>
+                <can_use_checkout>1</can_use_checkout>
+                <can_initialize>1</can_initialize>
+                <can_refund>1</can_refund>
+                <is_gateway>1</is_gateway>
+                <order_status>new</order_status>
+                <currency>EUR</currency>
                 <sort_order>0</sort_order>
                 <title>Fintecture</title>
-                <allowspecific>1</allowspecific>
+                <allowspecific>0</allowspecific>
                 <specificcountry>FR</specificcountry>
                 <environment>sandbox</environment>
                 <bank_type>all</bank_type>
@@ -17,6 +26,7 @@
                 <fintecture_app_secret_production backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <new_order_status>pending</new_order_status>
                 <payment_created_status>processing</payment_created_status>
+                <order_created_status>fintecture_order_created</order_created_status>
                 <payment_pending_status>pending_payment</payment_pending_status>
                 <payment_overpaid_status>fintecture_overpaid</payment_overpaid_status>
                 <payment_partial_status>fintecture_partial</payment_partial_status>
@@ -26,9 +36,24 @@
                 <invoicing_active>1</invoicing_active>
                 <alternative_method_active>0</alternative_method_active>
                 <alternative_method>qrcode</alternative_method>
-                <payment_us_fintecture_general_specificcountry>FR</payment_us_fintecture_general_specificcountry>
-                <payment_us_fintecture_general_allowspecific>1</payment_us_fintecture_general_allowspecific>
             </fintecture>
+            <fintecture_bnpl>
+                <debug>0</debug>
+                <active>0</active>
+                <model>FintectureBnplFacade</model>
+                <payment_action>initialize</payment_action>
+                <can_use_internal>1</can_use_internal>
+                <can_use_checkout>1</can_use_checkout>
+                <can_initialize>1</can_initialize>
+                <can_refund>1</can_refund>
+                <is_gateway>1</is_gateway>
+                <order_status>new</order_status>
+                <currency>EUR</currency>
+                <sort_order>1</sort_order>
+                <title>Fintecture</title>
+                <allowspecific>0</allowspecific>
+                <specificcountry>FR</specificcountry>
+            </fintecture_bnpl>
         </payment>
     </default>
 </config>

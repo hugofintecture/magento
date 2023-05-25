@@ -13,7 +13,7 @@ class Response extends FintectureAbstract
     public function execute()
     {
         try {
-            if (!$this->paymentMethod->isPisClientInstantiated()) {
+            if (!$this->sdk->isPisClientInstantiated()) {
                 throw new \Exception('PISClient not instantiated');
             }
 
@@ -41,26 +41,28 @@ class Response extends FintectureAbstract
             if (!$order) {
                 $this->fintectureLogger->error('Response', [
                     'message' => "Can't find an order associated with this state",
+                    'orderId' => $orderId,
                 ]);
 
                 return $this->redirectToCart();
             }
 
             /** @phpstan-ignore-next-line */
-            $pisToken = $this->paymentMethod->pisClient->token->generate();
+            $pisToken = $this->sdk->pisClient->token->generate();
             if (!$pisToken->error) {
-                $this->paymentMethod->pisClient->setAccessToken($pisToken); // set token of PIS client
+                $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
             } else {
                 throw new \Exception($pisToken->errorMsg);
             }
 
             /** @phpstan-ignore-next-line */
-            $apiResponse = $this->paymentMethod->pisClient->payment->get($sessionId);
+            $apiResponse = $this->sdk->pisClient->payment->get($sessionId);
             if (!$apiResponse->error) {
                 $params = [
                     'status' => $apiResponse->meta->status ?? '',
                     'sessionId' => $sessionId,
                     'transferState' => $apiResponse->data->transfer_state ?? '',
+                    'type' => $apiResponse->meta->type ?? '',
                 ];
 
                 $statuses = $this->fintectureHelper->getOrderStatus($params);
@@ -72,13 +74,13 @@ class Response extends FintectureAbstract
                 ]);
 
                 if ($statuses && in_array($statuses['status'], [
-                    $this->fintectureHelper->getPaymentCreatedStatus(),
-                    $this->fintectureHelper->getPaymentPendingStatus(),
+                    $this->config->getPaymentCreatedStatus(),
+                    $this->config->getPaymentPendingStatus(),
                 ])) {
-                    if ($statuses['status'] === $this->fintectureHelper->getPaymentCreatedStatus()) {
-                        $this->paymentMethod->createPayment($order, $params, $statuses);
+                    if ($statuses['status'] === $this->config->getPaymentCreatedStatus()) {
+                        $this->handlePayment->create($order, $params, $statuses);
                     } else {
-                        $this->paymentMethod->changeOrderState($order, $params, $statuses);
+                        $this->handlePayment->changeOrderState($order, $params, $statuses);
                     }
 
                     try {
@@ -88,7 +90,7 @@ class Response extends FintectureAbstract
                         $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
                         $this->checkoutSession->setLastOrderStatus($order->getStatus());
 
-                        if ($statuses['status'] === $this->fintectureHelper->getPaymentPendingStatus()) {
+                        if ($statuses['status'] === $this->config->getPaymentPendingStatus()) {
                             $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.')->render());
                         }
 
@@ -98,12 +100,12 @@ class Response extends FintectureAbstract
                     } catch (\Exception $e) {
                         $this->fintectureLogger->error('Response', [
                             'exception' => $e,
-                            'incrementOrderId' => $order->getIncrementId(),
+                            'orderIncrementId' => $order->getIncrementId(),
                             'status' => $order->getStatus(),
                         ]);
                     }
                 } else {
-                    $this->paymentMethod->handleFailedTransaction($order, $params, $statuses);
+                    $this->handlePayment->fail($order, $params, $statuses);
                     $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
 
                     return $this->redirectToCart();
