@@ -28,7 +28,7 @@ class RequestToPay
         FintectureHelper $fintectureHelper,
         Logger $fintectureLogger,
         Sdk $sdk,
-        Config $config,
+        Config $config
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->fintectureLogger = $fintectureLogger;

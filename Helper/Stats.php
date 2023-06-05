@@ -57,7 +57,7 @@ class Stats
             $connection = $this->resourceConnection->getConnection();
             $query = 'SELECT VERSION()';
             $version = $connection->fetchOne($query);
-        } catch (Exception) {
+        } catch (Exception $e) {
             $this->fintectureLogger->debug("Can't detect MySQL version.");
         }
 
