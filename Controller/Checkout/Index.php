@@ -83,7 +83,7 @@ class Index extends FintectureAbstract
 
     private function getSendRedirect(Order $order): string
     {
-        return $this->fintectureHelper->getSendUrl() . '?step=1&orderId=' . $order->getId();
+        return $this->fintectureHelper->getSendUrl() . '?step=1&orderId=' . $order->getIncrementId();
     }
 
     /**

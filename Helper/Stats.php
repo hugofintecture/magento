@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fintecture\Payment\Helper;
 
-use Exception;
 use Fintecture\Payment\Gateway\Config\Config;
 use Fintecture\Payment\Logger\Logger as FintectureLogger;
 use Fintecture\Payment\Model\Environment;
@@ -57,7 +56,7 @@ class Stats
             $connection = $this->resourceConnection->getConnection();
             $query = 'SELECT VERSION()';
             $version = $connection->fetchOne($query);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->fintectureLogger->debug("Can't detect MySQL version.");
         }
 

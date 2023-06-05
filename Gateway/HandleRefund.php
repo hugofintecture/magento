@@ -131,14 +131,19 @@ class HandleRefund
                 /** @phpstan-ignore-next-line */
                 $apiResponse = $this->sdk->pisClient->refund->generate($data, $state);
                 if (!$apiResponse->error) {
-                    if ($order->canHold()) {
-                        $order->hold();
+                    if ($apiResponse->meta->status === 'refund_waiting') {
+                        $comment = __('You must proceed to the refund directly from the Fintecture Console with this type of account.');
+                    } else {
+                        if ($order->canHold()) {
+                            $order->hold();
+                        }
+                        $comment = __('The refund link has been send.');
                     }
-                    $order->addCommentToStatusHistory(__('The refund link has been send.')->render());
+                    $order->addCommentToStatusHistory($comment->render());
                     $this->orderRepository->save($order);
 
                     $this->fintectureLogger->info('Refund', [
-                        'message' => 'The refund link has been send',
+                        'message' => $comment,
                         'incrementOrderId' => $incrementOrderId,
                     ]);
                 } else {

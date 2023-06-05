@@ -17,8 +17,8 @@ class Send extends FintectureAbstract
         }
 
         $step = (int) $this->request->getParam('step');
-        $method = $this->request->getParam('method');
-        $orderId = $this->request->getParam('orderId');
+        $method = (string) $this->request->getParam('method');
+        $orderId = (string) $this->request->getParam('orderId');
 
         $qrCode = '';
         $reference = '';
@@ -29,7 +29,8 @@ class Send extends FintectureAbstract
             // Call API RTP with method
             $order = $this->fintectureHelper->getOrderByIncrementId($orderId);
             if (!$order) {
-                throw new \Exception('No order found');
+                $this->fintectureLogger->error('Send', ['message' => 'No order found']);
+                throw new \Exception('Send error: no order found');
             }
 
             $data = $this->fintectureHelper->generatePayload($order, self::RTP_TYPE, $method);
