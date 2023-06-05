@@ -6,7 +6,6 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use chillerlan\QRCode\QRCode as QRCodeGenerator;
 use Fintecture\Payment\Controller\FintectureAbstract;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\Template;
 
 class QrCode extends FintectureAbstract
@@ -22,7 +21,7 @@ class QrCode extends FintectureAbstract
 
         if (empty($encodedUrl)) {
             $this->fintectureLogger->error('QR Code', ['message' => 'no URL provided']);
-            throw new LocalizedException(__('QR Code error: no URL provided'));
+            throw new \Exception('QR Code error: no URL provided');
         }
 
         $url = urldecode($encodedUrl);
