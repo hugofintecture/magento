@@ -109,15 +109,79 @@
                     </field>
                     <!-- PRODUCTION END -->
                 </group>
+
+                <!-- Start Payment Options -->
+                <group id="payment_options" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Payment Options</label>
+
+                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/fintecture/sort_order</config_path>
+                    </field>
+
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Payment from Applicable Countries</label>
+                        <config_path>payment/fintecture/allowspecific</config_path>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                    </field>
+
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Payment from Specific Countries</label>
+                        <config_path>payment/fintecture/specificcountry</config_path>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <can_be_empty>1</can_be_empty>
+                    </field>
+                </group>
+                <!-- End Payment Options -->
+
+                <!-- Start Design Options -->
+                <group id="design_options" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Design Options</label>
+
+                    <field id="checkout_design_selection" translate="label comment" type="radios" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Checkout Design</label>
+                        <comment>Please select the message you want to display on your checkout page, depending on the payment solutions you have.</comment>
+                        <source_model>Fintecture\Payment\Model\Config\Options\CheckoutDesignSelectionOptions</source_model>
+                        <config_path>payment/fintecture/checkout_design_selection</config_path>
+                    </field>
+                </group>
+                <!-- End Design Options -->
                 
                 <!-- Start Advanced Options -->
-                <group id="fintecture_advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <group id="fintecture_advanced" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Advanced Settings</label>
                     <field id="version" type="text" translate="label comment" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                         <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
                     </field>
 
-                    <group id="fintecture_advanced_mapping" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <group id="fintecture_advanced_invoicing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Invoicing</label>
+                        
+                        <field id="invoicing_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable invoice generation for paid orders</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/fintecture/invoicing_active</config_path>
+                        </field>
+                    </group>
+
+                    <group id="fintecture_advanced_smart_transfer" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Smart Transfer</label>
+
+                        <field id="custom_reconciliation_field_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable custom field for the reconciliation</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/fintecture/custom_reconciliation_field_active</config_path>
+                        </field>
+                        
+                        <field id="custom_reconciliation_field" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Custom field for the reconciliation</label>
+                            <source_model>Fintecture\Payment\Model\CustomReconciliationField</source_model>
+                            <config_path>payment/fintecture/custom_reconciliation_field</config_path>
+                        </field>
+                    </group>
+
+                    <group id="fintecture_advanced_mapping" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Payment status mapping between Fintecture and Magento</label>
                         
                         <field id="new_order_status" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -157,7 +221,7 @@
                         </field>
                     </group>
 
-                    <group id="fintecture_advanced_expiration" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <group id="fintecture_advanced_expiration" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Automatic expiration of pending orders</label>
                         
                         <field id="expiration_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -174,17 +238,7 @@
                         </field>
                     </group>
 
-                    <group id="fintecture_advanced_invoicing" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Invoicing</label>
-                        
-                        <field id="invoicing_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                            <label>Enable invoice generation for paid orders</label>
-                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                            <config_path>payment/fintecture/invoicing_active</config_path>
-                        </field>
-                    </group>
-
-                    <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Alternative payment methods for 'Login as Customer' feature</label>
                         
                         <field id="alternative_method_active" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -202,31 +256,6 @@
                     </group>
                 </group>
                 <!-- End Advanced Options -->
-
-                <!-- Start Payment Options -->
-                <group id="payment_options" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Payment Options</label>
-
-                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Sort Order</label>
-                        <frontend_class>validate-number</frontend_class>
-                        <config_path>payment/fintecture/sort_order</config_path>
-                    </field>
-
-                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Payment from Applicable Countries</label>
-                        <config_path>payment/fintecture/allowspecific</config_path>
-                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
-                    </field>
-
-                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Payment from Specific Countries</label>
-                        <config_path>payment/fintecture/specificcountry</config_path>
-                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-                        <can_be_empty>1</can_be_empty>
-                    </field>
-                </group>
-                <!-- End Payment Options -->
             </group>
             
             <group id="fintecture_bnpl" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -246,8 +275,20 @@
                     </field>
                 </group>
 
+                 <!-- Start Payment Options -->
+                <group id="payment_options_bnpl" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Payment Options</label>
+
+                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/fintecture_bnpl/sort_order</config_path>
+                    </field>
+                </group>
+                <!-- End Payment Options -->
+
                 <!-- Start Advanced Options -->
-                <group id="advanced_bnpl" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <group id="advanced_bnpl" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Advanced Settings</label>
                     <field id="version" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                         <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
@@ -264,18 +305,6 @@
                     </group>
                 </group>
                 <!-- End Advanced Options -->
-
-                <!-- Start Payment Options -->
-                <group id="payment_options_bnpl" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Payment Options</label>
-
-                    <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Sort Order</label>
-                        <frontend_class>validate-number</frontend_class>
-                        <config_path>payment/fintecture_bnpl/sort_order</config_path>
-                    </field>
-                </group>
-                <!-- End Payment Options -->
             </group>
         </section>
     </system>

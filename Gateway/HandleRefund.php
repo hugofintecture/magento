@@ -120,7 +120,6 @@ class HandleRefund
                     'creditmemo_transaction_id' => $creditmemoTransactionId,
                 ]);
 
-                /** @phpstan-ignore-next-line */
                 $pisToken = $this->sdk->pisClient->token->generate();
                 if (!$pisToken->error) {
                     $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
@@ -128,10 +127,9 @@ class HandleRefund
                     throw new \Exception($pisToken->errorMsg);
                 }
 
-                /** @phpstan-ignore-next-line */
                 $apiResponse = $this->sdk->pisClient->refund->generate($data, $state);
                 if (!$apiResponse->error) {
-                    if ($apiResponse->meta->status === 'refund_waiting') {
+                    if (isset($apiResponse->meta->status) && $apiResponse->meta->status === 'refund_waiting') {
                         $comment = __('You must proceed to the refund directly from the Fintecture Console with this type of account.');
                     } else {
                         if ($order->canHold()) {

@@ -12,6 +12,9 @@ define([
         afterPlaceOrder: function () {
             const afterPlaceUrl = url.build('fintecture/checkout/index');
             window.location.replace(afterPlaceUrl);
+        },
+        getCheckoutDesign: function () {
+            return window.checkoutConfig.payment.fintecture.checkoutDesign;
         }
     });
 });

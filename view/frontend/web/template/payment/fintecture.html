@@ -3,19 +3,44 @@
         <input type="radio" name="payment[method]" class="radio"
             data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
         <label data-bind="attr: {'for': getCode()}" class="label img_label">
+            <!-- ko if: getCheckoutDesign() === 'it' -->
             <span data-bind="i18n: 'Instant bank payment'"></span>
+            <!-- /ko -->
+            
+            <!-- ko if: getCheckoutDesign() === 'ist_long' -->
+            <span data-bind="i18n: 'Wire transfer'"></span>
+            <!-- /ko -->
+
+            <!-- ko if: getCheckoutDesign() === 'ist_short' -->
+            <span data-bind="i18n: 'Secured wire transfer'"></span>
+            <!-- /ko -->
         </label>
     </div>
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
         <div class="checkout_block payment-method-content">
+            <!-- ko if: getCheckoutDesign() === 'it' -->
             <p class="f-description">
                 <span data-bind="i18n: 'You will be automatically redirected to your secured bank environment to confirm your payment.'"></span>
                 <span><b data-bind="i18n: 'Pay for your purchases instantly and securely.'"></b></span>
             </p>
 
             <p id="f-howto" data-bind="i18n: 'How it works?'"></p>
+            <!-- /ko -->
 
+            <!-- ko if: getCheckoutDesign() === 'ist_long' -->
+            <p class="f-description">
+                <span data-bind="i18n: 'Choose to pay by'"></span>
+                <span><b data-bind="i18n: 'traditional bank transfer'"></b></span>
+                <span data-bind="i18n: 'or by'"></span>
+                <span><b data-bind="i18n: 'immediate transfer'"></b>,</span>
+                <span data-bind="i18n: ' for an express payment of your purchases.'"></span>
+            </p>
+
+            <p id="f-howto" data-bind="i18n: 'How to make an immediate transfer?'"></p>
+            <!-- /ko -->
+
+            <!-- ko if: getCheckoutDesign() !== 'ist_short' -->
             <div id="f-steps">
                 <div class="f-step-wrapper">
                     <div class="f-step-icon f-step-1-icon">
@@ -42,13 +67,23 @@
                     <p data-bind="i18n: 'Your purchase is confirmed!'"></p>
                 </div>
             </div>
+            <!-- /ko -->
+
+            <!-- ko if: getCheckoutDesign() === 'ist_long' -->
+            <p id="f-institution" data-bind="i18n: 'Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.'"></p>
+            <!-- /ko -->
         </div>
 
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout" type="submit"
                     data-bind="click: placeOrder, enable: (getCode() == isChecked())" disabled>
+                    <!-- ko if: getCheckoutDesign() === 'it' -->
                     <span data-bind="i18n: 'Pay Now'"></span>
+                    <!-- /ko -->
+                    <!-- ko if: getCheckoutDesign() !== 'it' -->
+                    <span data-bind="i18n: 'Pay'"></span>
+                    <!-- /ko -->
                 </button>
             </div>
         </div>

@@ -38,7 +38,6 @@ class RequestToPay
 
     public function get(Order $order, array $data): ApiResponse
     {
-        /** @phpstan-ignore-next-line */
         $pisToken = $this->sdk->pisClient->token->generate();
         if (!$pisToken->error) {
             $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
@@ -48,7 +47,6 @@ class RequestToPay
 
         $state = Crypto::encodeToBase64(['order_id' => $order->getIncrementId()]);
 
-        /** @phpstan-ignore-next-line */
         $apiResponse = $this->sdk->pisClient->requestToPay->generate($data, 'fr', null, $state);
 
         if ($apiResponse->error) {

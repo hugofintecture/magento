@@ -23,6 +23,7 @@ class ConfigProvider implements ConfigProviderInterface
             'payment' => [
                 Config::CODE => [
                     'active' => $this->gatewayConfig->isActive(),
+                    'checkoutDesign' => $this->gatewayConfig->getCheckoutDesign(),
                 ],
             ],
         ];

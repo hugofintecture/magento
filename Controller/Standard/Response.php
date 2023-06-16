@@ -47,7 +47,9 @@ class Response extends FintectureAbstract
                 return $this->redirectToCart();
             }
 
-            /** @phpstan-ignore-next-line */
+            $order->setExtOrderId($sessionId);
+            $this->orderRepository->save($order);
+
             $pisToken = $this->sdk->pisClient->token->generate();
             if (!$pisToken->error) {
                 $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
@@ -55,7 +57,6 @@ class Response extends FintectureAbstract
                 throw new \Exception($pisToken->errorMsg);
             }
 
-            /** @phpstan-ignore-next-line */
             $apiResponse = $this->sdk->pisClient->payment->get($sessionId);
             if (!$apiResponse->error) {
                 $params = [

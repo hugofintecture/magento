@@ -23,6 +23,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 abstract class FintectureAbstract implements CsrfAwareActionInterface
@@ -75,6 +76,9 @@ abstract class FintectureAbstract implements CsrfAwareActionInterface
     /** @var RequestToPay */
     protected $requestToPay;
 
+    /** @var OrderRepositoryInterface */
+    protected $orderRepository;
+
     public const PIS_TYPE = 'PayByBank';
     public const RTP_TYPE = 'RequestToPay';
     public const BNPL_TYPE = 'BuyNowPayLater';
@@ -95,7 +99,8 @@ abstract class FintectureAbstract implements CsrfAwareActionInterface
         Config $config,
         HandlePayment $handlePayment,
         Connect $connect,
-        RequestToPay $requestToPay
+        RequestToPay $requestToPay,
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->fintectureHelper = $fintectureHelper;
@@ -113,6 +118,7 @@ abstract class FintectureAbstract implements CsrfAwareActionInterface
         $this->handlePayment = $handlePayment;
         $this->connect = $connect;
         $this->requestToPay = $requestToPay;
+        $this->orderRepository = $orderRepository;
     }
 
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
