@@ -1,7 +1,10 @@
 {
     "name": "fintecture/payment",
     "description": "Fintecture Payment",
-    "keywords": ["payment","bank"],
+    "keywords": [
+        "payment",
+        "bank"
+    ],
     "homepage": "https://github.com/Fintecture/magento",
     "support": {
         "email": "contact@fintecture.com"
@@ -51,7 +54,7 @@
         "allow-plugins": {
             "magento/composer-dependency-version-audit-plugin": true,
             "phpstan/extension-installer": true,
-            "php-http/discovery": true
+            "php-http/discovery": false
         }
     }
 }
