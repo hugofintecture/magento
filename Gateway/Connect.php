@@ -38,7 +38,6 @@ class Connect
 
     public function get(Order $order, array $data): ApiResponse
     {
-        /** @phpstan-ignore-next-line */
         $pisToken = $this->sdk->pisClient->token->generate();
         if (!$pisToken->error) {
             $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
@@ -54,7 +53,6 @@ class Connect
             $psuType = 'all';
         }
 
-        /** @phpstan-ignore-next-line */
         $apiResponse = $this->sdk->pisClient->connect->generate(
             $data,
             $state,

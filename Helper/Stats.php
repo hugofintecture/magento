@@ -98,6 +98,7 @@ class Stats
             'module_sandbox_app_id' => $this->config->getAppId(Environment::ENVIRONMENT_SANDBOX),
             'module_production_app_id' => $this->config->getAppId(Environment::ENVIRONMENT_PRODUCTION),
             'module_branding' => $this->config->isShowLogo(),
+            'module_checkout_design' => $this->config->getCheckoutDesign(),
         ];
     }
 }

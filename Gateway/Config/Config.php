@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.0.1';
+    const VERSION = '3.1.0';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -27,6 +27,9 @@ class Config extends BaseConfig
     const KEY_INVOICING_ACTIVE = 'invoicing_active';
     const KEY_ALTERNATIVE_METHOD_ACTIVE = 'alternative_method_active';
     const KEY_ALTERNATIVE_METHOD = 'alternative_method';
+    const KEY_CHECKOUT_DESIGN_SELECTION = 'checkout_design_selection';
+    const KEY_CUSTOM_RECONCILIATION_FIELD_ACTIVE = 'custom_reconciliation_field_active';
+    const KEY_CUSTOM_RECONCILIATION_FIELD = 'custom_reconciliation_field';
 
     public function getShopName(): ?string
     {
@@ -133,6 +136,21 @@ class Config extends BaseConfig
     public function getAlternativeMethod(): ?string
     {
         return $this->getValue(self::KEY_ALTERNATIVE_METHOD);
+    }
+
+    public function getCheckoutDesign(): string
+    {
+        return $this->getValue(self::KEY_CHECKOUT_DESIGN_SELECTION);
+    }
+
+    public function isCustomReconciliationFieldActive(): bool
+    {
+        return (bool) $this->getValue(self::KEY_CUSTOM_RECONCILIATION_FIELD_ACTIVE);
+    }
+
+    public function getCustomReconciliationField(): ?string
+    {
+        return $this->getValue(self::KEY_CUSTOM_RECONCILIATION_FIELD);
     }
 
     public function getNewOrderStatus(): string

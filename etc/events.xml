@@ -6,4 +6,7 @@
     <event name="admin_system_config_changed_section_payment">
         <observer name="fintecture_admin_system_config_changed_section_payment" instance="Fintecture\Payment\Observer\ConfigObserver" />
     </event>
+    <event name="sales_order_save_after">
+        <observer name="fintecture_sales_order_save_after" instance="Fintecture\Payment\Observer\Sales\OrderSaveAfter" />
+    </event>
 </config>

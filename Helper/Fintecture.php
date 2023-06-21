@@ -302,6 +302,17 @@ class Fintecture extends AbstractHelper
             $payload['meta']['method'] = $method;
         }
 
+        // Handle custom reconciliation field if enabled
+        if ($this->config->isCustomReconciliationFieldActive() && $this->config->getCustomReconciliationField()) {
+            $customReconciliationField = $this->config->getCustomReconciliationField();
+
+            $payload['meta']['reconciliation'] = [
+                'level' => 'key',
+                'key' => $order->getData($customReconciliationField),
+                'match_amount' => true,
+            ];
+        }
+
         return $payload;
     }
 }
