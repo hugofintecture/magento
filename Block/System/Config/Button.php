@@ -53,7 +53,7 @@ class Button extends Field
         $button = $this->getLayout()->createBlock(WidgetButton::class);
         $button->setData([
             'id' => 'connection-test',
-            'label' => __('Test Connection'),
+            'label' => __('Test connection'),
         ]);
 
         return $button->toHtml();

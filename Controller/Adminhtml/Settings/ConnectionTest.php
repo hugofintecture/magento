@@ -82,7 +82,7 @@ class ConnectionTest extends Action
             throw new LocalizedException(__('Some fields are empty'));
         }
 
-        // Handle already saved app secret
+        // Handle already saved APP secret
         if ($jsParams['appSecret'] === '******') {
             $jsParams['appSecret'] = $this->config->getAppSecret($jsParams['environment'], $scopeId);
         }

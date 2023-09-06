@@ -37,6 +37,7 @@ class BnplConfigProvider implements ConfigProviderInterface
                     'active' => $this->gatewayConfig->isActive(),
                     'todayDate' => $this->beautifulDate->formatDatetime($today),
                     'laterDate' => $this->beautifulDate->formatDatetime($later),
+                    'recommendBnplBadge' => $this->gatewayConfig->isRecommendedBnplBadgeActive(),
                 ],
             ],
         ];

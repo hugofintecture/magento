@@ -28,13 +28,13 @@
                     </field>
 
                     <field id="bank_type" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Bank Type</label>
-                        <source_model>Fintecture\Payment\Model\Banktype</source_model>
+                        <label>Bank type</label>
+                        <source_model>Fintecture\Payment\Model\BankType</source_model>
                         <comment>Filter the bank type</comment>
                     </field>
 
                     <field id="show_logo" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Show Logo</label>
+                        <label>Show logo</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <comment>Show logo at checkout</comment>
                     </field>
@@ -51,7 +51,7 @@
                     </field>
 
                     <field id="fintecture_app_secret_sandbox" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Fintecture APP Secret</label>
+                        <label>Fintecture APP secret</label>
                         <depends>
                             <field id="environment">sandbox</field>
                         </depends>
@@ -84,7 +84,7 @@
                     </field>
 
                     <field id="fintecture_app_secret_production" translate="label comment" type="obscure" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Fintecture APP Secret</label>
+                        <label>Fintecture APP secret</label>
                         <depends>
                             <field id="environment">production</field>
                         </depends>
@@ -95,7 +95,7 @@
                     </field>
 
                     <field id="custom_file_upload_production" translate="label" type="Fintecture\Payment\Model\Config\File\PemFile" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Fintecture Private Key</label>
+                        <label>Fintecture private key</label>
                         <depends>
                             <field id="environment">production</field>
                         </depends>
@@ -110,47 +110,54 @@
                     <!-- PRODUCTION END -->
                 </group>
 
-                <!-- Start Payment Options -->
+                <!-- Start payment options -->
                 <group id="payment_options" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Payment Options</label>
+                    <label>Payment options</label>
 
                     <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Sort Order</label>
+                        <label>Sort order</label>
                         <frontend_class>validate-number</frontend_class>
                         <config_path>payment/fintecture/sort_order</config_path>
                     </field>
 
                     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Payment from Applicable Countries</label>
+                        <label>Payment from applicable countries</label>
                         <config_path>payment/fintecture/allowspecific</config_path>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                     </field>
 
                     <field id="specificcountry" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Payment from Specific Countries</label>
+                        <label>Payment from specific countries</label>
                         <config_path>payment/fintecture/specificcountry</config_path>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <can_be_empty>1</can_be_empty>
                     </field>
                 </group>
-                <!-- End Payment Options -->
+                <!-- End payment options -->
 
-                <!-- Start Design Options -->
+                <!-- Start design options -->
                 <group id="design_options" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Design Options</label>
+                    <label>Design options</label>
 
                     <field id="checkout_design_selection" translate="label comment" type="radios" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Checkout Design</label>
+                        <label>Checkout design</label>
                         <comment>Please select the message you want to display on your checkout page, depending on the payment solutions you have.</comment>
                         <source_model>Fintecture\Payment\Model\Config\Options\CheckoutDesignSelectionOptions</source_model>
                         <config_path>payment/fintecture/checkout_design_selection</config_path>
                     </field>
+
+                    <field id="recommend_it_badge" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>"Recommended" badge</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Recommend the payment method on checkout page</comment>
+                        <config_path>payment/fintecture/recommend_it_badge</config_path>
+                    </field>
                 </group>
-                <!-- End Design Options -->
+                <!-- End design options -->
                 
-                <!-- Start Advanced Options -->
+                <!-- Start advanced options -->
                 <group id="fintecture_advanced" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Advanced Settings</label>
+                    <label>Advanced settings</label>
                     <field id="version" type="text" translate="label comment" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                         <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
                     </field>
@@ -255,7 +262,7 @@
                         </field>
                     </group>
                 </group>
-                <!-- End Advanced Options -->
+                <!-- End advanced options -->
             </group>
             
             <group id="fintecture_bnpl" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -275,9 +282,9 @@
                     </field>
                 </group>
 
-                 <!-- Start Payment Options -->
+                 <!-- Start payment options -->
                 <group id="payment_options_bnpl" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Payment Options</label>
+                    <label>Payment options</label>
 
                     <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Sort Order</label>
@@ -285,11 +292,24 @@
                         <config_path>payment/fintecture_bnpl/sort_order</config_path>
                     </field>
                 </group>
-                <!-- End Payment Options -->
+                <!-- End payment options -->
+
+                <!-- Start Design Options -->
+                <group id="design_options" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Design options</label>
+
+                    <field id="recommend_bnpl_badge" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>"Recommended" badge</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Recommend the payment method on checkout page</comment>
+                        <config_path>payment/fintecture_bnpl/recommend_bnpl_badge</config_path>
+                    </field>
+                </group>
+                <!-- End Design Options -->
 
                 <!-- Start Advanced Options -->
                 <group id="advanced_bnpl" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Advanced Settings</label>
+                    <label>Advanced settings</label>
                     <field id="version" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                         <frontend_model>Fintecture\Payment\Block\Adminhtml\System\Config\Form\Version</frontend_model>
                     </field>
@@ -304,7 +324,7 @@
                         </field>
                     </group>
                 </group>
-                <!-- End Advanced Options -->
+                <!-- End advanced options -->
             </group>
         </section>
     </system>

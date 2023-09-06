@@ -15,6 +15,9 @@ define([
         },
         getCheckoutDesign: function () {
             return window.checkoutConfig.payment.fintecture.checkoutDesign;
+        },
+        isRecommendedItBadgeActive: function () {
+            return window.checkoutConfig.payment.fintecture.recommendItBadge;
         }
     });
 });

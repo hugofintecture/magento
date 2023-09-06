@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.1.0';
+    const VERSION = '3.2.0';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -30,6 +30,7 @@ class Config extends BaseConfig
     const KEY_CHECKOUT_DESIGN_SELECTION = 'checkout_design_selection';
     const KEY_CUSTOM_RECONCILIATION_FIELD_ACTIVE = 'custom_reconciliation_field_active';
     const KEY_CUSTOM_RECONCILIATION_FIELD = 'custom_reconciliation_field';
+    const KEY_RECOMMEND_IT_BADGE = 'recommend_it_badge';
 
     public function getShopName(): ?string
     {
@@ -151,6 +152,11 @@ class Config extends BaseConfig
     public function getCustomReconciliationField(): ?string
     {
         return $this->getValue(self::KEY_CUSTOM_RECONCILIATION_FIELD);
+    }
+
+    public function isRecommendedItBadgeActive(): bool
+    {
+        return (bool) $this->getValue(self::KEY_RECOMMEND_IT_BADGE);
     }
 
     public function getNewOrderStatus(): string

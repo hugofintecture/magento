@@ -36,5 +36,8 @@ define([
 
             return format.replace(/%s/g, amount);
         },
+        isRecommendedBnplBadgeActive: function () {
+            return window.checkoutConfig.payment.fintecture_bnpl.recommendBnplBadge;
+        }
     });
 });

@@ -7,7 +7,7 @@
         "email": "contact@fintecture.com"
     },
     "type": "magento2-module",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "license": [
         "GPL-3.0"
     ],
@@ -28,7 +28,8 @@
         "phpstan/phpstan": "^1",
         "bitexpert/phpstan-magento": "^0.30.0",
         "phpstan/phpstan-deprecation-rules": "^1.0",
-        "phpstan/extension-installer": "^1.1"
+        "phpstan/extension-installer": "^1.1",
+        "phpunit/phpunit": "*"
     },
     "suggest": {
         "chillerlan/php-qrcode": "QR Code library for payment with \"Login as Customer\" feature enabled"

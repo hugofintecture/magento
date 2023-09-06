@@ -4,17 +4,20 @@
             data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
         <label data-bind="attr: {'for': getCode()}" class="label img_label">
             <!-- ko if: getCheckoutDesign() === 'it' -->
-            <span data-bind="i18n: 'Instant bank payment'"></span>
+            <span data-bind="i18n: 'Immediate Transfer'"></span>
             <!-- /ko -->
             
             <!-- ko if: getCheckoutDesign() === 'ist_long' -->
-            <span data-bind="i18n: 'Wire transfer'"></span>
+            <span data-bind="i18n: 'Secured wire transfer'"></span>
             <!-- /ko -->
 
             <!-- ko if: getCheckoutDesign() === 'ist_short' -->
-            <span data-bind="i18n: 'Secured wire transfer'"></span>
+            <span data-bind="i18n: 'Wire transfer'"></span>
             <!-- /ko -->
         </label>
+        <!-- ko if: isRecommendedItBadgeActive() -->
+        <span class="fintecture-badge" data-bind="i18n: 'RECOMMENDED'"></span>
+        <!-- /ko -->
     </div>
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">

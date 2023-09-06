@@ -24,6 +24,7 @@ class ConfigProvider implements ConfigProviderInterface
                 Config::CODE => [
                     'active' => $this->gatewayConfig->isActive(),
                     'checkoutDesign' => $this->gatewayConfig->getCheckoutDesign(),
+                    'recommendItBadge' => $this->gatewayConfig->isRecommendedItBadgeActive(),
                 ],
             ],
         ];
