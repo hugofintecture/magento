@@ -5,6 +5,9 @@
         <label data-bind="attr: {'for': getCode()}" class="label img_label">
             <span data-bind="i18n: 'Pay in 30 days, without fee'"></span>
         </label>
+        <!-- ko if: isRecommendedBnplBadgeActive() -->
+        <span class="fintecture-badge" data-bind="i18n: 'RECOMMENDED'"></span>
+        <!-- /ko -->
     </div>
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
