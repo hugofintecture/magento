@@ -98,6 +98,20 @@ class Fintecture extends AbstractHelper
         return $order;
     }
 
+    public function getOrderBySessionId(string $sessionId): ?Order
+    {
+        if (!preg_match('/^[0-9a-f]{32}$/', $sessionId)) {
+            return null;
+        }
+
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('ext_order_id', $sessionId)->create();
+        $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
+        /** @var Order|null $order */
+        $order = array_pop($orderList);
+
+        return $order;
+    }
+
     public function getSessionIdByOrderId(string $orderId): ?string
     {
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('order_id', $orderId)->create();
@@ -279,7 +293,7 @@ class Fintecture extends AbstractHelper
                 'attributes' => [
                     'amount' => (string) round((float) $order->getBaseGrandTotal(), 2),
                     'currency' => $order->getOrderCurrencyCode(),
-                    'communication' => self::PAYMENT_COMMUNICATION . $order->getId(),
+                    'communication' => self::PAYMENT_COMMUNICATION . $order->getIncrementId(),
                 ],
             ],
         ];

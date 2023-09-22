@@ -47,9 +47,6 @@ class Response extends FintectureAbstract
                 return $this->redirectToCart();
             }
 
-            $order->setExtOrderId($sessionId);
-            $this->orderRepository->save($order);
-
             $pisToken = $this->sdk->pisClient->token->generate();
             if (!$pisToken->error) {
                 $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client

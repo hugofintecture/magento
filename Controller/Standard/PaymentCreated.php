@@ -38,18 +38,11 @@ class PaymentCreated extends WebhookAbstract
             'refundedSessionId' => $this->request->getParam('refunded_session_id', ''),
         ];
 
-        $decodedState = json_decode(base64_decode($params['state']));
-        if (!is_object($decodedState) || !property_exists($decodedState, 'order_id')) {
-            $this->fintectureLogger->error('Webhook', [
-                'message' => "Can't find an order id in the state",
-            ]);
-            $result->setHttpResponseCode(400);
-            $result->setContents('invalid_order');
-
-            return $result;
+        if (!in_array($params['type'], self::ALLOWED_WEBHOOK_TYPES)) {
+            $result->setContents('invalid_webhook_type');
         }
 
-        $order = $this->fintectureHelper->getOrderByIncrementId($decodedState->order_id);
+        $order = $this->fintectureHelper->getOrderBySessionId($params['sessionId']);
         if (!$order) {
             $this->fintectureLogger->error('Webhook', [
                 'message' => 'No order found',
@@ -66,6 +59,7 @@ class PaymentCreated extends WebhookAbstract
         try {
             $isRefund = !empty($params['refundedSessionId']);
             if ($isRefund) {
+                $decodedState = json_decode(base64_decode($params['state']));
                 if (property_exists($decodedState, 'creditmemo_transaction_id')) {
                     return $this->refund($order, $params['status'], $decodedState->creditmemo_transaction_id);
                 } else {

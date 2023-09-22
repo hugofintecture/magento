@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.2.0';
+    const VERSION = '3.3.0';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -31,6 +31,8 @@ class Config extends BaseConfig
     const KEY_CUSTOM_RECONCILIATION_FIELD_ACTIVE = 'custom_reconciliation_field_active';
     const KEY_CUSTOM_RECONCILIATION_FIELD = 'custom_reconciliation_field';
     const KEY_RECOMMEND_IT_BADGE = 'recommend_it_badge';
+    const KEY_FIRST_POSITION_ACTIVE = 'first_position_active';
+    const KEY_FIRST_POSITION_AMOUNT = 'first_position_amount';
 
     public function getShopName(): ?string
     {
@@ -157,6 +159,16 @@ class Config extends BaseConfig
     public function isRecommendedItBadgeActive(): bool
     {
         return (bool) $this->getValue(self::KEY_RECOMMEND_IT_BADGE);
+    }
+
+    public function isFirstPositionActive(): bool
+    {
+        return (bool) $this->getValue(self::KEY_FIRST_POSITION_ACTIVE);
+    }
+
+    public function getFirstPositionAmount(): float
+    {
+        return (float) $this->getValue(self::KEY_FIRST_POSITION_AMOUNT);
     }
 
     public function getNewOrderStatus(): string

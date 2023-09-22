@@ -128,3 +128,5 @@
 """Recommended"" badge", "Badge ""recommandé"""
 "Recommend the payment method on checkout page","Recommander la méthode de paiement dans la page de paiement"
 "RECOMMENDED","RECOMMANDÉ"
+"First position depending of cart amount","Première position en fonction du montant du panier"
+"Minimal cart amount to place Fintecture in first position (in €)","Montant minimum du panier pour placer Fintecture en première position (en €)"

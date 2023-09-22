@@ -1,7 +1,8 @@
 define([
     'Magento_Checkout/js/view/payment/default',
+    'Magento_Checkout/js/model/quote',
     'mage/url',
-], function (Component, url) {
+], function (Component, quote, url) {
     'use strict';
 
     return Component.extend({
@@ -18,6 +19,22 @@ define([
         },
         isRecommendedItBadgeActive: function () {
             return window.checkoutConfig.payment.fintecture.recommendItBadge;
+        },
+        forcePosition: function() {
+            var totalCartAmount = quote.getTotals()()['base_grand_total'];
+            var firstPositionActive = window.checkoutConfig.payment.fintecture.firstPositionActive;
+            var firstPositionAmount = window.checkoutConfig.payment.fintecture.firstPositionAmount;
+        
+            if (firstPositionActive) {
+                if (totalCartAmount > firstPositionAmount) {
+                    var paymentModuleIT = document.getElementById('fintecture-it');
+                    var paymentMethodsList = document.querySelector('.payment-group .step-title');
+
+                    if (paymentModuleIT && paymentMethodsList) {
+                        paymentMethodsList.after(paymentModuleIT);
+                    }
+                }
+            }
         }
     });
 });

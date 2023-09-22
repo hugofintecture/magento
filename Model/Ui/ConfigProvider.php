@@ -25,6 +25,8 @@ class ConfigProvider implements ConfigProviderInterface
                     'active' => $this->gatewayConfig->isActive(),
                     'checkoutDesign' => $this->gatewayConfig->getCheckoutDesign(),
                     'recommendItBadge' => $this->gatewayConfig->isRecommendedItBadgeActive(),
+                    'firstPositionActive' => $this->gatewayConfig->isFirstPositionActive(),
+                    'firstPositionAmount' => $this->gatewayConfig->getFirstPositionAmount(),
                 ],
             ],
         ];
