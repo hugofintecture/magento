@@ -38,6 +38,9 @@
                 <alternative_method>qrcode</alternative_method>
                 <checkout_design_selection>it</checkout_design_selection>
                 <recommend_it_badge>0</recommend_it_badge>
+                <first_position_active>0</first_position_active>
+                <first_position_amount>0</first_position_amount>
+                <custom_reconciliation_field_active>0</custom_reconciliation_field_active>
             </fintecture>
             <fintecture_bnpl>
                 <debug>0</debug>

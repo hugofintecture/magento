@@ -152,6 +152,18 @@
                         <comment>Recommend the payment method on checkout page</comment>
                         <config_path>payment/fintecture/recommend_it_badge</config_path>
                     </field>
+                    
+                    <field id="first_position_active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>First position depending of cart amount</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/fintecture/first_position_active</config_path>
+                    </field>
+
+                    <field id="first_position_amount" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Minimal cart amount to place Fintecture in first position (in €)</label>
+                        <config_path>payment/fintecture/first_position_amount</config_path>
+                        <frontend_class>validate-number</frontend_class>
+                    </field>
                 </group>
                 <!-- End design options -->
                 

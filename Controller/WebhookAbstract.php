@@ -46,6 +46,14 @@ abstract class WebhookAbstract implements CsrfAwareActionInterface
     /** @var Config */
     protected $config;
 
+    /** @var array<string> */
+    protected const ALLOWED_WEBHOOK_TYPES = [
+        'PayByBank',
+        'Refund',
+        'BuyNowPayLater',
+        'ManualTransfer',
+    ];
+
     public function __construct(
         FintectureLogger $fintectureLogger,
         FintectureHelper $fintectureHelper,

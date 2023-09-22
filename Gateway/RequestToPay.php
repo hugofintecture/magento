@@ -8,6 +8,7 @@ use Fintecture\Payment\Gateway\Http\Sdk;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger;
 use Fintecture\Util\Crypto;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class RequestToPay
@@ -24,16 +25,21 @@ class RequestToPay
     /** @var Config */
     protected $config;
 
+    /** @var OrderRepositoryInterface */
+    protected $orderRepository;
+
     public function __construct(
         FintectureHelper $fintectureHelper,
         Logger $fintectureLogger,
         Sdk $sdk,
-        Config $config
+        Config $config,
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->fintectureHelper = $fintectureHelper;
         $this->fintectureLogger = $fintectureLogger;
         $this->sdk = $sdk;
         $this->config = $config;
+        $this->orderRepository = $orderRepository;
     }
 
     public function get(Order $order, array $data): ApiResponse
@@ -57,6 +63,10 @@ class RequestToPay
             ]);
             throw new \Exception($apiResponse->errorMsg);
         }
+
+        $sessionId = $apiResponse->meta->session_id ?? '';
+        $order->setExtOrderId($sessionId);
+        $this->orderRepository->save($order);
 
         return $apiResponse;
     }

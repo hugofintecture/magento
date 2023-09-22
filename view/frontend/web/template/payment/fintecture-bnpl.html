@@ -1,4 +1,4 @@
-<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+<div id="fintecture-bnpl" class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}, afterRender: forcePosition">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
             data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
@@ -11,7 +11,7 @@
     </div>
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
-        <div class="checkout_block payment-method-content">
+        <div class="checkout_block">
             <p class="f-description">
                 <span data-bind="i18n: 'You are a professional, buy now and pay in 30 days without any fees on the transaction.'"></span>
             </p>
@@ -37,6 +37,12 @@
                 </div>
             </div>
             <span data-bind="i18n: '*subject to eligibility'"></span>
+        </div>
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
         </div>
 
         <div class="actions-toolbar">

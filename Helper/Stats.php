@@ -107,6 +107,8 @@ class Stats
             'module_checkout_design' => $this->config->getCheckoutDesign(),
             'module_recommended_it' => $this->config->isRecommendedItBadgeActive(),
             'module_recommended_bnpl' => $this->bnplConfig->isRecommendedBnplBadgeActive(),
+            'module_force_position' => $this->config->isFirstPositionActive(),
+            'module_force_position_min_amount' => $this->config->getFirstPositionAmount(),
         ];
     }
 }

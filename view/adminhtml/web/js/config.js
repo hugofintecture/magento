@@ -106,11 +106,16 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
         }
         
         const it_st_input = document.querySelector('input[id$="fintecture_design_options_checkout_design_selectionist"]');
+        if (it_st_input) {
+            it_st_input.disabled = true;
+        }
         const it_st_short_input = document.querySelector('input[id$="fintecture_design_options_checkout_design_selectionist_short"]');
+        if (it_st_short_input) {
+            it_st_short_input.style.marginLeft = '15px';
+        }
         const it_st_long_input = document.querySelector('input[id$="fintecture_design_options_checkout_design_selectionist_long"]');
-        
-        it_st_input.disabled = true;
-        it_st_short_input.style.marginLeft = '15px';
-        it_st_long_input.style.marginLeft = '15px';
-    });
+        if (it_st_long_input) {
+            it_st_long_input.style.marginLeft = '15px';
+        }
+    }); 
 });

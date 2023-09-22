@@ -38,6 +38,25 @@ define([
         },
         isRecommendedBnplBadgeActive: function () {
             return window.checkoutConfig.payment.fintecture_bnpl.recommendBnplBadge;
+        },
+        forcePosition: function() {
+            var totalCartAmount = quote.getTotals()()['base_grand_total'];
+            var firstPositionActive = window.checkoutConfig.payment.fintecture.firstPositionActive;
+            var firstPositionAmount = window.checkoutConfig.payment.fintecture.firstPositionAmount;
+            
+            if (firstPositionActive) {
+                if (totalCartAmount > firstPositionAmount) {
+                    var paymentModuleIT = document.getElementById('fintecture-it');
+                    var paymentModuleBNPL = document.getElementById('fintecture-bnpl');
+                    var paymentMethodsList = document.querySelector('.payment-group .step-title');
+    
+                    if (paymentModuleIT && paymentModuleBNPL && paymentMethodsList) {
+                        paymentModuleIT.after(paymentModuleBNPL);
+                    } else if (paymentModuleBNPL && paymentMethodsList) {
+                        paymentMethodsList.after(paymentModuleBNPL);
+                    }
+                }
+            }
         }
     });
 });

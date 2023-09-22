@@ -1,4 +1,4 @@
-<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+<div id="fintecture-it" class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}, afterRender: forcePosition">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
             data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
@@ -21,7 +21,7 @@
     </div>
     <div data-bind="html: window.checkoutConfig.cms_block"></div>
     <div class="payment-method-content">
-        <div class="checkout_block payment-method-content">
+        <div class="checkout_block">
             <!-- ko if: getCheckoutDesign() === 'it' -->
             <p class="f-description">
                 <span data-bind="i18n: 'You will be automatically redirected to your secured bank environment to confirm your payment.'"></span>
@@ -75,6 +75,12 @@
             <!-- ko if: getCheckoutDesign() === 'ist_long' -->
             <p id="f-institution" data-bind="i18n: 'Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.'"></p>
             <!-- /ko -->
+        </div>
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
         </div>
 
         <div class="actions-toolbar">
