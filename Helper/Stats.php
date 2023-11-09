@@ -103,7 +103,6 @@ class Stats
             'module_production' => $this->config->getAppEnvironment() === Environment::ENVIRONMENT_PRODUCTION ? 1 : 0,
             'module_sandbox_app_id' => $this->config->getAppId(Environment::ENVIRONMENT_SANDBOX),
             'module_production_app_id' => $this->config->getAppId(Environment::ENVIRONMENT_PRODUCTION),
-            'module_branding' => $this->config->isShowLogo(),
             'module_checkout_design' => $this->config->getCheckoutDesign(),
             'module_recommended_it' => $this->config->isRecommendedItBadgeActive(),
             'module_recommended_bnpl' => $this->bnplConfig->isRecommendedBnplBadgeActive(),

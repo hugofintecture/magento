@@ -16,6 +16,7 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -151,5 +152,17 @@ abstract class FintectureAbstract implements CsrfAwareActionInterface
 
             $this->checkoutSession->restoreQuote();
         }
+    }
+
+    /**
+     * In case of error, restore cart and redirect user to checkout
+     */
+    protected function redirectToCheckoutWithError(string $status = 'cms_internal_error'): Redirect
+    {
+        $returnUrl = $this->fintectureHelper->getUrl('checkout') . '?status=' . $status . '#payment';
+
+        $this->checkoutSession->restoreQuote();
+
+        return $this->resultRedirect->create()->setPath($returnUrl);
     }
 }

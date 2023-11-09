@@ -7,7 +7,7 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
         const fields = 'groups[fintecture][groups][general][fields]';
         
         $('input[name="' + fields + '[title][value]"]').attr('disabled', 'disabled');
-        $('input[name="' + fields + '[title][value]"]').val($t('Instant bank payment'));
+        $('input[name="' + fields + '[title][value]"]').val($t('Immediate Transfer'));
 
         $(document).on('click', '#connection-test', function (e) {
             e.preventDefault();

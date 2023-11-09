@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
+xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <referenceContainer name="order.success.additional.info">
+        <block class="Fintecture\Payment\Block\Checkout\Success" name="fintecture.order.success"
+            template="Fintecture_Payment::html/checkout/order/success.phtml" after="-">
+        </block>
+    </referenceContainer>
+</page>

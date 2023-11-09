@@ -44,7 +44,6 @@ Go to Stores > Configuration > Sales > Payment methods.
 
 - Select environment (sandbox/production)
 - Fill APP ID, APP secret and private key based on the selected environment (https://console.fintecture.com/)
-- Select payment method display (show logo or not)
 - Test your connection (if everything is ok you should have a green message)
 - Don't forget to enable the payment method unless it won't be displayed in the front end
 

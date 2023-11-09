@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceContainer name="page.messages" remove="false" />
+        <referenceContainer name="page.messages" remove="false">
+            <block class="Fintecture\Payment\Block\Checkout\Error" name="fintecture.custom.message" template="Fintecture_Payment::html/checkout/order/error.phtml">
+            </block>
+        </referenceContainer>
         <referenceBlock name="checkout.root">
             <arguments>
                 <argument name="jsLayout" xsi:type="array">
