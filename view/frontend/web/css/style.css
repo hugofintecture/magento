@@ -1,3 +1,56 @@
+:root {
+    --success-bg-color: #D2F2D7;
+    --info-bg-color: #D7E9FF;
+    --warning-bg-color: #F8E6D2;
+    --danger-bg-color: #F8D5D4;
+}
+
+.fintecture-alert {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 16px;
+}
+
+.fintecture-alert p {
+    margin: 0 !important;
+    color: #141414;
+    line-height: 1.1em;
+}
+
+.fintecture-alert p a {
+    color: #141414;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.fintecture-alert p a:hover {
+    text-decoration: none;
+}
+
+.fintecture-alert.fintecture-alert-success {
+    background-color: var(--success-bg-color);
+}
+
+.fintecture-alert.fintecture-alert-info {
+    background-color: var(--info-bg-color);
+}
+
+.fintecture-alert.fintecture-alert-warning {
+    background-color: var(--warning-bg-color);
+}
+
+.fintecture-alert.fintecture-alert-danger {
+    background-color: var(--danger-bg-color);
+}
+
+.fintecture-alert img {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
 .checkout_block {
     margin-bottom: 40px;
 }
@@ -136,6 +189,20 @@
     color: #FFF;
     font-weight: 700;
     margin-left: 10px;
+}
+
+.checkout-index-index .payment-method .payment-method-title label.label.img_label:after {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+    height: 22.1px;
+    width: 104px;
+    margin-left: 10px;
+    content: '';
+    background: url('https://assets.fintecture.com/img/new-checkout/magento/fintecture.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 @media screen and (max-width: 640px) {

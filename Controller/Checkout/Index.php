@@ -52,14 +52,7 @@ class Index extends FintectureAbstract
                 'exception' => $e,
             ]);
 
-            $this->restoreQuote($order);
-
-            $errorMsg = __('A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.');
-            $this->messageManager->addErrorMessage($errorMsg->render());
-
-            $url = $this->urlInterface->getUrl('checkout/cart/index');
-
-            return $this->resultRedirect->create()->setPath($url);
+            return $this->redirectToCheckoutWithError();
         }
     }
 

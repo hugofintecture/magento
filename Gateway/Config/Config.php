@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.3.0';
+    const VERSION = '3.4.0';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -20,7 +20,6 @@ class Config extends BaseConfig
     const KEY_APP_SECRET_PRODUCTION = 'fintecture_app_secret_production';
     const KEY_PRIVATE_KEY_SANDBOX = 'custom_file_upload_sandbox';
     const KEY_PRIVATE_KEY_PRODUCTION = 'custom_file_upload_production';
-    const KEY_SHOW_LOGO = 'general/show_logo';
     const KEY_BANK_TYPE = 'general/bank_type';
     const KEY_EXPIRATION_ACTIVE = 'expiration_active';
     const KEY_EXPIRATION_AFTER = 'expiration_after';
@@ -104,11 +103,6 @@ class Config extends BaseConfig
         }
 
         return null;
-    }
-
-    public function isShowLogo(): bool
-    {
-        return (bool) $this->getValue(self::KEY_SHOW_LOGO);
     }
 
     public function getBankType(): ?string

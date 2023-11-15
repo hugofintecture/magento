@@ -21,7 +21,6 @@
                 <specificcountry>FR</specificcountry>
                 <environment>sandbox</environment>
                 <bank_type>all</bank_type>
-                <show_logo>1</show_logo>
                 <fintecture_app_secret_sandbox backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <fintecture_app_secret_production backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
                 <new_order_status>pending</new_order_status>

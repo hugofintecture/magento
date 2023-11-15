@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Controller\Standard;
 
 use Fintecture\Payment\Controller\FintectureAbstract;
-use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\LocalizedException;
 
 class Response extends FintectureAbstract
@@ -24,7 +23,7 @@ class Response extends FintectureAbstract
                     'message' => 'Invalid params',
                 ]);
 
-                return $this->redirectToCart();
+                return $this->redirectToCheckoutWithError();
             }
 
             $decodedState = json_decode(base64_decode($state));
@@ -33,7 +32,7 @@ class Response extends FintectureAbstract
                     'message' => "Can't find an order id in the state",
                 ]);
 
-                return $this->redirectToCart();
+                return $this->redirectToCheckoutWithError();
             }
 
             $orderId = $decodedState->order_id;
@@ -44,7 +43,7 @@ class Response extends FintectureAbstract
                     'orderId' => $orderId,
                 ]);
 
-                return $this->redirectToCart();
+                return $this->redirectToCheckoutWithError();
             }
 
             $pisToken = $this->sdk->pisClient->token->generate();
@@ -88,12 +87,8 @@ class Response extends FintectureAbstract
                         $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
                         $this->checkoutSession->setLastOrderStatus($order->getStatus());
 
-                        if ($statuses['status'] === $this->config->getPaymentPendingStatus()) {
-                            $this->messageManager->addSuccessMessage(__('Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.')->render());
-                        }
-
                         return $this->resultRedirect->create()->setPath(
-                            $this->fintectureHelper->getUrl('checkout/onepage/success')
+                            $this->fintectureHelper->getUrl('checkout/onepage/success?status=' . $params['status'])
                         );
                     } catch (\Exception $e) {
                         $this->fintectureLogger->error('Response', [
@@ -104,39 +99,21 @@ class Response extends FintectureAbstract
                     }
                 } else {
                     $this->handlePayment->fail($order, $params, $statuses);
-                    $this->messageManager->addErrorMessage(__('The payment was unsuccessful. Please choose a different bank or different payment method.')->render());
 
-                    return $this->redirectToCart();
+                    return $this->redirectToCheckoutWithError($params['status']);
                 }
             } else {
                 $this->fintectureLogger->error('Response', [
                     'message' => 'Invalid payment API response',
                     'response' => $apiResponse->errorMsg,
                 ]);
-                $this->messageManager->addErrorMessage(__("We can't place the order.")->render());
             }
         } catch (LocalizedException $e) {
             $this->fintectureLogger->error('Response', ['exception' => $e]);
-            $this->messageManager->addExceptionMessage($e, $e->getMessage());
         } catch (\Exception $e) {
             $this->fintectureLogger->error('Response', ['exception' => $e]);
-            $this->messageManager->addExceptionMessage($e, __("We can't place the order.")->render());
         }
 
-        return $this->redirectToCart();
-    }
-
-    /**
-     * In case of error, restore cart and redirect user to it
-     */
-    private function redirectToCart(string $returnUrl = null): Redirect
-    {
-        if (!$returnUrl) {
-            $returnUrl = $this->fintectureHelper->getUrl('checkout') . '#payment';
-        }
-
-        $this->checkoutSession->restoreQuote();
-
-        return $this->resultRedirect->create()->setPath($returnUrl);
+        return $this->redirectToCheckoutWithError();
     }
 }
