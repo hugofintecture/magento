@@ -40,36 +40,39 @@ class PaymentCreated extends WebhookAbstract
 
         if (!in_array($params['type'], self::ALLOWED_WEBHOOK_TYPES)) {
             $result->setContents('invalid_webhook_type');
+
+            return $result;
         }
 
-        $order = $this->fintectureHelper->getOrderBySessionId($params['sessionId']);
+        $isRefund = !empty($params['refundedSessionId']);
+
+        $sessionId = $isRefund ? $params['refundedSessionId'] : $params['sessionId'];
+
+        $order = $this->fintectureHelper->getOrderBySessionId($sessionId);
         if (!$order) {
             $this->fintectureLogger->error('Webhook', [
                 'message' => 'No order found',
                 'state' => $params['state'],
                 'status' => $params['status'],
-                'sessionId' => $params['sessionId'],
+                'sessionId' => $sessionId,
             ]);
-            $result->setHttpResponseCode(400);
             $result->setContents('invalid_order');
 
             return $result;
         }
 
         try {
-            $isRefund = !empty($params['refundedSessionId']);
             if ($isRefund) {
                 $decodedState = json_decode(base64_decode($params['state']));
                 if (property_exists($decodedState, 'creditmemo_transaction_id')) {
                     return $this->refund($order, $params['status'], $decodedState->creditmemo_transaction_id);
                 } else {
                     $this->fintectureLogger->error('Webhook', [
-                        'message' => 'No order found',
+                        'message' => 'No credit memo id found',
                         'state' => $params['state'],
                         'status' => $params['status'],
                         'sessionId' => $params['sessionId'],
                     ]);
-                    $result->setHttpResponseCode(400);
                     $result->setContents('invalid_refund');
                 }
             } else {
@@ -184,7 +187,6 @@ class PaymentCreated extends WebhookAbstract
                 $result->setContents('refund_not_applied');
             }
         } else {
-            $result->setHttpResponseCode(400);
             $result->setContents('invalid_refund_status');
         }
 
