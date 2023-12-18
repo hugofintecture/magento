@@ -12,6 +12,7 @@
                 <can_use_checkout>1</can_use_checkout>
                 <can_initialize>1</can_initialize>
                 <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <is_gateway>1</is_gateway>
                 <order_status>new</order_status>
                 <currency>EUR</currency>
@@ -50,6 +51,7 @@
                 <can_use_checkout>1</can_use_checkout>
                 <can_initialize>1</can_initialize>
                 <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <is_gateway>1</is_gateway>
                 <order_status>new</order_status>
                 <currency>EUR</currency>

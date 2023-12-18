@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.4.1';
+    const VERSION = '3.4.2';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
