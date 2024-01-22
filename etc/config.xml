@@ -14,6 +14,7 @@
                 <can_refund>1</can_refund>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <is_gateway>1</is_gateway>
+                <is_offline>0</is_offline>
                 <order_status>new</order_status>
                 <currency>EUR</currency>
                 <sort_order>0</sort_order>
@@ -31,6 +32,9 @@
                 <payment_overpaid_status>fintecture_overpaid</payment_overpaid_status>
                 <payment_partial_status>fintecture_partial</payment_partial_status>
                 <payment_failed_status>canceled</payment_failed_status>
+                <refunded_status>fintecture_refunded</refunded_status>
+                <partial_refund_status>fintecture_partial_refund</partial_refund_status>
+                <refund_statuses_active>0</refund_statuses_active>
                 <expiration_active>0</expiration_active>
                 <expiration_after>10</expiration_after>
                 <invoicing_active>1</invoicing_active>
@@ -53,6 +57,7 @@
                 <can_refund>1</can_refund>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <is_gateway>1</is_gateway>
+                <is_offline>0</is_offline>
                 <order_status>new</order_status>
                 <currency>EUR</currency>
                 <sort_order>1</sort_order>

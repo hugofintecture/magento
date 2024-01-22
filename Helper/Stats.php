@@ -96,7 +96,7 @@ class Stats
             'shop_domain' => $this->storeManager->getStore()->getBaseUrl(),
             'shop_cms' => 'magento',
             'shop_cms_version' => $this->getMagentoVersion(),
-            'module_version' => $this->config::VERSION,
+            'module_version' => Config::VERSION,
             'module_position' => '', // TODO: find way to get to find position
             'shop_payment_methods' => $this->getNumberOfActivePaymentMethods(),
             'module_enabled' => $this->config->isActive(),

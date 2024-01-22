@@ -55,6 +55,7 @@ class PaymentCreated extends WebhookAbstract
                 'state' => $params['state'],
                 'status' => $params['status'],
                 'sessionId' => $sessionId,
+                'isRefund' => $isRefund ? 'true' : 'false',
             ]);
             $result->setContents('invalid_order');
 
@@ -63,18 +64,24 @@ class PaymentCreated extends WebhookAbstract
 
         try {
             if ($isRefund) {
-                $decodedState = json_decode(base64_decode($params['state']));
-                if (property_exists($decodedState, 'creditmemo_transaction_id')) {
-                    return $this->refund($order, $params['status'], $decodedState->creditmemo_transaction_id);
-                } else {
-                    $this->fintectureLogger->error('Webhook', [
-                        'message' => 'No credit memo id found',
-                        'state' => $params['state'],
-                        'status' => $params['status'],
-                        'sessionId' => $params['sessionId'],
-                    ]);
-                    $result->setContents('invalid_refund');
+                if ((float) $order->getData('fintecture_payment_refund_amount') === (float) $order->getBaseGrandTotal()) {
+                    $result->setContents('order_already_refunded');
+
+                    return $result;
                 }
+
+                $decodedState = base64_decode($params['state']);
+                if ($decodedState) {
+                    $decodedStateObj = json_decode($decodedState);
+                    if ($decodedStateObj) {
+                        if (property_exists($decodedState, 'creditmemo_transaction_id')) {
+                            // Use existing credit memo
+                            return $this->refund($order, $params['status'], (float) $params['amount'], $decodedStateObj->creditmemo_transaction_id);
+                        }
+                    }
+                }
+
+                return $this->refund($order, $params['status'], (float) $params['amount']);
             } else {
                 return $this->payment($order, $params);
             }
@@ -95,7 +102,6 @@ class PaymentCreated extends WebhookAbstract
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
-        $result->setHttpResponseCode(200);
 
         $statuses = $this->fintectureHelper->getOrderStatus($params);
         if (!$statuses) {
@@ -173,16 +179,21 @@ class PaymentCreated extends WebhookAbstract
         return $result;
     }
 
-    private function refund(Order $order, string $status, string $creditmemoTransactionId): Raw
+    private function refund(Order $order, string $status, float $amount, string $creditmemoTransactionId = null): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');
 
         if ($status === 'payment_created') {
-            $appliedRefund = $this->handleRefund->apply($order, $creditmemoTransactionId);
-            if ($appliedRefund) {
-                $result->setHttpResponseCode(200);
+            if (!is_null($creditmemoTransactionId)) {
+                $creditmemo = $this->fintectureHelper->getCreditmemoByTransactionId($order, $creditmemoTransactionId);
+
+                $appliedRefund = $creditmemo ? $this->handleRefund->apply($order, $creditmemo, $amount) : false;
             } else {
+                $appliedRefund = $this->handleRefund->applyWithoutCreditmemo($order, $amount);
+            }
+
+            if (!$appliedRefund) {
                 $result->setHttpResponseCode(400);
                 $result->setContents('refund_not_applied');
             }

@@ -3,17 +3,16 @@
 namespace Fintecture\Payment\Setup\Patch\Data;
 
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\StatusFactory;
 use Magento\Sales\Model\ResourceModel\Order\StatusFactory as StatusResourceFactory;
 
-class AddCustomStatusBNPL implements DataPatchInterface
+class AddCustomStatusRefund implements DataPatchInterface
 {
-    /** Custom order created order-status code */
-    public const ORDER_STATUS_ORDER_CREATED_CODE = 'fintecture_order_created';
+    /** Custom partial refund order-status code */
+    public const ORDER_STATUS_PARTIAL_REFUND_CODE = 'fintecture_partial_refund';
 
-    /** Custom order created order-status label */
-    public const ORDER_STATUS_ORDER_CREATED_LABEL = 'Fintecture Order Created';
+    /** Custom partial refund order-status label */
+    public const ORDER_STATUS_PARTIAL_REFUND_LABEL = 'Fintecture Partial Refund';
 
     /** @var StatusFactory */
     protected $statusFactory;
@@ -31,7 +30,7 @@ class AddCustomStatusBNPL implements DataPatchInterface
 
     public function apply()
     {
-        $this->addCustomStatus(self::ORDER_STATUS_ORDER_CREATED_CODE, self::ORDER_STATUS_ORDER_CREATED_LABEL, Order::STATE_PROCESSING);
+        $this->addCustomStatus(self::ORDER_STATUS_PARTIAL_REFUND_CODE, self::ORDER_STATUS_PARTIAL_REFUND_LABEL);
 
         return $this;
     }

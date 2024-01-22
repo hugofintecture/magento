@@ -2,6 +2,7 @@
 
 namespace Fintecture\Payment\Gateway;
 
+use Fintecture\Payment\Gateway\Config\Config;
 use Fintecture\Payment\Gateway\Http\Sdk;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger;
@@ -13,6 +14,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\RefundAdapterInterface;
 
 class HandleRefund
@@ -31,26 +33,36 @@ class HandleRefund
     /** @var CreditmemoRepositoryInterface */
     protected $creditmemoRepository;
 
+    /** @var CreditmemoFactory */
+    protected $creditmemoFactory;
+
     /** @var RefundAdapterInterface */
     protected $refundAdapter;
 
     /** @var Sdk */
     protected $sdk;
 
+    /** @var Config */
+    protected $config;
+
     public function __construct(
         Logger $fintectureLogger,
         FintectureHelper $fintectureHelper,
         OrderRepositoryInterface $orderRepository,
         CreditmemoRepositoryInterface $creditmemoRepository,
+        CreditmemoFactory $creditmemoFactory,
         RefundAdapterInterface $refundAdapter,
-        Sdk $sdk
+        Sdk $sdk,
+        Config $config
     ) {
         $this->fintectureLogger = $fintectureLogger;
         $this->fintectureHelper = $fintectureHelper;
         $this->orderRepository = $orderRepository;
         $this->creditmemoRepository = $creditmemoRepository;
+        $this->creditmemoFactory = $creditmemoFactory;
         $this->refundAdapter = $refundAdapter;
         $this->sdk = $sdk;
+        $this->config = $config;
     }
 
     public function create(OrderInterface $order, CreditmemoInterface $creditmemo): void
@@ -169,49 +181,65 @@ class HandleRefund
         }
     }
 
-    public function apply(OrderInterface $order, string $creditmemoTransactionId): bool
+    public function apply(Order $order, Creditmemo $creditmemo, float $amount): bool
     {
-        try {
-            /** @var Order $order */
-            $creditmemos = $order->getCreditmemosCollection();
-            if (!$creditmemos) {
-                throw new \Exception("Can't find any creditmemo on the order");
-            }
+        $refundedAmount = (float) $order->getData('fintecture_payment_refund_amount');
+        $isFullRefund = ($amount === (float) $order->getBaseGrandTotal())
+            || ($refundedAmount + $amount === (float) $order->getBaseGrandTotal());
 
-            /** @var Creditmemo $creditmemo */
-            $creditmemo = $creditmemos
-                ->addFieldToFilter('transaction_id', $creditmemoTransactionId)
-                ->getLastItem();
-        } catch (\Exception $e) {
-            $order->addCommentToStatusHistory(__('The refund has failed.')->render());
-            $this->orderRepository->save($order);
+        return $this->completeRefund($order, $creditmemo, $isFullRefund, $amount);
+    }
 
-            $this->fintectureLogger->error('Apply refund', [
-                'message' => "Can't find credit memo associated to order",
-                'creditmemoId' => $creditmemoTransactionId,
-                'orderIncrementId' => $order->getIncrementId(),
-                'exception' => $e,
-            ]);
+    public function applyWithoutCreditmemo(Order $order, float $amount): bool
+    {
+        $refundedAmount = (float) $order->getData('fintecture_payment_refund_amount');
+        $isFullRefund = ($amount === (float) $order->getBaseGrandTotal())
+            || ($refundedAmount + $amount === (float) $order->getBaseGrandTotal());
 
-            return false;
+        // Create a credit memo only for a full refund
+        if ($isFullRefund) {
+            $creditmemo = $this->creditmemoFactory->createByOrder($order);
+
+            return $this->apply($order, $creditmemo, $amount);
         }
 
-        try {
-            $creditmemo->setState(Creditmemo::STATE_REFUNDED);
+        return $this->completeRefund($order, null, $isFullRefund, $amount);
+    }
 
-            /** @var Order $order */
-            $order = $this->refundAdapter->refund($creditmemo, $creditmemo->getOrder(), true);
+    private function completeRefund(Order $order, ?Creditmemo $creditmemo, bool $isFullRefund, float $amount): bool
+    {
+        try {
+            if (!is_null($creditmemo)) {
+                $creditmemo->setState(Creditmemo::STATE_REFUNDED);
+
+                /** @var Order $order */
+                $order = $this->refundAdapter->refund($creditmemo, $order);
+            }
 
             if ($order->canUnhold()) {
                 $order->unhold();
             }
-            $order->addCommentToStatusHistory(__('The refund has been made.')->render());
+
+            $order->addCommentToStatusHistory(__('The refund of %1€ has been made.', number_format($amount, 2, ',', ' '))->render());
+
+            if ($this->config->isRefundStatusesActive()) {
+                if (!$isFullRefund) {
+                    // Partial refund
+                    $order->setStatus($this->config->getPartialRefundStatus());
+                }
+            }
+
+            $refundedAmount = (float) $order->getData('fintecture_payment_refund_amount');
+            $order->setData('fintecture_payment_refund_amount', $refundedAmount + $amount);
 
             $this->orderRepository->save($order);
-            $this->creditmemoRepository->save($creditmemo);
+
+            if (!is_null($creditmemo)) {
+                $this->creditmemoRepository->save($creditmemo);
+            }
 
             $this->fintectureLogger->info('Refund completed', [
-                'creditmemoId' => $creditmemoTransactionId,
+                'creditmemoId' => !is_null($creditmemo) ? $creditmemo->getTransactionId() : '',
                 'orderIncrementId' => $order->getIncrementId(),
             ]);
 
@@ -222,12 +250,12 @@ class HandleRefund
 
             $this->fintectureLogger->error('Apply refund', [
                 'message' => "Can't apply refund",
-                'creditmemoId' => $creditmemoTransactionId,
+                'creditmemoId' => !is_null($creditmemo) ? $creditmemo->getTransactionId() : '',
                 'orderIncrementId' => $order->getIncrementId(),
                 'exception' => $e,
             ]);
-        }
 
-        return false;
+            return false;
+        }
     }
 }

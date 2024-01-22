@@ -1,135 +1,136 @@
-" for an express payment of your purchases."," for an express payment of your purchases."
-"*subject to eligibility","*subject to eligibility"
-"A partial payment has been made.","A partial payment has been made."
-"A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.","A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method."
-"Accepted payment","Accepted payment"
-"Advanced settings","Advanced settings"
-"All","All"
-"Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.","Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales."
-"Alternative payment methods for 'Login as Customer' feature","Alternative payment methods for 'Login as Customer' feature"
-"Amount","Amount"
-"Automatic expiration of pending orders after","Automatic expiration of pending orders after"
-"Automatic expiration of pending orders","Automatic expiration of pending orders"
-"Bank type","Bank type"
-"Buy Now Pay Later","Buy Now Pay Later"
-"Can't save the private key","Can't save the private key"
-"Checkout design","Checkout design"
-"Choose how to send your payment link","Choose how to send your payment link"
-"Choose the alternative payment method for 'Login as Customer' feature","Choose the alternative payment method for 'Login as Customer' feature"
-"Choose to pay by","Choose to pay by"
-"Close","Close"
-"Configure","Configure"
-"Confirm your payment securely","Confirm your payment securely"
-"Connection did not succeed. Make sure you have entered the right parameters.","Connection did not succeed. Make sure you have entered the right parameters."
-"Connection succeeded","Connection succeeded"
-"Continue","Continue"
-"Corporate","Corporate"
-"Custom field for the reconciliation","Custom field for the reconciliation"
-"Debit ","Debit "
-"Design options","Design options"
-"Enable alternative payment methods for 'Login as Customer' feature","Enable alternative payment methods for 'Login as Customer' feature"
-"Enable automatic expiration of pending orders","Enable automatic expiration of pending orders"
-"Enable custom field for the reconciliation","Enable custom field for the reconciliation"
-"Enable invoice generation for paid orders","Enable invoice generation for paid orders"
-"Enabled","Enabled"
-"Environment","Environment"
-"Failed payment","Failed payment"
-"Filter the bank type","Filter the bank type"
-"Fintecture APP ID","Fintecture APP ID"
-"Fintecture APP secret","Fintecture APP secret"
-"Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.","Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248."
-"Fintecture private key","Fintecture private key"
-"How it works?","How it works?"
-"How to make an immediate transfer?","How to make an immediate transfer?"
-"If the payment has been made, then the order will be validated in a few moments.","If the payment has been made, then the order will be validated in a few moments."
-"If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.","If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page."
-"Immediate Transfer & Smart Transfer","Immediate Transfer & Smart Transfer"
-"immediate transfer","immediate transfer"
-"Immediate Transfer","Immediate Transfer"
-"In 30 days","In 30 days"
-"In minutes. Minimum value: 3","In minutes. Minimum value: 3"
-"Invalid request","Invalid request"
-"Invoicing","Invoicing"
-"Login with your usual banking ID's","Login with your usual banking ID's"
-"Long version","Long version"
-"Module version:","Module version:"
-"New order status","New order status"
-"No private key file found","No private key file found"
-"Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.","Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions."
-"or by","or by"
-"Order created status","Order created status"
-"Order is not paid with Fintecture","Order is not paid with Fintecture"
-"Order validated","Order validated"
-"Orders from this country are not supported by Fintecture. Please select a different payment option.","Orders from this country are not supported by Fintecture. Please select a different payment option."
-"Overpaid order. Amount received: ","Overpaid order. Amount received: "
-"Overpaid payment","Overpaid payment"
-"Partial payment","Partial payment"
-"Pay for your purchases instantly and securely.","Pay for your purchases instantly and securely."
-"Pay in 30 days, without fee","Pay in 30 days, without fee"
-"Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!","Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!"
-"Pay Now","Pay Now"
-"Pay","Pay"
-"Payment by QR Code","Payment by QR Code"
-"Payment by SMS or Email","Payment by SMS or Email"
-"Payment from applicable countries","Payment from applicable countries"
-"Payment from specific countries","Payment from specific countries"
-"Payment options","Payment options"
-"Payment status mapping between Fintecture and Magento","Payment status mapping between Fintecture and Magento"
-"Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.","Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled."
-"Pending payment","Pending payment"
-"Please re-upload private key file","Please re-upload private key file"
-"Please select the message you want to display on your checkout page, depending on the payment solutions you have.","Please select the message you want to display on your checkout page, depending on the payment solutions you have."
-"Please upload private key file","Please upload private key file"
-"Private key file already saved","Private key file already saved"
-"Production","Production"
-"Retail","Retail"
-"Return to the homepage","Return to the homepage"
-"Sandbox","Sandbox"
-"Scan this QR Code to pay with Fintecture","Scan this QR Code to pay with Fintecture"
-"Secured connection to your bank by","Secured connection to your bank by"
-"Secured wire transfer","Secured wire transfer"
-"Select your bank","Select your bank"
-"Send by Email","Send by Email"
-"Send by SMS","Send by SMS"
-"Settings","Settings"
-"Short version","Short version"
-"Smart Transfer","Smart Transfer"
-"Some fields are empty","Some fields are empty"
-"Sorry, something went wrong. Please try again later.","Sorry, something went wrong. Please try again later."
-"Sort order","Sort order"
-"Test connection","Test connection"
-"The bank is validating the payment.","The bank is validating the payment."
-"The order is confirmed, you will receive the funds under 30 days.","The order is confirmed, you will receive the funds under 30 days."
-"The payer got redirected to their bank and needs to authenticate.","The payer got redirected to their bank and needs to authenticate."
-"The payment has been completed with a higher amount.","The payment has been completed with a higher amount."
-"The payment has been dropped by the payer.","The payment has been dropped by the payer."
-"The payment has been validated by the bank.","The payment has been validated by the bank."
-"The payment has failed for technical reasons.","The payment has failed for technical reasons."
-"The payment link has expired.","The payment link has expired."
-"The payment was rejected by either the payer or the bank.","The payment was rejected by either the payer or the bank."
-"The payment was unsuccessful. Please choose a different bank or different payment method.","The payment was unsuccessful. Please choose a different bank or different payment method."
-"The refund has been made.","The refund has been made."
-"The refund has failed.","The refund has failed."
-"The refund link has been send.","The refund link has been send."
-"This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.","This section is intended for advanced users. Changing the settings may impact the proper functioning of your system."
-"Title","Title"
-"Today","Today"
-"traditional bank transfer","traditional bank transfer"
-"Unhandled status.","Unhandled status."
-"We can't place the order.","We can't place the order."
-"Wire transfer","Wire transfer"
-"You are a professional, buy now and pay in 30 days without any fees on the transaction.","You are a professional, buy now and pay in 30 days without any fees on the transaction."
-"You must proceed to the refund directly from the Fintecture Console with this type of account.","You must proceed to the refund directly from the Fintecture Console with this type of account."
-"You will be automatically redirected to your secured bank environment to confirm your payment.","You will be automatically redirected to your secured bank environment to confirm your payment."
-"Your payment link has been sent successfully","Your payment link has been sent successfully"
-"Your purchase is confirmed!","Your purchase is confirmed!"
-"""Recommended"" badge", """Recommended"" badge"
-"Recommend the payment method on checkout page","Recommend the payment method on checkout page"
-"RECOMMENDED","RECOMMENDED"
-"First position depending of cart amount","First position depending of cart amount"
-"Minimal cart amount to place Fintecture in first position (in €)","Minimal cart amount to place Fintecture in first position (in €)"
-"Your payment with Fintecture has been successfully processed!","Your payment with Fintecture has been successfully processed!"
-"Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email.","Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email."
-"The payment has been cancelled and the transaction could not be completed.","The payment has been cancelled and the transaction could not be completed."
-"The payment has failed. Please select another bank or another payment method.","The payment has failed. Please select another bank or another payment method."
-"A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>.","A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>."
+key_name,en_US,comment
+ for an express payment of your purchases., for an express payment of your purchases.,
+"""Recommended"" badge","""Recommended"" badge",
+*subject to eligibility,*subject to eligibility,
+A partial payment has been made.,A partial payment has been made.,
+A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.,A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.,
+"A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>.","A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>.",
+Accepted payment,Accepted payment,
+Advanced settings,Advanced settings,
+All,All,
+Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.,Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.,
+Alternative payment methods for 'Login as Customer' feature,Alternative payment methods for 'Login as Customer' feature,
+Amount,Amount,
+Automatic expiration of pending orders,Automatic expiration of pending orders,
+Automatic expiration of pending orders after,Automatic expiration of pending orders after,
+Bank type,Bank type,
+Buy Now Pay Later,Buy Now Pay Later,
+Can't save the private key,Can't save the private key,
+Checkout design,Checkout design,
+Choose how to send your payment link,Choose how to send your payment link,
+Choose the alternative payment method for 'Login as Customer' feature,Choose the alternative payment method for 'Login as Customer' feature,
+Choose to pay by,Choose to pay by,
+Close,Close,
+Configure,Configure,
+Confirm your payment securely,Confirm your payment securely,
+Connection did not succeed. Make sure you have entered the right parameters.,Connection did not succeed. Make sure you have entered the right parameters.,
+Connection succeeded,Connection succeeded,
+Continue,Continue,
+Corporate,Corporate,
+Custom field for the reconciliation,Custom field for the reconciliation,
+Debit ,Debit ,
+Design options,Design options,
+Enable alternative payment methods for 'Login as Customer' feature,Enable alternative payment methods for 'Login as Customer' feature,
+Enable automatic expiration of pending orders,Enable automatic expiration of pending orders,
+Enable custom field for the reconciliation,Enable custom field for the reconciliation,
+Enable invoice generation for paid orders,Enable invoice generation for paid orders,
+Enabled,Enabled,
+Environment,Environment,
+Failed payment,Failed payment,
+Filter the bank type,Filter the bank type,
+Fintecture APP ID,Fintecture APP ID,
+Fintecture APP secret,Fintecture APP secret,
+Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.,Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.,
+Fintecture private key,Fintecture private key,
+First position depending of cart amount,First position depending of cart amount,
+How it works?,How it works?,
+How to make an immediate transfer?,How to make an immediate transfer?,
+"If the payment has been made, then the order will be validated in a few moments.","If the payment has been made, then the order will be validated in a few moments.",
+"If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.","If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.",
+immediate transfer,immediate transfer,
+Immediate Transfer,Immediate Transfer,
+Immediate Transfer & Smart Transfer,Immediate Transfer & Smart Transfer,
+In 30 days,In 30 days,
+In minutes. Minimum value: 3,In minutes. Minimum value: 3,
+Invalid request,Invalid request,
+Invoicing,Invoicing,
+Login with your usual banking ID's,Login with your usual banking ID's,
+Long version,Long version,
+Minimal cart amount to place Fintecture in first position (in €),Minimal cart amount to place Fintecture in first position (in €),
+Module version:,Module version:,
+New order status,New order status,
+No private key file found,No private key file found,
+Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.,Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.,
+or by,or by,
+Order created status,Order created status,
+Order is not paid with Fintecture,Order is not paid with Fintecture,
+Order validated,Order validated,
+Orders from this country are not supported by Fintecture. Please select a different payment option.,Orders from this country are not supported by Fintecture. Please select a different payment option.,
+Overpaid order. Amount received: ,Overpaid order. Amount received: ,
+Overpaid payment,Overpaid payment,
+Partial payment,Partial payment,
+Pay,Pay,
+Pay for your purchases instantly and securely.,Pay for your purchases instantly and securely.,
+"Pay in 30 days, without fee","Pay in 30 days, without fee",
+Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!,Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!,
+Pay Now,Pay Now,
+Payment by QR Code,Payment by QR Code,
+Payment by SMS or Email,Payment by SMS or Email,
+Payment from applicable countries,Payment from applicable countries,
+Payment from specific countries,Payment from specific countries,
+Payment options,Payment options,
+Payment status mapping between Fintecture and Magento,Payment status mapping between Fintecture and Magento,
+Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.,Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.,
+Pending payment,Pending payment,
+Please re-upload private key file,Please re-upload private key file,
+"Please select the message you want to display on your checkout page, depending on the payment solutions you have.","Please select the message you want to display on your checkout page, depending on the payment solutions you have.",
+Please upload private key file,Please upload private key file,
+Private key file already saved,Private key file already saved,
+Production,Production,
+Recommend the payment method on checkout page,Recommend the payment method on checkout page,
+RECOMMENDED,RECOMMENDED,
+Retail,Retail,
+Return to the homepage,Return to the homepage,
+Sandbox,Sandbox,
+Scan this QR Code to pay with Fintecture,Scan this QR Code to pay with Fintecture,
+Secured connection to your bank by,Secured connection to your bank by,
+Secured wire transfer,Secured wire transfer,
+Select your bank,Select your bank,
+Send by Email,Send by Email,
+Send by SMS,Send by SMS,
+Settings,Settings,
+Short version,Short version,
+Smart Transfer,Smart Transfer,
+Some fields are empty,Some fields are empty,
+"Sorry, something went wrong. Please try again later.","Sorry, something went wrong. Please try again later.",
+Sort order,Sort order,
+Test connection,Test connection,
+The bank is validating the payment.,The bank is validating the payment.,
+"The order is confirmed, you will receive the funds under 30 days.","The order is confirmed, you will receive the funds under 30 days.",
+The payer got redirected to their bank and needs to authenticate.,The payer got redirected to their bank and needs to authenticate.,
+The payment has been cancelled and the transaction could not be completed.,The payment has been cancelled and the transaction could not be completed.,
+The payment has been completed with a higher amount.,The payment has been completed with a higher amount.,
+The payment has been dropped by the payer.,The payment has been dropped by the payer.,
+The payment has been validated by the bank.,The payment has been validated by the bank.,
+The payment has failed for technical reasons.,The payment has failed for technical reasons.,
+The payment has failed. Please select another bank or another payment method.,The payment has failed. Please select another bank or another payment method.,
+The payment link has expired.,The payment link has expired.,
+The payment was rejected by either the payer or the bank.,The payment was rejected by either the payer or the bank.,
+The payment was unsuccessful. Please choose a different bank or different payment method.,The payment was unsuccessful. Please choose a different bank or different payment method.,
+The refund has been made.,The refund has been made.,
+The refund has failed.,The refund has failed.,
+The refund link has been send.,The refund link has been send.,
+This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.,This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.,
+Title,Title,
+Today,Today,
+traditional bank transfer,traditional bank transfer,
+Unhandled status.,Unhandled status.,
+We can't place the order.,We can't place the order.,
+Wire transfer,Wire transfer,
+"You are a professional, buy now and pay in 30 days without any fees on the transaction.","You are a professional, buy now and pay in 30 days without any fees on the transaction.",
+You must proceed to the refund directly from the Fintecture Console with this type of account.,You must proceed to the refund directly from the Fintecture Console with this type of account.,
+You will be automatically redirected to your secured bank environment to confirm your payment.,You will be automatically redirected to your secured bank environment to confirm your payment.,
+Your payment link has been sent successfully,Your payment link has been sent successfully,
+Your payment with Fintecture has been successfully processed!,Your payment with Fintecture has been successfully processed!,
+Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email.,Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email.,
+Your purchase is confirmed!,Your purchase is confirmed!,

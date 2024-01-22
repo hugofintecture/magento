@@ -17,6 +17,7 @@
     margin: 0 !important;
     color: #141414;
     line-height: 1.1em;
+    word-break: break-word;
 }
 
 .fintecture-alert p a {
@@ -203,6 +204,17 @@
     background: url('https://assets.fintecture.com/img/new-checkout/magento/fintecture.svg');
     background-repeat: no-repeat;
     background-size: contain;
+}
+
+@media only screen and (max-width: 768px) {
+    .checkout-index-index .fintecture-alert {
+        /* 
+        to avoid overlap with fintecture alerts 
+        cause by .opc-estimated-wrapper / margin: -21px -15px 15px;
+        20 + 21 = 41
+        */
+        margin-bottom: 41px; 
+    }
 }
 
 @media screen and (max-width: 640px) {

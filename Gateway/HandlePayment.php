@@ -3,6 +3,7 @@
 namespace Fintecture\Payment\Gateway;
 
 use Fintecture\Payment\Gateway\Config\Config;
+use Fintecture\Payment\Gateway\Http\Sdk;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger;
 use Magento\Framework\DB\Transaction;
@@ -60,6 +61,9 @@ class HandlePayment
     /** @var InvoiceRepositoryInterface */
     protected $invoiceRepository;
 
+    /** @var Sdk */
+    protected $sdk;
+
     public function __construct(
         Logger $fintectureLogger,
         Config $config,
@@ -73,7 +77,8 @@ class HandlePayment
         OrderSender $orderSender,
         InvoiceSender $invoiceSender,
         InvoiceService $invoiceService,
-        InvoiceRepositoryInterface $invoiceRepository
+        InvoiceRepositoryInterface $invoiceRepository,
+        Sdk $sdk
     ) {
         $this->fintectureLogger = $fintectureLogger;
         $this->config = $config;
@@ -88,6 +93,7 @@ class HandlePayment
         $this->invoiceService = $invoiceService;
         $this->invoiceSender = $invoiceSender;
         $this->invoiceRepository = $invoiceRepository;
+        $this->sdk = $sdk;
     }
 
     public function create(
@@ -140,7 +146,7 @@ class HandlePayment
             ->setOrder($order)
             ->setTransactionId($order->getIncrementId() . '-' . time())
             ->setAdditionalInformation([
-                \Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => [
+                Payment\Transaction::RAW_DETAILS => [
                     'amount' => (string) $lastTransactionAmount . ' €',
                     'status' => $params['status'],
                     'sessionId' => $params['sessionId'],
@@ -204,6 +210,7 @@ class HandlePayment
             $invoice = $this->invoiceService->prepareInvoice($order);
             $invoice->setTransactionId($params['sessionId']);
             $invoice->register();
+            $invoice->pay();
             $this->invoiceRepository->save($invoice);
             $transactionSave = $this->transaction
                 ->addObject($invoice)
@@ -214,6 +221,35 @@ class HandlePayment
 
             $order->setIsCustomerNotified(true);
             $this->orderRepository->save($order);
+
+            if ($params['status'] === 'order_created') {
+                // Update invoice_reference field for BNPL orders
+                $data = [
+                    'data' => [
+                        'attributes' => [
+                            'invoice_reference' => '#' . $invoice->getIncrementId(),
+                        ],
+                    ],
+                ];
+
+                $pisToken = $this->sdk->pisClient->token->generate();
+                if (!$pisToken->error) {
+                    $this->sdk->pisClient->setAccessToken($pisToken); // set token of PIS client
+                } else {
+                    $this->fintectureLogger->error("Can't update invoice_reference field", [
+                        'message' => $pisToken->errorMsg,
+                        'incrementOrderId' => $order->getIncrementId(),
+                    ]);
+                }
+
+                $apiResponse = $this->sdk->pisClient->payment->update($params['sessionId'], $data);
+                if ($apiResponse->error) {
+                    $this->fintectureLogger->error("Can't update invoice_reference field", [
+                        'message' => $apiResponse->errorMsg,
+                        'incrementOrderId' => $order->getIncrementId(),
+                    ]);
+                }
+            }
         }
     }
 
