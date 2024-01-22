@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Controller\Checkout;
 
 use Fintecture\Payment\Controller\FintectureAbstract;
+use Fintecture\Payment\Helper\Fintecture;
 
 class Bnpl extends FintectureAbstract
 {
@@ -21,7 +22,7 @@ class Bnpl extends FintectureAbstract
             }
 
             // Connect
-            $data = $this->fintectureHelper->generatePayload($order, self::BNPL_TYPE);
+            $data = $this->fintectureHelper->generatePayload($order, Fintecture::BNPL_TYPE);
             $apiResponse = $this->connect->get($order, $data);
             $url = $apiResponse->meta->url ?? '';
 

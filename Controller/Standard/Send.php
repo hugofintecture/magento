@@ -6,6 +6,7 @@ namespace Fintecture\Payment\Controller\Standard;
 
 use chillerlan\QRCode\QRCode as QRCodeGenerator;
 use Fintecture\Payment\Controller\FintectureAbstract;
+use Fintecture\Payment\Helper\Fintecture;
 use Magento\Framework\View\Element\Template;
 
 class Send extends FintectureAbstract
@@ -33,7 +34,7 @@ class Send extends FintectureAbstract
                 throw new \Exception('Send error: no order found');
             }
 
-            $data = $this->fintectureHelper->generatePayload($order, self::RTP_TYPE, $method);
+            $data = $this->fintectureHelper->generatePayload($order, Fintecture::RTP_TYPE, $method);
             $apiResponse = $this->requestToPay->get($order, $data);
 
             $reference = $data['data']['attributes']['communication'];

@@ -10,9 +10,11 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Status\History;
 use Magento\Sales\Model\ResourceModel\Order\Status\History\CollectionFactory;
@@ -20,6 +22,10 @@ use Magento\Sales\Model\ResourceModel\Order\Status\History\CollectionFactory;
 class Fintecture extends AbstractHelper
 {
     private const PAYMENT_COMMUNICATION = 'FINTECTURE-';
+
+    public const PIS_TYPE = 'PayByBank';
+    public const RTP_TYPE = 'RequestToPay';
+    public const BNPL_TYPE = 'BuyNowPayLater';
 
     /** @var Config */
     protected $config;
@@ -119,13 +125,43 @@ class Fintecture extends AbstractHelper
         /** @var Transaction|null $transaction */
         $transaction = array_pop($transactionList);
         if ($transaction) {
-            $extraInfos = $transaction->getAdditionalInformation(\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS);
+            $extraInfos = $transaction->getAdditionalInformation(Transaction::RAW_DETAILS);
             if ($extraInfos && isset($extraInfos['sessionId'])) {
                 return $extraInfos['sessionId'];
             }
         }
 
         return null;
+    }
+
+    public function getCreditmemoByTransactionId(OrderInterface $order, string $creditmemoTransactionId): ?Creditmemo
+    {
+        try {
+            /** @var Order $order */
+            $creditmemos = $order->getCreditmemosCollection();
+            if (!$creditmemos) {
+                throw new \Exception("Can't find any creditmemo on the order");
+            }
+
+            /** @var Creditmemo $creditmemo */
+            $creditmemo = $creditmemos
+                ->addFieldToFilter('transaction_id', $creditmemoTransactionId)
+                ->getLastItem();
+
+            return $creditmemo;
+        } catch (\Exception $e) {
+            $order->addCommentToStatusHistory(__('The refund has failed.')->render());
+            $this->orderRepository->save($order);
+
+            $this->fintectureLogger->error('Apply refund', [
+                'message' => "Can't find credit memo associated to order",
+                'creditmemoId' => $creditmemoTransactionId,
+                'orderIncrementId' => $order->getIncrementId(),
+                'exception' => $e,
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -271,9 +307,15 @@ class Fintecture extends AbstractHelper
             $street = implode(' ', $street);
         }
 
+        $baseGrandTotal = (float) $order->getBaseGrandTotal();
+        $total = (string) round($baseGrandTotal, 2);
+
+        $baseTaxAmount = $order->getBaseTaxAmount();
+        $totalMinusTaxes = $baseGrandTotal - $baseTaxAmount;
+        $netTotal = (string) round($totalMinusTaxes, 2);
+
         $payload = [
             'meta' => [
-                'type' => $type,
                 'psu_name' => $name,
                 'psu_email' => $billingAddress->getEmail(),
                 'psu_company' => $billingAddress->getCompany(),
@@ -289,9 +331,8 @@ class Fintecture extends AbstractHelper
                 ],
             ],
             'data' => [
-                'type' => 'payments',
                 'attributes' => [
-                    'amount' => (string) round((float) $order->getBaseGrandTotal(), 2),
+                    'amount' => $total,
                     'currency' => $order->getOrderCurrencyCode(),
                     'communication' => self::PAYMENT_COMMUNICATION . $order->getIncrementId(),
                 ],
@@ -312,8 +353,16 @@ class Fintecture extends AbstractHelper
         }
 
         // Handle method for RTP
-        if ($type === 'REQUEST_TO_PAY' && !empty($method)) {
+        if ($type === Fintecture::RTP_TYPE && !empty($method)) {
             $payload['meta']['method'] = $method;
+        }
+
+        // BNPL
+        if ($type === Fintecture::BNPL_TYPE) {
+            $payload['meta']['payment_methods'][] = [
+                'id' => 'bnpl',
+            ];
+            $payload['data']['attributes']['net_amount'] = $netTotal;
         }
 
         // Handle custom reconciliation field if enabled

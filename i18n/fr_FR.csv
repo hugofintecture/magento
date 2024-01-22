@@ -1,135 +1,136 @@
-" for an express payment of your purchases."," pour un paiement express de vos achats."
-"*subject to eligibility","*sous réserve d'éligibilité"
-"A partial payment has been made.","Un paiement partiel a été effectué."
-"A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.","Un problème est survenu lors de l'initiation du paiement avec Fintecture. Veuillez réessayer ou choisir un autre mode de paiement."
-"Accepted payment","Paiement accepté"
-"Advanced settings","Paramètres avancés"
-"All","Tous"
-"Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.","Permettez à vos clients professionnels d'acheter maintenant et de payer plus tard directement depuis votre checkout. Une solution innovante conçue pour les marchands B2B qui cherchent à faire décoller leur chiffre d'affaires et booster leurs ventes."
-"Alternative payment methods for 'Login as Customer' feature","Méthodes de paiement alternatives pour la fonction ""Se connecter en tant que client"""
-"Amount","Montant"
-"Automatic expiration of pending orders after","Expiration automatique des commandes en attente après"
-"Automatic expiration of pending orders","Expiration automatique des commandes en cours"
-"Bank type","Type de banque"
-"Buy Now Pay Later","Buy Now Pay Later"
-"Can't save the private key","Impossible d'enregistrer la clé privée"
-"Checkout design","Affichage sur la page de paiement"
-"Choose how to send your payment link","Choisissez comment envoyer votre lien de paiement"
-"Choose the alternative payment method for 'Login as Customer' feature","Choisissez la méthode de paiement alternative pour la fonction ""Se connecter en tant que client""."
-"Choose to pay by","Choisissez de payer par"
-"Close","Fermer"
-"Configure","Configurer"
-"Confirm your payment securely","Confirmez votre paiement en toute sécurité"
-"Connection did not succeed. Make sure you have entered the right parameters.","La connexion n'a pas abouti. Vérifiez que vous avez saisi les bons paramètres."
-"Connection succeeded","Connexion réussie"
-"Continue","Continuer"
-"Corporate","Entreprise"
-"Custom field for the reconciliation","Champ personnalisé pour le rapprochement"
-"Debit ","Prélèvement"
-"Design options","Options d'affichage"
-"Enable alternative payment methods for 'Login as Customer' feature","Activer d'autres méthodes de paiement pour la fonction ""Se connecter en tant que client"""
-"Enable automatic expiration of pending orders","Activer l'expiration automatique des commandes en attente"
-"Enable custom field for the reconciliation","Activer le champ personnalisé pour le rapprochement"
-"Enable invoice generation for paid orders","Activer la génération de factures pour les commandes payées"
-"Enabled","Activé"
-"Environment","Environnement"
-"Failed payment","Échec du paiement"
-"Filter the bank type","Filter le type de banque"
-"Fintecture APP ID","Fintecture APP ID"
-"Fintecture APP secret","Fintecture APP secret"
-"Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.","Fintecture est un établissement de paiement supervisé par la Banque de France et l'ACPR sous le N°17248."
-"Fintecture private key","Clé privée de Fintecture"
-"How it works?","Comment ça marche ?"
-"How to make an immediate transfer?","Comment faire un virement immédiat ?"
-"If the payment has been made, then the order will be validated in a few moments.","Si le paiement a été effectué, la commande sera validée dans quelques instants."
-"If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.","Si vous activez cette fonctionnalité sans avoir l'option sur votre compte Fintecture, vos utilisateurs verront une erreur sur la page de paiement."
-"Immediate Transfer & Smart Transfer","Virement Immédiat et Virement Intelligent"
-"immediate transfer","virement immédiat"
-"Immediate Transfer","Virement immédiat"
-"In 30 days","Dans 30 jours"
-"In minutes. Minimum value: 3","En minutes. Valeur minimale : 3"
-"Invalid request","Reqûete non valide"
-"Invoicing","Facturation"
-"Login with your usual banking ID's","Connectez-vous avec vos identifiants bancaires habituels"
-"Long version","Version longue"
-"Module version:","Version du module :"
-"New order status","Statut de la nouvelle commande"
-"No private key file found","Aucun fichier de clé privée n'a été trouvé"
-"Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.","Pas disponible dans toutes les versions de Magento. Consultez la page GitHub de notre plugin Magento pour les conditions."
-"or by","ou par"
-"Order created status","Statut de la commande créé"
-"Order is not paid with Fintecture","La commande n'est pas payée avec Fintecture"
-"Order validated","Commande validée"
-"Orders from this country are not supported by Fintecture. Please select a different payment option.","Les commandes en provenance de ce pays ne sont pas prises en charge par Fintecture. Veuillez sélectionner une autre option de paiement."
-"Overpaid order. Amount received: ","Commande excédentaire. Montant reçu : "
-"Overpaid payment","Paiement avec surplus"
-"Partial payment","Paiement partiel"
-"Pay for your purchases instantly and securely.","Payez vos achats instantanément et en toute sécurité."
-"Pay in 30 days, without fee","Payer dans 30 jours, sans frais"
-"Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!","Payez instantanément et en toute sécurité directement à partir de votre compte bancaire.<br>Collectez des paiements sans limite de crédit. Réduisez vos frais de transaction de 40% !"
-"Pay Now","Payer immédiatement"
-"Pay","Payer"
-"Payment by QR Code","Paiement par QR Code"
-"Payment by SMS or Email","Paiement par SMS ou par e-mail"
-"Payment from applicable countries","Paiement à partir des pays autorisés"
-"Payment from specific countries","Paiement à partir de pays spécifiques"
-"Payment options","Option de paiement"
-"Payment status mapping between Fintecture and Magento","Mappage des statuts de paiement entre Fintecture et Magento"
-"Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.","Le paiement a été initié mais n'a pas encore été confirmé. Le marchand enverra une confirmation une fois la transaction réglée."
-"Pending payment","Paiement en attente"
-"Please re-upload private key file","Veuillez télécharger à nouveau le fichier de la clé privée"
-"Please select the message you want to display on your checkout page, depending on the payment solutions you have.","Veuillez choisir le message que vous voulez afficher sur votre page de paiement, selon les solutions de paiement dont vous disposez."
-"Please upload private key file","Veuillez télécharger le fichier de la clé privée"
-"Private key file already saved","Fichier de clé privée déjà enregistré"
-"Production","Production"
-"QR Code error: no URL provided","Erreur de QR Code : pas d'URL fournie"
-"Retail","Particulier"
-"Return to the homepage","Retour à la page d'accueil"
-"Sandbox","Sandbox"
-"Scan this QR Code to pay with Fintecture","Scanner ce QR Code pour payer avec Fintecture"
-"Secured connection to your bank by","Connexion sécurisée à votre banque par"
-"Secured wire transfer","Virement sécurisé"
-"Select your bank","Sélectionnez votre banque"
-"Send by Email","Envoyer par mail"
-"Send by SMS","Envoyer par SMS"
-"Settings","Paramètres"
-"Short version","Version courte"
-"Smart Transfer","Virement Intelligent"
-"Some fields are empty","Certains champs sont vides"
-"Sorry, something went wrong. Please try again later.","Désolé, quelque chose s'est mal passé. Veuillez réessayer plus tard."
-"Sort order","Ordre de tri"
-"Test connection","Test de connexion"
-"The bank is validating the payment.","La banque valide le paiement."
-"The order is confirmed, you will receive the funds under 30 days.","La commande est confirmée, vous recevrez les fonds sous 30 jours."
-"The payer got redirected to their bank and needs to authenticate.","Le payeur a été redirigé vers sa banque et doit s'authentifier."
-"The payment has been completed with a higher amount.","Le paiement a été effectué avec un montant plus élevé."
-"The payment has been dropped by the payer.","Le paiement a été abandonné par le payeur."
-"The payment has been validated by the bank.","Le paiement a été validé par la banque."
-"The payment has failed for technical reasons.","Le paiement a échoué pour des raisons techniques."
-"The payment link has expired.","Le lien de paiement a expiré."
-"The payment was rejected by either the payer or the bank.","Le paiement a été rejeté par le payeur ou la banque."
-"The payment was unsuccessful. Please choose a different bank or different payment method.","Le paiement n'a pas abouti. Veuillez choisir une autre banque ou un autre mode de paiement."
-"The refund has been made.","Le remboursement a été effectué."
-"The refund has failed.","Le remboursement a échoué."
-"The refund link has been send.","Le lien de remboursement a été envoyé."
-"This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.","Cette section est destinée aux utilisateurs avancés. La modification des paramètres peut avoir un impact sur le bon fonctionnement de votre système."
-"Title","Titre"
-"Today","Aujourd'hui"
-"traditional bank transfer","virement bancaire traditionnel"
-"Unhandled status.","Statut non géré."
-"We can't place the order.","Nous ne pouvons pas passer la commande."
-"Wire transfer","Virement bancaire"
-"You are a professional, buy now and pay in 30 days without any fees on the transaction.","Vous êtes un professionnel, achetez maintenant et payez dans 30 jours sans aucun frais sur la transaction."
-"You will be automatically redirected to your secured bank environment to confirm your payment.","Vous serez automatiquement redirigé vers votre environnement bancaire sécurisé pour confirmer votre paiement."
-"Your payment link has been sent successfully","Votre lien de paiement a bien été envoyé"
-"Your purchase is confirmed!","Votre achat est confirmé !"
-"""Recommended"" badge", "Badge ""recommandé"""
-"Recommend the payment method on checkout page","Recommander la méthode de paiement dans la page de paiement"
-"RECOMMENDED","RECOMMANDÉ"
-"First position depending of cart amount","Première position en fonction du montant du panier"
-"Minimal cart amount to place Fintecture in first position (in €)","Montant minimum du panier pour placer Fintecture en première position (en €)"
-"Your payment with Fintecture has been successfully processed!","Le paiement Fintecture a été réalisé avec succès !"
-"Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email.","Le paiement Fintecture est en cours de traitement par votre banque. Vous pouvez suivre l'état de votre paiement en utilisant le lien présent dans l'e-mail de confirmation."
-"The payment has been cancelled and the transaction could not be completed.","Le paiement a été annulé et la transaction n’a pas pu aboutir."
-"The payment has failed. Please select another bank or another payment method.","Le paiement a échoué. Merci de sélectionner une autre banque ou une autre méthode de paiement."
-"A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>.","Une erreur technique est survenue. Merci de contacter <a href=""%1"" target=""_blank"">le marchand</a> ou Fintecture par mail à <a href=""mailto:%2"">%2</a> ou par <a href=""%3"" target=""_blank"">chat</a>."
+key_name,fr_FR,comment
+ for an express payment of your purchases., pour un paiement express de vos achats.,
+"""Recommended"" badge","Badge ""recommandé""",
+*subject to eligibility,*sous réserve d'éligibilité,
+A partial payment has been made.,Un paiement partiel a été effectué.,
+A problem occurred during the payment initiation with Fintecture. Please try again or choose another payment method.,Un problème est survenu lors de l'initiation du paiement avec Fintecture. Veuillez réessayer ou choisir un autre mode de paiement.,
+"A technical error has occurred. Please contact <a href=""%1"" target=""_blank"">the merchant</a> or Fintecture by email at <a href=""mailto:%2"">%2</a> or via <a href=""%3"" target=""_blank"">chat</a>.","Une erreur technique est survenue. Merci de contacter <a href=""%1"" target=""_blank"">le marchand</a> ou Fintecture par mail à <a href=""mailto:%2"">%2</a> ou par <a href=""%3"" target=""_blank"">chat</a>.",
+Accepted payment,Paiement accepté,
+Advanced settings,Paramètres avancés,
+All,Tous,
+Allow your professional buyers to buy now and pay later directly from your check-out. An innovative solution made for B2B merchants looking to boost their sales.,Permettez à vos clients professionnels d'acheter maintenant et de payer plus tard directement depuis votre checkout. Une solution innovante conçue pour les marchands B2B qui cherchent à faire décoller leur chiffre d'affaires et booster leurs ventes.,
+Alternative payment methods for 'Login as Customer' feature,"Méthodes de paiement alternatives pour la fonction ""Se connecter en tant que client""",
+Amount,Montant,
+Automatic expiration of pending orders,Expiration automatique des commandes en cours,
+Automatic expiration of pending orders after,Expiration automatique des commandes en attente après,
+Bank type,Type de banque,
+Buy Now Pay Later,Buy Now Pay Later,
+Can't save the private key,Impossible d'enregistrer la clé privée,
+Checkout design,Affichage sur la page de paiement,
+Choose how to send your payment link,Choisissez comment envoyer votre lien de paiement,
+Choose the alternative payment method for 'Login as Customer' feature,"Choisissez la méthode de paiement alternative pour la fonction ""Se connecter en tant que client"".",
+Choose to pay by,Choisissez de payer par,
+Close,Fermer,
+Configure,Configurer,
+Confirm your payment securely,Confirmez votre paiement en toute sécurité,
+Connection did not succeed. Make sure you have entered the right parameters.,La connexion n'a pas abouti. Vérifiez que vous avez saisi les bons paramètres.,
+Connection succeeded,Connexion réussie,
+Continue,Continuer,
+Corporate,Entreprise,
+Custom field for the reconciliation,Champ personnalisé pour le rapprochement,
+Debit ,Prélèvement,
+Design options,Options d'affichage,
+Enable alternative payment methods for 'Login as Customer' feature,"Activer d'autres méthodes de paiement pour la fonction ""Se connecter en tant que client""",
+Enable automatic expiration of pending orders,Activer l'expiration automatique des commandes en attente,
+Enable custom field for the reconciliation,Activer le champ personnalisé pour le rapprochement,
+Enable invoice generation for paid orders,Activer la génération de factures pour les commandes payées,
+Enabled,Activé,
+Environment,Environnement,
+Failed payment,Échec du paiement,
+Filter the bank type,Filter le type de banque,
+Fintecture APP ID,Fintecture APP ID,
+Fintecture APP secret,Fintecture APP secret,
+Fintecture is a payment institution supervised by the Banque de France and the ACPR under the N°17248.,Fintecture est un établissement de paiement supervisé par la Banque de France et l'ACPR sous le N°17248.,
+Fintecture private key,Clé privée de Fintecture,
+First position depending of cart amount,Première position en fonction du montant du panier,
+How it works?,Comment ça marche ?,
+How to make an immediate transfer?,Comment faire un virement immédiat ?,
+"If the payment has been made, then the order will be validated in a few moments.","Si le paiement a été effectué, la commande sera validée dans quelques instants.",
+"If you activate this feature without having the option on your Fintecture account, your users will see an error on the payment page.","Si vous activez cette fonctionnalité sans avoir l'option sur votre compte Fintecture, vos utilisateurs verront une erreur sur la page de paiement.",
+immediate transfer,virement immédiat,
+Immediate Transfer,Virement immédiat,
+Immediate Transfer & Smart Transfer,Virement Immédiat et Virement Intelligent,
+In 30 days,Dans 30 jours,
+In minutes. Minimum value: 3,En minutes. Valeur minimale : 3,
+Invalid request,Reqûete non valide,
+Invoicing,Facturation,
+Login with your usual banking ID's,Connectez-vous avec vos identifiants bancaires habituels,
+Long version,Version longue,
+Minimal cart amount to place Fintecture in first position (in €),Montant minimum du panier pour placer Fintecture en première position (en €),
+Module version:,Version du module :,
+New order status,Statut de la nouvelle commande,
+No private key file found,Aucun fichier de clé privée n'a été trouvé,
+Not available in all Magento versions. Check the GitHub page of our Magento plugin for conditions.,Pas disponible dans toutes les versions de Magento. Consultez la page GitHub de notre plugin Magento pour les conditions.,
+or by,ou par,
+Order created status,Statut de la commande créé,
+Order is not paid with Fintecture,La commande n'est pas payée avec Fintecture,
+Order validated,Commande validée,
+Orders from this country are not supported by Fintecture. Please select a different payment option.,Les commandes en provenance de ce pays ne sont pas prises en charge par Fintecture. Veuillez sélectionner une autre option de paiement.,
+Overpaid order. Amount received: ,Commande excédentaire. Montant reçu : ,
+Overpaid payment,Paiement avec surplus,
+Partial payment,Paiement partiel,
+Pay,Payer,
+Pay for your purchases instantly and securely.,Payez vos achats instantanément et en toute sécurité.,
+"Pay in 30 days, without fee","Payer dans 30 jours, sans frais",
+Pay instantly and securely directly from your bank account.<br>Collect payments without any credit limit. Reduce your transaction fees by 40%!,Payez instantanément et en toute sécurité directement à partir de votre compte bancaire.<br>Collectez des paiements sans limite de crédit. Réduisez vos frais de transaction de 40% !,
+Pay Now,Payer immédiatement,
+Payment by QR Code,Paiement par QR Code,
+Payment by SMS or Email,Paiement par SMS ou par e-mail,
+Payment from applicable countries,Paiement à partir des pays autorisés,
+Payment from specific countries,Paiement à partir de pays spécifiques,
+Payment options,Option de paiement,
+Payment status mapping between Fintecture and Magento,Mappage des statuts de paiement entre Fintecture et Magento,
+Payment was initiated but has not been confirmed yet. Merchant will send confirmation once the transaction is settled.,Le paiement a été initié mais n'a pas encore été confirmé. Le marchand enverra une confirmation une fois la transaction réglée.,
+Pending payment,Paiement en attente,
+Please re-upload private key file,Veuillez télécharger à nouveau le fichier de la clé privée,
+"Please select the message you want to display on your checkout page, depending on the payment solutions you have.","Veuillez choisir le message que vous voulez afficher sur votre page de paiement, selon les solutions de paiement dont vous disposez.",
+Please upload private key file,Veuillez télécharger le fichier de la clé privée,
+Private key file already saved,Fichier de clé privée déjà enregistré,
+Production,Production,
+QR Code error: no URL provided,Erreur de QR Code : pas d'URL fournie,
+Recommend the payment method on checkout page,Recommander la méthode de paiement dans la page de paiement,
+RECOMMENDED,RECOMMANDÉ,
+Retail,Particulier,
+Return to the homepage,Retour à la page d'accueil,
+Sandbox,Sandbox,
+Scan this QR Code to pay with Fintecture,Scanner ce QR Code pour payer avec Fintecture,
+Secured connection to your bank by,Connexion sécurisée à votre banque par,
+Secured wire transfer,Virement sécurisé,
+Select your bank,Sélectionnez votre banque,
+Send by Email,Envoyer par mail,
+Send by SMS,Envoyer par SMS,
+Settings,Paramètres,
+Short version,Version courte,
+Smart Transfer,Virement Intelligent,
+Some fields are empty,Certains champs sont vides,
+"Sorry, something went wrong. Please try again later.","Désolé, quelque chose s'est mal passé. Veuillez réessayer plus tard.",
+Sort order,Ordre de tri,
+Test connection,Test de connexion,
+The bank is validating the payment.,La banque valide le paiement.,
+"The order is confirmed, you will receive the funds under 30 days.","La commande est confirmée, vous recevrez les fonds sous 30 jours.",
+The payer got redirected to their bank and needs to authenticate.,Le payeur a été redirigé vers sa banque et doit s'authentifier.,
+The payment has been cancelled and the transaction could not be completed.,Le paiement a été annulé et la transaction n’a pas pu aboutir.,
+The payment has been completed with a higher amount.,Le paiement a été effectué avec un montant plus élevé.,
+The payment has been dropped by the payer.,Le paiement a été abandonné par le payeur.,
+The payment has been validated by the bank.,Le paiement a été validé par la banque.,
+The payment has failed for technical reasons.,Le paiement a échoué pour des raisons techniques.,
+The payment has failed. Please select another bank or another payment method.,Le paiement a échoué. Merci de sélectionner une autre banque ou une autre méthode de paiement.,
+The payment link has expired.,Le lien de paiement a expiré.,
+The payment was rejected by either the payer or the bank.,Le paiement a été rejeté par le payeur ou la banque.,
+The payment was unsuccessful. Please choose a different bank or different payment method.,Le paiement n'a pas abouti. Veuillez choisir une autre banque ou un autre mode de paiement.,
+The refund has been made.,Le remboursement a été effectué.,
+The refund has failed.,Le remboursement a échoué.,
+The refund link has been send.,Le lien de remboursement a été envoyé.,
+This section is intended for advanced users. Changing the settings may impact the proper functioning of your system.,Cette section est destinée aux utilisateurs avancés. La modification des paramètres peut avoir un impact sur le bon fonctionnement de votre système.,
+Title,Titre,
+Today,Aujourd'hui,
+traditional bank transfer,virement bancaire traditionnel,
+Unhandled status.,Statut non géré.,
+We can't place the order.,Nous ne pouvons pas passer la commande.,
+Wire transfer,Virement bancaire,
+"You are a professional, buy now and pay in 30 days without any fees on the transaction.","Vous êtes un professionnel, achetez maintenant et payez dans 30 jours sans aucun frais sur la transaction.",
+You will be automatically redirected to your secured bank environment to confirm your payment.,Vous serez automatiquement redirigé vers votre environnement bancaire sécurisé pour confirmer votre paiement.,
+Your payment link has been sent successfully,Votre lien de paiement a bien été envoyé,
+Your payment with Fintecture has been successfully processed!,Le paiement Fintecture a été réalisé avec succès !,
+Your payment with Fintecture is currently being processed by your bank. You can track the status of your payment using the link provided in the confirmation email.,Le paiement Fintecture est en cours de traitement par votre banque. Vous pouvez suivre l'état de votre paiement en utilisant le lien présent dans l'e-mail de confirmation.,
+Your purchase is confirmed!,Votre achat est confirmé !,

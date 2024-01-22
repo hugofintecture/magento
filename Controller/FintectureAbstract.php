@@ -80,10 +80,6 @@ abstract class FintectureAbstract implements CsrfAwareActionInterface
     /** @var OrderRepositoryInterface */
     protected $orderRepository;
 
-    public const PIS_TYPE = 'PayByBank';
-    public const RTP_TYPE = 'RequestToPay';
-    public const BNPL_TYPE = 'BuyNowPayLater';
-
     public function __construct(
         CheckoutSession $checkoutSession,
         Logger $fintectureLogger,

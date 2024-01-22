@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fintecture\Payment\Controller\Checkout;
 
 use Fintecture\Payment\Controller\FintectureAbstract;
+use Fintecture\Payment\Helper\Fintecture;
 use Magento\Framework\App\ObjectManager;
 use Magento\LoginAsCustomerApi\Api\GetLoggedAsCustomerAdminIdInterface;
 use Magento\Sales\Model\Order;
@@ -26,7 +27,7 @@ class Index extends FintectureAbstract
             $alternativeMethod = $this->getAlternativeMethod();
             if (!$alternativeMethod) {
                 // Connect
-                $data = $this->fintectureHelper->generatePayload($order, self::PIS_TYPE);
+                $data = $this->fintectureHelper->generatePayload($order, Fintecture::PIS_TYPE);
                 $apiResponse = $this->connect->get($order, $data);
                 $url = $apiResponse->meta->url ?? '';
             } else {
@@ -58,7 +59,7 @@ class Index extends FintectureAbstract
 
     private function getQRCodeRedirect(Order $order): string
     {
-        $data = $this->fintectureHelper->generatePayload($order, self::RTP_TYPE);
+        $data = $this->fintectureHelper->generatePayload($order, Fintecture::RTP_TYPE);
         $apiResponse = $this->requestToPay->get($order, $data);
         $url = $apiResponse->meta->url ?? '';
 

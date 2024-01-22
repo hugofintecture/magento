@@ -11,7 +11,7 @@ class Success extends Template
     protected $request;
 
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
+        Template\Context $context,
         Http $request,
         array $data = []
     ) {

@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.4.2';
+    const VERSION = '3.5.0';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -21,6 +21,7 @@ class Config extends BaseConfig
     const KEY_PRIVATE_KEY_SANDBOX = 'custom_file_upload_sandbox';
     const KEY_PRIVATE_KEY_PRODUCTION = 'custom_file_upload_production';
     const KEY_BANK_TYPE = 'general/bank_type';
+    const KEY_REFUND_STATUSES_ACTIVE = 'refund_statuses_active';
     const KEY_EXPIRATION_ACTIVE = 'expiration_active';
     const KEY_EXPIRATION_AFTER = 'expiration_after';
     const KEY_INVOICING_ACTIVE = 'invoicing_active';
@@ -108,6 +109,11 @@ class Config extends BaseConfig
     public function getBankType(): ?string
     {
         return $this->getValue(self::KEY_BANK_TYPE);
+    }
+
+    public function isRefundStatusesActive(): bool
+    {
+        return (bool) $this->getValue(self::KEY_REFUND_STATUSES_ACTIVE);
     }
 
     public function isExpirationActive(): bool
@@ -230,6 +236,16 @@ class Config extends BaseConfig
         $status = $this->getValue('payment/fintecture/payment_failed_status');
         if (!$status) {
             $status = 'canceled';
+        }
+
+        return $status;
+    }
+
+    public function getPartialRefundStatus(): string
+    {
+        $status = $this->getValue('payment/fintecture/partial_refund_status');
+        if (!$status) {
+            $status = 'fintecture_partial_refund';
         }
 
         return $status;

@@ -232,9 +232,31 @@
                             <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
                             <config_path>payment/fintecture/payment_failed_status</config_path>
                         </field>
+
+                        <field id="refunded_status" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Refund</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/refunded_status</config_path>
+                        </field>
+
+                        <field id="partial_refund_status" translate="label" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Partial refund</label>
+                            <source_model>Fintecture\Payment\Model\StatusMapping</source_model>
+                            <config_path>payment/fintecture/partial_refund_status</config_path>
+                        </field>
                     </group>
 
-                    <group id="fintecture_advanced_expiration" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <group id="fintecture_refund" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Refund</label>
+                        
+                        <field id="refund_statuses_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable change of order status for refunds</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/fintecture/refund_statuses_active</config_path>
+                        </field>
+                    </group>
+
+                    <group id="fintecture_advanced_expiration" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Automatic expiration of pending orders</label>
                         
                         <field id="expiration_active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -251,7 +273,7 @@
                         </field>
                     </group>
 
-                    <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <group id="fintecture_advanced_loginas" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Alternative payment methods for 'Login as Customer' feature</label>
                         
                         <field id="alternative_method_active" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
