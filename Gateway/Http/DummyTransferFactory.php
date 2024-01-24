@@ -39,7 +39,7 @@ class DummyTransferFactory implements TransferFactoryInterface
      */
     public function create(array $request)
     {
-        return $this->transferBuilder // ignored...
+        return $this->transferBuilder
             ->setBody($request)
             ->setMethod('POST')
             ->build();
