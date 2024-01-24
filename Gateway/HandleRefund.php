@@ -198,7 +198,16 @@ class HandleRefund
 
         // Create a credit memo only for a full refund
         if ($isFullRefund) {
-            $creditmemo = $this->creditmemoFactory->createByOrder($order);
+            $invoice = $this->fintectureHelper->getInvoiceByOrder($order);
+            if (!$invoice) {
+                $this->fintectureLogger->error('Apply refund', [
+                    'message' => 'No invoice found',
+                    'orderIncrementId' => $order->getIncrementId(),
+                ]);
+
+                return false;
+            }
+            $creditmemo = $this->creditmemoFactory->createByInvoice($invoice);
 
             return $this->apply($order, $creditmemo, $amount);
         }

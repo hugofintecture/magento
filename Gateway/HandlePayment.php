@@ -7,7 +7,6 @@ use Fintecture\Payment\Gateway\Http\Sdk;
 use Fintecture\Payment\Helper\Fintecture as FintectureHelper;
 use Fintecture\Payment\Logger\Logger;
 use Magento\Framework\DB\Transaction;
-use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -140,6 +139,8 @@ class HandlePayment
         $payment->setAmountPaid($paidAmount);
         $payment->setBaseAmountPaid($basePaidAmount);
 
+        $payment->setTransactionId($params['sessionId']);
+
         $this->paymentRepository->save($payment);
 
         $transaction = $this->transactionBuilder->setPayment($payment)
@@ -153,7 +154,7 @@ class HandlePayment
                     'type' => $params['type'],
                 ]])
             ->setFailSafe(true)
-            ->build(TransactionInterface::TYPE_CAPTURE);
+            ->build(Payment\Transaction::TYPE_CAPTURE);
 
         $this->transactionRepository->save($transaction);
 
@@ -208,14 +209,15 @@ class HandlePayment
         if ($this->fintectureHelper->isStatusAlreadyFinal($order)
             && $order->canInvoice() && $this->config->isInvoicingActive()) {
             $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setRequestedCaptureCase(Order\Invoice::CAPTURE_ONLINE);
             $invoice->setTransactionId($params['sessionId']);
             $invoice->register();
             $invoice->pay();
             $this->invoiceRepository->save($invoice);
-            $transactionSave = $this->transaction
+            $transaction = $this->transaction
                 ->addObject($invoice)
                 ->addObject($invoice->getOrder());
-            $transactionSave->save();
+            $transaction->save();
             // Send Invoice mail to customer
             $this->invoiceSender->send($invoice);
 

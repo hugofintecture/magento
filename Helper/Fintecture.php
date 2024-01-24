@@ -15,6 +15,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Status\History;
 use Magento\Sales\Model\ResourceModel\Order\Status\History\CollectionFactory;
@@ -132,6 +133,19 @@ class Fintecture extends AbstractHelper
         }
 
         return null;
+    }
+
+    public function getInvoiceByOrder(Order $order): ?Invoice
+    {
+        $invoices = $order->getInvoiceCollection();
+        if ($invoices->count() === 0) {
+            return null;
+        }
+
+        /** @var Invoice $invoice */
+        $invoice = $invoices->getLastItem();
+
+        return $invoice;
     }
 
     public function getCreditmemoByTransactionId(OrderInterface $order, string $creditmemoTransactionId): ?Creditmemo
