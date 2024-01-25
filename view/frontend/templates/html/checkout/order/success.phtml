@@ -1,3 +1,6 @@
+<?php
+/** @var \Fintecture\Payment\Block\Checkout\Success $block */
+?>
 <?php if ($block->getPaymentStatus() === 'payment_created'): ?>
     <div class="fintecture-alert fintecture-alert-success">
         <img src="<?php echo $block->getViewFileUrl('Fintecture_Payment::images/success.svg'); ?>">
