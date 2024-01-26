@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
 	<table name="sales_order" resource="sales" engine="innodb" comment="Sales Order">
-		<column xsi:type="varchar" name="fintecture_payment_session_id" nullable="true" length="150" comment="Fintecture payment session id" disabled="true" />
-		<column xsi:type="varchar" name="fintecture_payment_customer_id" nullable="true" length="150" comment="Fintecture payment customer id" disabled="true" />
+		<column xsi:type="decimal" name="fintecture_payment_refund_amount" scale="4" precision="20" unsigned="false" nullable="true" comment="Refunded Amount with Fintecture" />
 	</table>
 </schema>
