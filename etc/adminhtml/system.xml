@@ -56,7 +56,7 @@
                     </field>
 
                     <field id="custom_file_upload_sandbox" translate="label" type="Fintecture\Payment\Model\Config\File\PemFile" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Fintecture Private Key</label>
+                        <label>Fintecture private key</label>
                         <depends>
                             <field id="environment">sandbox</field>
                         </depends>
@@ -315,7 +315,7 @@
                     <label>Payment options</label>
 
                     <field id="sort_order" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Sort Order</label>
+                        <label>Sort order</label>
                         <frontend_class>validate-number</frontend_class>
                         <config_path>payment/fintecture_bnpl/sort_order</config_path>
                     </field>
