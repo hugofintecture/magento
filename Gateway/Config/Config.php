@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Config\Config as BaseConfig;
 class Config extends BaseConfig
 {
     const CODE = 'fintecture';
-    const VERSION = '3.5.2';
+    const VERSION = '3.5.3';
 
     const KEY_SHOP_NAME = 'general/store_information/name';
     const KEY_ACTIVE = 'active';
@@ -20,7 +20,6 @@ class Config extends BaseConfig
     const KEY_APP_SECRET_PRODUCTION = 'fintecture_app_secret_production';
     const KEY_PRIVATE_KEY_SANDBOX = 'custom_file_upload_sandbox';
     const KEY_PRIVATE_KEY_PRODUCTION = 'custom_file_upload_production';
-    const KEY_BANK_TYPE = 'general/bank_type';
     const KEY_REFUND_STATUSES_ACTIVE = 'refund_statuses_active';
     const KEY_EXPIRATION_ACTIVE = 'expiration_active';
     const KEY_EXPIRATION_AFTER = 'expiration_after';
@@ -64,7 +63,7 @@ class Config extends BaseConfig
         return $this->getValue(self::KEY_ENVIRONMENT);
     }
 
-    public function getAppId(string $environment = null, int $storeId = null): ?string
+    public function getAppId(?string $environment = null, ?int $storeId = null): ?string
     {
         $environment = $environment ?: $this->getAppEnvironment();
         if ($environment) {
@@ -78,7 +77,7 @@ class Config extends BaseConfig
         return null;
     }
 
-    public function getAppSecret(string $environment = null, int $storeId = null): ?string
+    public function getAppSecret(?string $environment = null, ?int $storeId = null): ?string
     {
         $environment = $environment ?: $this->getAppEnvironment();
         if ($environment) {
@@ -92,7 +91,7 @@ class Config extends BaseConfig
         return null;
     }
 
-    public function getAppPrivateKey(string $environment = null, int $storeId = null): ?string
+    public function getAppPrivateKey(?string $environment = null, ?int $storeId = null): ?string
     {
         $environment = $environment ?: $this->getAppEnvironment();
         if ($environment) {
@@ -104,11 +103,6 @@ class Config extends BaseConfig
         }
 
         return null;
-    }
-
-    public function getBankType(): ?string
-    {
-        return $this->getValue(self::KEY_BANK_TYPE);
     }
 
     public function isRefundStatusesActive(): bool

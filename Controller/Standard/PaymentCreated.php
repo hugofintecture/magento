@@ -179,7 +179,7 @@ class PaymentCreated extends WebhookAbstract
         return $result;
     }
 
-    private function refund(Order $order, string $status, float $amount, string $creditmemoTransactionId = null): Raw
+    private function refund(Order $order, string $status, float $amount, ?string $creditmemoTransactionId = null): Raw
     {
         $result = $this->resultRawFactory->create();
         $result->setHeader('Content-Type', 'text/plain');

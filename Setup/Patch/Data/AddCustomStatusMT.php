@@ -43,7 +43,7 @@ class AddCustomStatusMT implements DataPatchInterface
         return $this;
     }
 
-    public function addCustomStatus(string $id, string $label, string $state = null): bool
+    public function addCustomStatus(string $id, string $label, ?string $state = null): bool
     {
         $status = $this->statusFactory->create();
         $statusResourceFactory = $this->statusResourceFactory->create();
