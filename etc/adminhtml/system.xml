@@ -27,12 +27,6 @@
                         <config_path>payment/fintecture/environment</config_path>
                     </field>
 
-                    <field id="bank_type" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Bank type</label>
-                        <source_model>Fintecture\Payment\Model\BankType</source_model>
-                        <comment>Filter the bank type</comment>
-                    </field>
-
                     <!-- SANDBOX START -->
                     <field id="fintecture_app_id_sandbox" translate="label comment" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Fintecture APP ID</label>

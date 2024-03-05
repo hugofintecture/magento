@@ -257,8 +257,8 @@ class HandlePayment
 
     public function fail(
         Order $order,
-        array $params = null,
-        array $statuses = null,
+        ?array $params = null,
+        ?array $statuses = null,
         bool $webhook = false
     ): void {
         /** @var Order $order */

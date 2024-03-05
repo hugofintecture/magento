@@ -2,7 +2,7 @@ requirejs(['jquery', 'mage/translate'], function ($, $t) {
     'use strict';
     $(document).ready(function () {
         const loader = $('#loader');
-        const failMessage = $t('Connection did not succeed. Make sure you have entered the right parameters.');
+        const failMessage = $t('Connection failed. Have you correctly saved the private key in the Fintecture Console?');
         const successMessage = $t('Connection succeeded');
         const fields = 'groups[fintecture][groups][general][fields]';
         

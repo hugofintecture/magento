@@ -26,8 +26,8 @@ class PrivateKeyPem extends \Magento\Config\Model\Config\Backend\File
         \Magento\Framework\Filesystem $filesystem,
         EncryptorInterface $encryptor,
         Logger $fintectureLogger,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct(

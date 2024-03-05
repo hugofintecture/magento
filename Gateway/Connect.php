@@ -54,21 +54,12 @@ class Connect
         $state = Crypto::encodeToBase64(['order_id' => $order->getIncrementId()]);
         $redirectUrl = $this->fintectureHelper->getResponseUrl();
         $originUrl = $this->fintectureHelper->getOriginUrl();
-        $psuType = $this->config->getBankType();
-        if (!$psuType) {
-            $psuType = 'all';
-        }
 
         $apiResponse = $this->sdk->pisClient->connect->generate(
             $data,
             $state,
             $redirectUrl,
-            $originUrl,
-            null,
-            null,
-            [
-                'x-psu-type' => $psuType,
-            ]
+            $originUrl
         );
 
         if ($apiResponse->error) {
